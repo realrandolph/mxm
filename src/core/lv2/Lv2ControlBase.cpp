@@ -28,8 +28,10 @@
 
 #include <algorithm>
 #include <QDebug>
+#include <QDomDocument>
 #include <QtGlobal>
 
+#include "AudioEngine.h"
 #include "Engine.h"
 #include "lmms_constants.h"
 #include "Lv2Manager.h"
@@ -101,6 +103,7 @@ void Lv2ControlBase::shutdown()
 
 void Lv2ControlBase::reload()
 {
+	const auto guard = Engine::audioEngine()->requestChangesGuard();
 	for (const auto& c : m_procs) { c->reload(); }
 }
 
@@ -170,9 +173,20 @@ void Lv2ControlBase::run(f_cnt_t frames) {
 
 void Lv2ControlBase::saveSettings(QDomDocument &doc, QDomElement &that)
 {
+	const auto guard = Engine::audioEngine()->requestChangesGuard();
 	LinkedModelGroups::saveSettings(doc, that);
-	
-	// TODO: save state if supported by plugin
+
+	for (std::size_t i = 0; i < m_procs.size(); ++i)
+	{
+		if (const auto state = m_procs[i]->saveState())
+		{
+			QDomElement stateElement = doc.createElement("lv2state");
+			stateElement.setAttribute("index", static_cast<qulonglong>(i));
+			stateElement.setAttribute("encoding", "base64");
+			stateElement.appendChild(doc.createTextNode(QString::fromLatin1(state->toBase64())));
+			that.appendChild(stateElement);
+		}
+	}
 }
 
 
@@ -180,9 +194,27 @@ void Lv2ControlBase::saveSettings(QDomDocument &doc, QDomElement &that)
 
 void Lv2ControlBase::loadSettings(const QDomElement &that)
 {
+	const auto guard = Engine::audioEngine()->requestChangesGuard();
+	std::vector<bool> restored(m_procs.size());
+	for (QDomElement stateElement = that.firstChildElement("lv2state");
+		!stateElement.isNull();
+		stateElement = stateElement.nextSiblingElement("lv2state"))
+	{
+		bool validIndex = false;
+		const auto index = stateElement.attribute("index").toULongLong(&validIndex);
+		if (!validIndex || index >= m_procs.size() || restored[index] ||
+			stateElement.attribute("encoding") != "base64")
+		{
+			qWarning() << "Ignoring invalid LV2 state element";
+			continue;
+		}
+
+		const QByteArray state = QByteArray::fromBase64(stateElement.text().toLatin1());
+		restored[index] = m_procs[index]->restoreState(state);
+	}
+
 	LinkedModelGroups::loadSettings(that);
-	
-	// TODO: load state if supported by plugin
+	copyModelsFromLmms();
 }
 
 

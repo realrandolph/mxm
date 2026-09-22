@@ -58,11 +58,17 @@ struct LilvScalePointsDeleter
 	void operator()(LilvScalePoints* s) { lilv_scale_points_free(s); }
 };
 
+struct LilvStateDeleter
+{
+	void operator()(LilvState* state) { lilv_state_free(state); }
+};
+
 template<class T>
 using AutoLilvPtr = std::unique_ptr<T, LilvPtrDeleter<T>>;
 using AutoLilvNode = std::unique_ptr<LilvNode, LilvNodeDeleter>;
 using AutoLilvNodes = std::unique_ptr<LilvNodes, LilvNodesDeleter>;
 using AutoLilvScalePoints = std::unique_ptr<LilvScalePoints, LilvScalePointsDeleter>;
+using AutoLilvState = std::unique_ptr<LilvState, LilvStateDeleter>;
 
 /**
 	Return QString from a plugin's node, everything will be freed automatically

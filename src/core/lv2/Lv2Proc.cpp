@@ -30,13 +30,13 @@
 #include <lv2/midi/midi.h>
 #include <lv2/atom/atom.h>
 #include <lv2/resize-port/resize-port.h>
+#include <lv2/state/state.h>
 #include <lv2/worker/worker.h>
 #include <QDebug>
 #include <QtGlobal>
 
 #include "AudioEngine.h"
 #include "AutomatableModel.h"
-#include "ComboBoxModel.h"
 #include "ConfigManager.h"
 #include "Engine.h"
 #include "Lv2Features.h"
@@ -159,11 +159,17 @@ Plugin::Type Lv2Proc::check(const LilvPlugin *plugin,
 		}
 	}
 
-	return (audioChannels[inCount] > 2 || audioChannels[outCount] > 2)
-		? Plugin::Type::Undefined
-		: (audioChannels[inCount] > 0)
-			? Plugin::Type::Effect
-			: Plugin::Type::Instrument;
+	if (audioChannels[inCount] > 2 || audioChannels[outCount] > 2)
+	{
+		return Plugin::Type::Undefined;
+	}
+
+	const bool declaredInstrument = Engine::getLv2Manager()->isSubclassOf(
+		lilv_plugin_get_class(plugin), LV2_CORE__InstrumentPlugin);
+
+	return declaredInstrument || audioChannels[inCount] == 0
+		? Plugin::Type::Instrument
+		: Plugin::Type::Effect;
 }
 
 
@@ -209,7 +215,89 @@ Lv2Proc::~Lv2Proc() { shutdownPlugin(); }
 
 
 
-void Lv2Proc::reload() { Lv2ProcSuspender(this); }
+void Lv2Proc::reload()
+{
+	const auto state = saveState();
+	{ Lv2ProcSuspender suspender(this); }
+	if (state) { restoreState(*state); }
+}
+
+
+
+
+std::optional<QByteArray> Lv2Proc::saveState() const
+{
+	Lv2Manager* manager = Engine::getLv2Manager();
+	AutoLilvNode stateInterface = manager->uri(LV2_STATE__interface);
+	if (!m_instance || !lilv_plugin_has_extension_data(m_plugin, stateInterface.get()))
+	{
+		return std::nullopt;
+	}
+
+	AutoLilvState state(lilv_state_new_from_instance(
+		m_plugin,
+		m_instance,
+		manager->uridMap().mapFeature(),
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE,
+		m_features.featurePointers()));
+	if (!state)
+	{
+		qWarning() << "Failed to save LV2 state for"
+			<< lilv_node_as_uri(lilv_plugin_get_uri(m_plugin));
+		return std::nullopt;
+	}
+
+	AutoLilvPtr<char> serialized(lilv_state_to_string(
+		manager->world(),
+		manager->uridMap().mapFeature(),
+		manager->uridMap().unmapFeature(),
+		state.get(),
+		"urn:lmms:lv2-state",
+		nullptr));
+	if (!serialized)
+	{
+		qWarning() << "Failed to serialize LV2 state for"
+			<< lilv_node_as_uri(lilv_plugin_get_uri(m_plugin));
+		return std::nullopt;
+	}
+
+	return QByteArray(serialized.get());
+}
+
+
+
+
+bool Lv2Proc::restoreState(const QByteArray& serializedState)
+{
+	Lv2Manager* manager = Engine::getLv2Manager();
+	AutoLilvState state(lilv_state_new_from_string(
+		manager->world(), manager->uridMap().mapFeature(), serializedState.constData()));
+	if (!state)
+	{
+		qWarning() << "Failed to parse LV2 state for"
+			<< lilv_node_as_uri(lilv_plugin_get_uri(m_plugin));
+		return false;
+	}
+
+	const LilvNode* statePluginUri = lilv_state_get_plugin_uri(state.get());
+	if (!statePluginUri || !lilv_node_equals(statePluginUri, lilv_plugin_get_uri(m_plugin)))
+	{
+		qWarning() << "Ignoring LV2 state for a different plugin";
+		return false;
+	}
+
+	m_workLock.wait();
+	lilv_state_restore(
+		state.get(), m_instance, nullptr, nullptr, 0, m_features.featurePointers());
+	m_workLock.post();
+	return true;
+}
 
 
 
@@ -484,6 +572,7 @@ void Lv2Proc::initPlugin()
 
 void Lv2Proc::shutdownPlugin()
 {
+	m_worker.reset();
 	lilv_instance_deactivate(m_instance);
 	lilv_instance_free(m_instance);
 	m_instance = nullptr;

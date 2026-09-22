@@ -343,28 +343,23 @@ bool Lv2Manager::wantUi()
 
 
 
-// unused + untested yet
-bool Lv2Manager::isSubclassOf(const LilvPluginClass* clvss, const char* uriStr)
+bool Lv2Manager::isSubclassOf(const LilvPluginClass* pluginClass, const char* classUri)
 {
-	const LilvPluginClasses* allClasses = lilv_world_get_plugin_classes(m_world);
-	const LilvPluginClass* root = lilv_world_get_plugin_class(m_world);
-	const LilvPluginClass* search = lilv_plugin_classes_get_by_uri(allClasses,
-					uri(uriStr).get());
+	AutoLilvNode targetUri = uri(classUri);
+	const LilvPluginClasses* classes = lilv_world_get_plugin_classes(m_world);
+	while (pluginClass)
+	{
+		if (lilv_node_equals(lilv_plugin_class_get_uri(pluginClass), targetUri.get()))
+		{
+			return true;
+		}
 
-	auto clssEq = [](const LilvPluginClass* pc1,
-		const LilvPluginClass* pc2) -> bool
-	{
-		return lilv_node_equals(
-			lilv_plugin_class_get_uri(pc1),
-			lilv_plugin_class_get_uri(pc2));
-	};
-	bool isFound = false;
-	while (!(isFound = clssEq(clvss, search)) && !clssEq(clvss, root))
-	{
-		clvss = lilv_plugin_classes_get_by_uri(allClasses,
-			lilv_plugin_class_get_parent_uri(clvss));
+		const LilvNode* parentUri = lilv_plugin_class_get_parent_uri(pluginClass);
+		pluginClass = parentUri
+			? lilv_plugin_classes_get_by_uri(classes, parentUri)
+			: nullptr;
 	}
-	return isFound;
+	return false;
 }
 
 

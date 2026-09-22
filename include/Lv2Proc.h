@@ -32,6 +32,7 @@
 #include <lilv/lilv.h>
 #include <memory>
 #include <optional>
+#include <QByteArray>
 
 #include <ringbuffer/ringbuffer.h>
 
@@ -76,6 +77,8 @@ public:
 	~Lv2Proc() override;
 	void reload();
 	void onSampleRateChanged();
+	std::optional<QByteArray> saveState() const;
+	bool restoreState(const QByteArray& serializedState);
 
 	/*
 		port access

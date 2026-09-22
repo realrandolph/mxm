@@ -122,12 +122,14 @@ public:
 	Iterator end() { return m_lv2InfoMap.end(); }
 
 	UridMap& uridMap() { return m_uridMap; }
+	LilvWorld* world() { return m_world; }
 	const Lv2UridCache& uridCache() const { return m_uridCache; }
 	const std::set<std::string_view>& supportedFeatureURIs() const
 	{
 		return m_supportedFeatureURIs;
 	}
 	bool isFeatureSupported(const char* featName) const;
+	bool isSubclassOf(const LilvPluginClass* pluginClass, const char* classUri);
 	AutoLilvNodes findNodes(const LilvNode *subject,
 		const LilvNode *predicate, const LilvNode *object);
 
@@ -167,8 +169,6 @@ private:
 	static const std::set<std::string_view> pluginsOnlyUsefulWithUi;
 	static const std::set<std::string_view> unstablePluginsBuffersizeLessEqual32;
 
-	// functions
-	bool isSubclassOf(const LilvPluginClass *clvss, const char *uriStr);
 };
 
 
