@@ -30,6 +30,7 @@
 #ifdef LMMS_HAVE_LV2
 
 #include <lilv/lilv.h>
+#include <functional>
 #include <memory>
 
 #include "LinkedModelGroups.h"
@@ -84,9 +85,14 @@ public:
 
 	Lv2Proc *control(std::size_t idx) { return m_procs[idx].get(); }
 	const Lv2Proc *control(std::size_t idx) const { return m_procs[idx].get(); }
+	std::size_t processorCount() const { return m_procs.size(); }
 
 	bool hasGui() const { return m_hasGUI; }
 	void setHasGui(bool val) { m_hasGUI = val; }
+	void setUiCloseCallback(std::function<void()> callback)
+	{
+		m_uiCloseCallback = std::move(callback);
+	}
 
 protected:
 	/*
@@ -147,6 +153,7 @@ private:
 	std::vector<std::unique_ptr<Lv2Proc>> m_procs;
 
 	bool m_hasGUI = false;
+	std::function<void()> m_uiCloseCallback;
 	unsigned m_channelsPerProc;
 
 	const LilvPlugin* m_plugin;

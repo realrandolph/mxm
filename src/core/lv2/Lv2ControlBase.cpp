@@ -69,7 +69,10 @@ Lv2ControlBase::Lv2ControlBase(Model* that, const QString &uri) :
 
 
 
-Lv2ControlBase::~Lv2ControlBase() = default;
+Lv2ControlBase::~Lv2ControlBase()
+{
+	if (m_uiCloseCallback) { m_uiCloseCallback(); }
+}
 
 
 
@@ -103,6 +106,7 @@ void Lv2ControlBase::shutdown()
 
 void Lv2ControlBase::reload()
 {
+	if (m_uiCloseCallback) { m_uiCloseCallback(); }
 	const auto guard = Engine::audioEngine()->requestChangesGuard();
 	for (const auto& c : m_procs) { c->reload(); }
 }

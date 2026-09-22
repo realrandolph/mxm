@@ -26,17 +26,23 @@
 
 #ifdef LMMS_HAVE_LV2
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstring>
+#include <vector>
 #include <lv2/midi/midi.h>
 #include <lv2/atom/atom.h>
 #include <lv2/resize-port/resize-port.h>
 #include <lv2/state/state.h>
+#include <lv2/ui/ui.h>
 #include <lv2/worker/worker.h>
 #include <QDebug>
 #include <QtGlobal>
 
 #include "AudioEngine.h"
 #include "AutomatableModel.h"
+#include "ComboBoxModel.h"
 #include "ConfigManager.h"
 #include "Engine.h"
 #include "Lv2Features.h"
@@ -58,6 +64,87 @@ struct MidiInputEvent
 	MidiEvent ev;
 	TimePos time;
 	f_cnt_t offset;
+};
+
+
+
+
+class Lv2UiMessageQueue
+{
+public:
+	explicit Lv2UiMessageQueue(std::size_t maxMessageSize)
+	{
+		for (auto& slot : m_slots) { slot.m_data.resize(maxMessageSize); }
+	}
+
+	bool push(uint32_t portIndex, uint32_t size, const void* data)
+	{
+		const auto write = m_write.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % m_slots.size();
+		if (next == m_read.load(std::memory_order_acquire) || size > m_slots[write].m_data.size())
+		{
+			return false;
+		}
+
+		auto& slot = m_slots[write];
+		slot.m_portIndex = portIndex;
+		slot.m_size = size;
+		std::memcpy(slot.m_data.data(), data, size);
+		m_write.store(next, std::memory_order_release);
+		return true;
+	}
+
+	bool pushAtom(uint32_t portIndex, uint32_t type, uint32_t size, const void* body)
+	{
+		const auto write = m_write.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % m_slots.size();
+		const auto totalSize = sizeof(LV2_Atom) + size;
+		if (next == m_read.load(std::memory_order_acquire) || totalSize > m_slots[write].m_data.size())
+		{
+			return false;
+		}
+
+		auto& slot = m_slots[write];
+		slot.m_portIndex = portIndex;
+		slot.m_size = totalSize;
+		auto atom = reinterpret_cast<LV2_Atom*>(slot.m_data.data());
+		atom->type = type;
+		atom->size = size;
+		std::memcpy(LV2_ATOM_BODY(atom), body, size);
+		m_write.store(next, std::memory_order_release);
+		return true;
+	}
+
+	template<typename Receive>
+	void drain(const Receive& receive)
+	{
+		auto read = m_read.load(std::memory_order_relaxed);
+		const auto write = m_write.load(std::memory_order_acquire);
+		while (read != write)
+		{
+			const auto& slot = m_slots[read];
+			receive(slot.m_portIndex, slot.m_size, slot.m_data.data());
+			read = (read + 1) % m_slots.size();
+			m_read.store(read, std::memory_order_release);
+		}
+	}
+
+	void clear()
+	{
+		m_read.store(m_write.load(std::memory_order_acquire), std::memory_order_release);
+	}
+
+private:
+	struct Slot
+	{
+		uint32_t m_portIndex = 0;
+		uint32_t m_size = 0;
+		std::vector<uint8_t> m_data;
+	};
+
+	std::array<Slot, 32> m_slots;
+	std::atomic<std::size_t> m_read{0};
+	std::atomic<std::size_t> m_write{0};
 };
 
 
@@ -204,6 +291,19 @@ Lv2Proc::Lv2Proc(const LilvPlugin *plugin, Model* parent) :
 	m_midiInputReader(m_midiInputBuf)
 {
 	createPorts();
+
+	std::size_t maxUiMessageSize = sizeof(LV2_Atom);
+	for (const auto& port : m_ports)
+	{
+		if (const auto atom = Lv2Ports::dcast<Lv2Ports::AtomSeq>(port.get()))
+		{
+			maxUiMessageSize = std::max(maxUiMessageSize,
+				static_cast<std::size_t>(lv2_evbuf_get_capacity(atom->m_buf.get())) + sizeof(LV2_Atom));
+		}
+	}
+	m_uiToPlugin = std::make_unique<Lv2UiMessageQueue>(maxUiMessageSize);
+	m_pluginToUi = std::make_unique<Lv2UiMessageQueue>(maxUiMessageSize);
+	m_eventTransferUrid = Engine::getLv2Manager()->uridMap().map(LV2_ATOM__eventTransfer);
 	initPlugin();
 }
 
@@ -217,6 +317,8 @@ Lv2Proc::~Lv2Proc() { shutdownPlugin(); }
 
 void Lv2Proc::reload()
 {
+	m_uiToPlugin->clear();
+	m_pluginToUi->clear();
 	const auto state = saveState();
 	{ Lv2ProcSuspender suspender(this); }
 	if (state) { restoreState(*state); }
@@ -362,10 +464,28 @@ void Lv2Proc::copyModelsFromCore()
 		}
 	}
 
+	// Atom messages from a native UI are transferred to the plugin at the
+	// start of a process cycle, never directly from the GUI thread.
+	if (m_uiToPlugin)
+	{
+		m_uiToPlugin->drain([this](uint32_t portIndex, uint32_t size, const void* data)
+		{
+			if (portIndex >= m_ports.size() || size < sizeof(LV2_Atom)) { return; }
+			auto atomPort = Lv2Ports::dcast<Lv2Ports::AtomSeq>(m_ports[portIndex].get());
+			if (!atomPort || atomPort->m_flow != Lv2Ports::Flow::Input) { return; }
+
+			const auto atom = static_cast<const LV2_Atom*>(data);
+			if (sizeof(LV2_Atom) + atom->size > size) { return; }
+			auto iter = lv2_evbuf_end(atomPort->m_buf.get());
+			lv2_evbuf_write(&iter, 0, atom->type, atom->size,
+				static_cast<const uint8_t*>(LV2_ATOM_BODY_CONST(atom)));
+		});
+	}
+
 	// send pending MIDI events to atom port
 	if(m_midiIn)
 	{
-		LV2_Evbuf_Iterator iter = lv2_evbuf_begin(m_midiIn->m_buf.get());
+		LV2_Evbuf_Iterator iter = lv2_evbuf_end(m_midiIn->m_buf.get());
 		// MIDI events waiting to go to the plugin?
 		while(m_midiInputReader.read_space() > 0)
 		{
@@ -391,19 +511,37 @@ void Lv2Proc::copyModelsToCore()
 {
 	struct Copy : public Lv2Ports::Visitor
 	{
+		Lv2Proc* m_proc;
+		uint32_t m_portIndex;
 		void visit(Lv2Ports::AtomSeq& atomPort) override
 		{
-			// we currently don't copy anything, but we need to clear the buffer
-			// for the plugin to write again
+			if (m_proc->m_uiEventsActive.load(std::memory_order_acquire))
+			{
+				for (auto iter = lv2_evbuf_begin(atomPort.m_buf.get()); lv2_evbuf_is_valid(iter);
+					iter = lv2_evbuf_next(iter))
+				{
+					uint32_t frames = 0;
+					uint32_t type = 0;
+					uint32_t size = 0;
+					uint8_t* data = nullptr;
+					if (lv2_evbuf_get(iter, &frames, &type, &size, &data))
+					{
+						m_proc->m_pluginToUi->pushAtom(m_portIndex, type, size, data);
+					}
+				}
+			}
 			lv2_evbuf_reset(atomPort.m_buf.get(), false);
 		}
 	} copy;
+	copy.m_proc = this;
 
 	// fetch data from each output port and bring it to the LMMS core
-	for (const std::unique_ptr<Lv2Ports::PortBase>& port : m_ports)
+	for (std::size_t i = 0; i < m_ports.size(); ++i)
 	{
+		const auto& port = m_ports[i];
 		if (port->m_flow == Lv2Ports::Flow::Output)
 		{
+			copy.m_portIndex = static_cast<uint32_t>(i);
 			port->accept(copy);
 		}
 	}
@@ -515,6 +653,137 @@ AutomatableModel *Lv2Proc::modelAtPort(const QString &uri)
 {
 	const auto itr = m_connectedModels.find(uri.toUtf8().data());
 	return itr != m_connectedModels.end() ? itr->second : nullptr;
+}
+
+
+
+
+LV2_Handle Lv2Proc::instanceHandle() const
+{
+	return m_instance ? lilv_instance_get_handle(m_instance) : nullptr;
+}
+
+
+
+
+uint32_t Lv2Proc::portIndex(const char* symbol) const
+{
+	AutoLilvNode symbolNode(lilv_new_string(Engine::getLv2Manager()->world(), symbol));
+	const LilvPort* port = lilv_plugin_get_port_by_symbol(m_plugin, symbolNode.get());
+	return port ? lilv_port_get_index(m_plugin, port) : LV2UI_INVALID_PORT_INDEX;
+}
+
+
+
+
+bool Lv2Proc::uiControlValue(uint32_t portIndex, float& value) const
+{
+	if (portIndex >= m_ports.size()) { return false; }
+	const auto control = Lv2Ports::dcast<Lv2Ports::Control>(m_ports[portIndex].get());
+	if (!control || control->m_flow != Lv2Ports::Flow::Input || !control->m_connectedModel)
+	{
+		return false;
+	}
+
+	struct ReadModel : public ConstModelVisitor
+	{
+		const std::vector<float>* m_scalePoints = nullptr;
+		float m_value = 0.0f;
+		void visit(const FloatModel& model) override { m_value = model.value(); }
+		void visit(const IntModel& model) override { m_value = static_cast<float>(model.value()); }
+		void visit(const BoolModel& model) override { m_value = model.value() ? 1.0f : 0.0f; }
+		void visit(const ComboBoxModel& model) override
+		{
+			const auto index = static_cast<std::size_t>(model.value());
+			if (index < m_scalePoints->size()) { m_value = (*m_scalePoints)[index]; }
+		}
+	} reader;
+	reader.m_scalePoints = &control->m_scalePointMap;
+	control->m_connectedModel->accept(reader);
+	value = reader.m_value;
+	return true;
+}
+
+
+
+
+bool Lv2Proc::setUiControlValue(uint32_t portIndex, float value)
+{
+	if (portIndex >= m_ports.size()) { return false; }
+	auto control = Lv2Ports::dcast<Lv2Ports::Control>(m_ports[portIndex].get());
+	if (!control || control->m_flow != Lv2Ports::Flow::Input || !control->m_connectedModel)
+	{
+		return false;
+	}
+
+	struct WriteModel : public ModelVisitor
+	{
+		const std::vector<float>* m_scalePoints = nullptr;
+		float m_value = 0.0f;
+		void visit(FloatModel& model) override { model.setValue(m_value); }
+		void visit(IntModel& model) override { model.setValue(m_value); }
+		void visit(BoolModel& model) override { model.setValue(m_value != 0.0f); }
+		void visit(ComboBoxModel& model) override
+		{
+			if (m_scalePoints->empty()) { return; }
+			auto closest = std::min_element(m_scalePoints->begin(), m_scalePoints->end(),
+				[this](float lhs, float rhs)
+				{
+					return std::abs(lhs - m_value) < std::abs(rhs - m_value);
+				});
+			model.setValue(static_cast<float>(std::distance(m_scalePoints->begin(), closest)));
+		}
+	} writer;
+	writer.m_scalePoints = &control->m_scalePointMap;
+	writer.m_value = value;
+	control->m_connectedModel->accept(writer);
+	return true;
+}
+
+
+
+
+bool Lv2Proc::enqueueUiEvent(uint32_t portIndex, uint32_t size, uint32_t protocol,
+	const void* buffer)
+{
+	if (protocol != m_eventTransferUrid || portIndex >= m_ports.size() ||
+		size < sizeof(LV2_Atom) || !buffer)
+	{
+		return false;
+	}
+
+	const auto atomPort = Lv2Ports::dcast<Lv2Ports::AtomSeq>(m_ports[portIndex].get());
+	const auto atom = static_cast<const LV2_Atom*>(buffer);
+	const auto atomSize = sizeof(LV2_Atom) + atom->size;
+	return atomPort && atomPort->m_flow == Lv2Ports::Flow::Input && atomSize <= size &&
+		m_uiToPlugin->push(portIndex, atomSize, buffer);
+}
+
+
+
+
+void Lv2Proc::drainUiEvents(
+	const std::function<void(uint32_t, uint32_t, const void*)>& receive)
+{
+	m_pluginToUi->drain(receive);
+}
+
+
+
+
+void Lv2Proc::beginUiEvents()
+{
+	m_pluginToUi->clear();
+	m_uiEventsActive.store(true, std::memory_order_release);
+}
+
+
+
+
+void Lv2Proc::endUiEvents()
+{
+	m_uiEventsActive.store(false, std::memory_order_release);
+	m_pluginToUi->clear();
 }
 
 

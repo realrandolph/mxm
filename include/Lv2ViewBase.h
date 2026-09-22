@@ -33,6 +33,7 @@
 #include "LinkedModelGroupViews.h"
 #include "lmms_export.h"
 #include "Lv2Basics.h"
+#include <memory>
 
 
 class QPushButton;
@@ -47,6 +48,10 @@ class Lv2ControlBase;
 
 namespace gui
 {
+
+#ifdef LMMS_HAVE_LV2_UI
+class Lv2UiHost;
+#endif
 
 
 //! View for one processor, Lv2ViewBase contains 2 of those for mono plugins
@@ -110,8 +115,14 @@ private:
 	static AutoLilvNode uri(const char *uriStr);
 	LinkedModelGroupView* getGroupView() override { return m_procView; }
 	void onHelpWindowClosed();
+	void closeNativeUi();
 
 	Lv2ViewProc* m_procView;
+	QWidget* m_pluginWidget = nullptr;
+	Lv2ControlBase* m_ctrlBase = nullptr;
+#ifdef LMMS_HAVE_LV2_UI
+	std::unique_ptr<Lv2UiHost> m_uiHost;
+#endif
 
 	//! Numbers of controls per row; must be multiple of 2 for mono effects
 	const int m_colNum = 6;

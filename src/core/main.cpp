@@ -37,6 +37,10 @@
 #include <QPushButton>
 #include <QTextStream>
 
+#ifdef LMMS_HAVE_SUIL
+#include <suil/suil.h>
+#endif
+
 #ifdef LMMS_BUILD_WIN32
 #include <windows.h>
 #endif
@@ -246,6 +250,10 @@ int noInputFileError()
 int main( int argc, char * * argv )
 {
 	using namespace lmms;
+
+#ifdef LMMS_HAVE_SUIL
+	suil_init(&argc, &argv, SUIL_ARG_NONE);
+#endif
 
 	bool coreOnly = false;
 	bool fullscreen = true;

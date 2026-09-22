@@ -193,6 +193,10 @@ target_link_libraries(lmmsobjs
 	${LMMS_REQUIRED_LIBS}
 )
 target_static_libraries(lmmsobjs ringbuffer)
+if(LMMS_HAVE_LV2_UI)
+	target_include_directories(lmmsobjs SYSTEM PRIVATE ${X11_INCLUDE_DIR})
+	target_link_libraries(lmmsobjs ${X11_LIBRARIES})
+endif()
 
 set_target_properties(lmms PROPERTIES
 	ENABLE_EXPORTS ON

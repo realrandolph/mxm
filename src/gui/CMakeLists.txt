@@ -22,6 +22,7 @@ SET(LMMS_SRCS
 	gui/LinkedModelGroupViews.cpp
 	gui/LmmsPalette.cpp
 	gui/LmmsStyle.cpp
+	gui/Lv2UiHost.cpp
 	gui/Lv2ViewBase.cpp
 	gui/MainApplication.cpp
 	gui/MainWindow.cpp
@@ -132,4 +133,3 @@ SET(LMMS_SRCS
 
 	PARENT_SCOPE
 )
-

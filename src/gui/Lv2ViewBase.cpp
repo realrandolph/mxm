@@ -28,6 +28,7 @@
 
 #include <QGridLayout>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <lilv/lilv.h>
@@ -44,6 +45,9 @@
 #include "Lv2Manager.h"
 #include "Lv2Proc.h"
 #include "Lv2Ports.h"
+#ifdef LMMS_HAVE_LV2_UI
+#include "Lv2UiHost.h"
+#endif
 #include "MainWindow.h"
 #include "SubWindow.h"
 
@@ -138,6 +142,8 @@ AutoLilvNode Lv2ViewProc::uri(const char *uriStr)
 
 
 Lv2ViewBase::Lv2ViewBase(QWidget* meAsWidget, Lv2ControlBase *ctrlBase) :
+	m_pluginWidget(meAsWidget),
+	m_ctrlBase(ctrlBase),
 	m_helpWindowEventFilter(this)
 {
 	auto grid = new QGridLayout(meAsWidget);
@@ -150,7 +156,11 @@ Lv2ViewBase::Lv2ViewBase(QWidget* meAsWidget, Lv2ControlBase *ctrlBase) :
 		btnBox->addWidget(m_reloadPluginButton, 0);
 	}
 
-	if (/* DISABLES CODE */ (false)) // TODO: check if the plugin has the UI extension
+#ifdef LMMS_HAVE_LV2_UI
+	// A UI using instance-access can only control one DSP instance. Mono LV2s
+	// are duplicated for stereo by LMMS, so their generic controls remain the
+	// safe, synchronized interface.
+	if (ctrlBase->processorCount() == 1 && Lv2UiHost::isAvailable(ctrlBase->getPlugin()))
 	{
 		m_toggleUIButton = new QPushButton(QObject::tr("Show GUI"),
 											meAsWidget);
@@ -160,6 +170,7 @@ Lv2ViewBase::Lv2ViewBase(QWidget* meAsWidget, Lv2ControlBase *ctrlBase) :
 		m_toggleUIButton->setFont(adjustedToPixelSize(m_toggleUIButton->font(), SMALL_FONT_SIZE));
 		btnBox->addWidget(m_toggleUIButton, 0);
 	}
+#endif
 	btnBox->addStretch(1);
 
 	meAsWidget->setAcceptDrops(true);
@@ -198,14 +209,17 @@ Lv2ViewBase::Lv2ViewBase(QWidget* meAsWidget, Lv2ControlBase *ctrlBase) :
 
 	m_procView = new Lv2ViewProc(meAsWidget, ctrlBase->control(0), m_colNum);
 	grid->addWidget(m_procView, Rows::ProcRow, 0);
+
+	ctrlBase->setUiCloseCallback([this]() { closeNativeUi(); });
 }
 
 
 
 
 Lv2ViewBase::~Lv2ViewBase() {
+	if (m_ctrlBase) { m_ctrlBase->setUiCloseCallback({}); }
+	closeNativeUi();
 	closeHelpWindow();
-	// TODO: hide UI if required
 }
 
 
@@ -213,6 +227,59 @@ Lv2ViewBase::~Lv2ViewBase() {
 
 void Lv2ViewBase::toggleUI()
 {
+#ifdef LMMS_HAVE_LV2_UI
+	if (!m_toggleUIButton)
+	{
+		qWarning() << "LV2 UI: Show GUI was requested without a toggle button";
+		return;
+	}
+	if (!m_toggleUIButton->isChecked())
+	{
+		m_uiHost.reset();
+		return;
+	}
+	if (!m_ctrlBase || !m_ctrlBase->getPlugin() || !m_ctrlBase->control(0))
+	{
+		qWarning() << "LV2 UI: Show GUI was requested without a plugin instance";
+		QSignalBlocker blocker(m_toggleUIButton);
+		m_toggleUIButton->setChecked(false);
+		return;
+	}
+
+	const char* pluginUri = lilv_node_as_uri(lilv_plugin_get_uri(m_ctrlBase->getPlugin()));
+	auto uiHost = std::make_unique<Lv2UiHost>(m_pluginWidget, m_ctrlBase->getPlugin(),
+		m_ctrlBase->control(0), [this]()
+		{
+			QSignalBlocker blocker(m_toggleUIButton);
+			if (m_toggleUIButton) { m_toggleUIButton->setChecked(false); }
+			m_uiHost.reset();
+		});
+	if (!uiHost->isValid())
+	{
+		qWarning() << "LV2 UI: failed to instantiate native UI for" << pluginUri;
+		QSignalBlocker blocker(m_toggleUIButton);
+		m_toggleUIButton->setChecked(false);
+		return;
+	}
+
+	m_uiHost = std::move(uiHost);
+	m_uiHost->show();
+#endif // LMMS_HAVE_LV2_UI
+}
+
+
+
+
+void Lv2ViewBase::closeNativeUi()
+{
+#ifdef LMMS_HAVE_LV2_UI
+	m_uiHost.reset();
+#endif
+	if (m_toggleUIButton)
+	{
+		QSignalBlocker blocker(m_toggleUIButton);
+		m_toggleUIButton->setChecked(false);
+	}
 }
 
 
@@ -240,11 +307,10 @@ void Lv2ViewBase::closeHelpWindow()
 
 void Lv2ViewBase::modelChanged(Lv2ControlBase *ctrlBase)
 {
-	// reconnect models
-	if (m_toggleUIButton)
-	{
-		m_toggleUIButton->setChecked(ctrlBase->hasGui());
-	}
+	closeNativeUi();
+	if (m_ctrlBase && m_ctrlBase != ctrlBase) { m_ctrlBase->setUiCloseCallback({}); }
+	m_ctrlBase = ctrlBase;
+	m_ctrlBase->setUiCloseCallback([this]() { closeNativeUi(); });
 
 	LinkedModelGroupsView::modelChanged(ctrlBase);
 }

@@ -93,6 +93,15 @@ lv2_evbuf_get_size(LV2_Evbuf* evbuf)
 		: 0;
 }
 
+
+
+
+uint32_t
+lv2_evbuf_get_capacity(LV2_Evbuf* evbuf)
+{
+	return evbuf->capacity;
+}
+
 void*
 lv2_evbuf_get_buffer(LV2_Evbuf* evbuf)
 {

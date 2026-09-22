@@ -147,8 +147,7 @@ public:
 			unstablePluginsBuffersizeLessEqual32.end();
 	}
 
-	//! Whether the user generally wants a UI (and we generally support that)
-	//! Since we do not generally support UI right now, this will always return false...
+	//! Whether native LV2 UI support was built into this LMMS instance.
 	static bool wantUi();
 
 private:

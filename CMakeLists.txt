@@ -295,9 +295,15 @@ set(QT_LIBRARIES
 	Qt${QT_VERSION_MAJOR}::Svg
 )
 
-IF(LMMS_BUILD_LINUX AND WANT_VST AND NOT WANT_QT6)
-    FIND_PACKAGE(Qt5 COMPONENTS X11Extras REQUIRED)
-    LIST(APPEND QT_LIBRARIES Qt5::X11Extras)
+IF(LMMS_BUILD_LINUX AND NOT WANT_QT6 AND (WANT_VST OR WANT_SUIL))
+	IF(WANT_VST)
+		FIND_PACKAGE(Qt5 COMPONENTS X11Extras REQUIRED)
+	ELSE()
+		FIND_PACKAGE(Qt5 COMPONENTS X11Extras)
+	ENDIF()
+	IF(Qt5X11Extras_FOUND)
+		LIST(APPEND QT_LIBRARIES Qt5::X11Extras)
+	ENDIF()
 ENDIF()
 
 # Resolve qmake to full path for use in packaging scripts
@@ -356,6 +362,7 @@ else()
 	set(STATUS_LV2 "not built as requested")
 endif()
 
+SET(STATUS_LV2_UI "not available")
 IF(WANT_SUIL)
 	IF(PKG_CONFIG_FOUND)
 		PKG_CHECK_MODULES(SUIL suil-0)
@@ -363,6 +370,21 @@ IF(WANT_SUIL)
 			SET(LMMS_HAVE_SUIL TRUE)
 			SET(STATUS_SUIL "OK")
 			find_package(SuilModules)
+			IF(LMMS_HAVE_LV2 AND LMMS_BUILD_LINUX AND NOT WANT_QT6 AND
+				SuilModules_FOUND AND "${Suil_MODULES}" MATCHES "libsuil_x11\\." AND
+				Qt5X11Extras_FOUND)
+				FIND_PACKAGE(X11)
+				IF(X11_FOUND)
+					SET(LMMS_HAVE_LV2_UI TRUE)
+					SET(STATUS_LV2_UI "OK")
+				ELSE()
+					SET(STATUS_LV2_UI "X11 not found")
+				ENDIF()
+			ELSEIF(LMMS_HAVE_LV2 AND WANT_QT6)
+				SET(STATUS_LV2_UI "not supported with Qt6")
+			ELSEIF(LMMS_HAVE_LV2 AND NOT LMMS_BUILD_LINUX)
+				SET(STATUS_LV2_UI "Linux X11 only")
+			ENDIF()
 		ELSE()
 			SET(STATUS_SUIL "not found, install it or set PKG_CONFIG_PATH appropriately")
 		ENDIF()
@@ -915,6 +937,7 @@ MESSAGE(
 "----------------\n"
 "* Lv2 plugins                 : ${STATUS_LV2}\n"
 "* SUIL for plugin UIs         : ${STATUS_SUIL}\n"
+"* Native LV2 UIs (X11)        : ${STATUS_LV2_UI}\n"
 "* ZynAddSubFX instrument      : ${STATUS_ZYN}\n"
 "* Carla Patchbay & Rack       : ${STATUS_CARLA}\n"
 "* SoundFont2 player           : ${STATUS_FLUIDSYNTH}\n"

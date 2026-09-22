@@ -29,7 +29,9 @@
 
 #ifdef LMMS_HAVE_LV2
 
+#include <atomic>
 #include <lilv/lilv.h>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <QByteArray>
@@ -51,6 +53,7 @@ namespace lmms
 
 class PluginIssue;
 class SampleFrame;
+class Lv2UiMessageQueue;
 
 // forward declare port structs/enums
 namespace Lv2Ports
@@ -159,6 +162,19 @@ public:
 	std::size_t controlCount() const { return LinkedModelGroup::modelNum(); }
 	bool hasNoteInput() const;
 
+	// Native UI access. All methods except drainUiEvents are safe for the UI
+	// thread; atom messages cross the audio boundary through bounded queues.
+	LV2_Handle instanceHandle() const;
+	std::size_t portCount() const { return m_ports.size(); }
+	uint32_t portIndex(const char* symbol) const;
+	bool uiControlValue(uint32_t portIndex, float& value) const;
+	bool setUiControlValue(uint32_t portIndex, float value);
+	bool enqueueUiEvent(uint32_t portIndex, uint32_t size, uint32_t protocol,
+		const void* buffer);
+	void drainUiEvents(const std::function<void(uint32_t, uint32_t, const void*)>& receive);
+	void beginUiEvents();
+	void endUiEvents();
+
 protected:
 	/*
 		load and save
@@ -204,6 +220,11 @@ private:
 	//! @note These are not owned, but rather link to the models in
 	//!   ControlPorts in `m_ports`
 	std::map<std::string, AutomatableModel *> m_connectedModels;
+
+	std::unique_ptr<Lv2UiMessageQueue> m_uiToPlugin;
+	std::unique_ptr<Lv2UiMessageQueue> m_pluginToUi;
+	std::atomic<bool> m_uiEventsActive{false};
+	LV2_URID m_eventTransferUrid = 0;
 
 	void initMOptions(); //!< initialize m_options
 	void initPluginSpecificFeatures();

@@ -26,6 +26,10 @@
 
 #ifdef LMMS_HAVE_LV2
 
+#ifdef LMMS_HAVE_LV2_UI
+#include <QGuiApplication>
+#endif
+
 #include <algorithm>
 #include <cstdlib>
 #include <lilv/lilv.h>
@@ -337,7 +341,11 @@ AutoLilvNodes Lv2Manager::findNodes(const LilvNode *subject,
 
 bool Lv2Manager::wantUi()
 {
+#ifdef LMMS_HAVE_LV2_UI
+	return QGuiApplication::platformName() == QStringLiteral("xcb");
+#else
 	return false;
+#endif
 }
 
 
