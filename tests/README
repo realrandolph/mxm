@@ -1,5 +1,3 @@
-test-files and their MD5 sums go here
+Test assets used by the CTest suites live here.
 
-16a41b09841f6893c6a621f3e7c63692	emptyproject.wav
-
-
+`emptyproject.mmp` is exercised by `tests/integration` as a headless application/render smoke test. The integration contract is that MXM successfully renders the project and produces a structurally valid RIFF/WAVE file. Do not use an exact output hash as the cross-platform contract; byte-identical output is a separate requirement and should be tested with a purpose-built deterministic fixture when needed.

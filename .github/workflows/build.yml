@@ -79,7 +79,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure -j2
+          ctest --output-on-failure --no-tests=error -j2
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-diagnostics-${{ github.job }}-${{ runner.arch }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/tests/Testing/Temporary/LastTest.log
+            build/tests/Testing/Temporary/LastTestsFailed.log
+            build/tests/integration/artifacts/**
       - name: Package
         run: |
           cmake --build build --target package
@@ -162,7 +173,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure -j2
+          ctest --output-on-failure --no-tests=error -j2
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-diagnostics-${{ github.job }}-${{ runner.arch }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/tests/Testing/Temporary/LastTest.log
+            build/tests/Testing/Temporary/LastTestsFailed.log
+            build/tests/integration/artifacts/**
       - name: Package
         run: |
           cmake --build build --target package
@@ -258,7 +280,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure -j3
+          ctest --output-on-failure --no-tests=error -j3
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-diagnostics-${{ github.job }}-${{ runner.arch }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/tests/Testing/Temporary/LastTest.log
+            build/tests/Testing/Temporary/LastTestsFailed.log
+            build/tests/integration/artifacts/**
       - name: Package
         run: |
           cmake --build build --target package
@@ -431,7 +464,18 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure -j2
+          ctest --output-on-failure --no-tests=error -j2
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-diagnostics-${{ github.job }}-${{ runner.arch }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/tests/Testing/Temporary/LastTest.log
+            build/tests/Testing/Temporary/LastTestsFailed.log
+            build/tests/integration/artifacts/**
       - name: Package
         run: cmake --build build --target package
       - name: Upload artifacts
@@ -499,6 +543,21 @@ jobs:
           cmake -B build $CMAKE_OPTS
       - name: Build
         run: cmake --build build
+      - name: Run tests
+        run: |
+          cd build/tests
+          ctest --output-on-failure --no-tests=error -j2
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-diagnostics-${{ github.job }}-${{ runner.arch }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            build/tests/Testing/Temporary/LastTest.log
+            build/tests/Testing/Temporary/LastTestsFailed.log
+            build/tests/integration/artifacts/**
       - name: Package
         run: cmake --build build --target package
       - name: Upload artifacts
