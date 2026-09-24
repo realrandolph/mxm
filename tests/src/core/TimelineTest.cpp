@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Keratin
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -48,19 +48,19 @@ private slots:
 
 	void initTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::init(true);
 	}
 
 	void cleanupTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::destroy();
 	}
 
 	void JumpedTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		Timeline timeline = Timeline();
 		connect(&timeline, &Timeline::positionChanged, this, &TimelineTest::onPositionChanged);
@@ -83,7 +83,7 @@ private slots:
 
 	void ElapsedTimeTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		Timeline timeline = Timeline();
 		connect(&timeline, &Timeline::positionChanged, this, &TimelineTest::onPositionChanged);

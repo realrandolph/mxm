@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2017 Tres Finocchiaro <tres/dot/finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -34,7 +34,7 @@ class RelativePathsTest : public QObject
 private slots:
 	void PathUtilComparisonTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		QFileInfo fi(ConfigManager::inst()->factorySamplesDir() + "/drums/kick01.ogg");
 		QVERIFY(fi.exists());
@@ -68,7 +68,7 @@ private slots:
 	//! Test UTF-8 encoded std::string --> std::filesystem:path conversion
 	void StringToPathTest()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		const auto qPath = ConfigManager::inst()->factorySamplesDir() + QString::fromUtf16(u"/fake/音楽.wav");
 		const std::filesystem::path expected = qPath.toStdU16String();
@@ -83,7 +83,7 @@ private slots:
 	//! Test QString --> std::filesystem:path conversion
 	void QStringToPathTest()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		const auto qPath = ConfigManager::inst()->factorySamplesDir() + QString::fromUtf16(u"/fake/音楽.wav");
 		const std::filesystem::path expected = qPath.toStdU16String();
@@ -98,7 +98,7 @@ private slots:
 	//! Test std::filesystem:path --> UTF-8 encoded std::string conversion
 	void PathToStringTest()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		const auto expected = ConfigManager::inst()->factorySamplesDir() + QString::fromUtf16(u"/fake/音楽.wav");
 		const std::filesystem::path filePath = expected.toStdU16String();

@@ -6,7 +6,7 @@
  * Copyright (c) 2020 EmoonX
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef LMMS_MIDI_EXPORT_H
-#define LMMS_MIDI_EXPORT_H
+#ifndef MXM_MIDI_EXPORT_H
+#define MXM_MIDI_EXPORT_H
 
 #include "MidiFile.h"
 #include "DataFile.h"
@@ -35,7 +35,7 @@
 
 class QDomNode;
 
-namespace lmms
+namespace mxm
 {
 
 //! MIDI exporting base class
@@ -45,7 +45,7 @@ private:
 	//! A single MIDI note
 	struct Note
 	{
-		using Type = ::lmms::Note::Type;
+		using Type = ::mxm::Note::Type;
 
 		//! The pitch (tone), which can be lower or higher
 		std::uint8_t pitch = 0;
@@ -138,10 +138,10 @@ private:
 	//! Process a given pattern track
 	void processPatternTrack(Track& track);
 
-	//! Necessary for lmms_plugin_main()
+	//! Necessary for mxm_plugin_main()
 	gui::PluginView* instantiateView(QWidget*) override { return nullptr; }
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_EXPORT_H
+#endif // MXM_MIDI_EXPORT_H

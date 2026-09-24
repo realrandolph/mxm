@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 
 #include <QDataStream>
 
-namespace lmms
+namespace mxm
 {
 
 std::array<WaveMipMap, BandLimitedWave::NumWaveforms> BandLimitedWave::s_waveforms = {  };
@@ -235,7 +235,7 @@ void BandLimitedWave::generateWaves()
 
 // generate files, serialize mipmaps as QDataStreams and save them on disk
 //
-// normally these are now provided with LMMS as pre-generated so we don't have to do this,
+// normally these are now provided with MXM as pre-generated so we don't have to do this,
 // but I'm leaving the code here in case it's needed in the future
 // (maybe we add more waveforms or change the generation code or mipmap format, etc.)
 
@@ -274,4 +274,4 @@ moogfile.close();
 
 }
 
-} // namespace lmms
+} // namespace mxm

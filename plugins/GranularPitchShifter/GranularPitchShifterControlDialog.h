@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_GRANULAR_PITCH_SHIFTER_CONTROLS_H
-#define LMMS_GRANULAR_PITCH_SHIFTER_CONTROLS_H
+#ifndef MXM_GRANULAR_PITCH_SHIFTER_CONTROLS_H
+#define MXM_GRANULAR_PITCH_SHIFTER_CONTROLS_H
 
 #include "EffectControlDialog.h"
 
 #include <QTextEdit>
 
-namespace lmms
+namespace mxm
 {
 
 class GranularPitchShifterControls;
@@ -64,6 +64,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GRANULAR_PITCH_SHIFTER_CONTROLS_H
+#endif // MXM_GRANULAR_PITCH_SHIFTER_CONTROLS_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2012-2013 Paul Giblock    <p/at/pgiblock.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -54,9 +54,9 @@
 #include "PathUtil.h"
 #include "UpgradeExtendedNoteRange.h"
 
-#include "lmmsversion.h"
+#include "mxmversion.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -136,8 +136,8 @@ DataFile::DataFile( Type type ) :
 	QDomElement root = createElement( "lmms-project" );
 	root.setAttribute( "version", m_fileVersion );
 	root.setAttribute( "type", typeName( type ) );
-	root.setAttribute( "creator", "LMMS" );
-	root.setAttribute( "creatorversion", LMMS_VERSION );
+	root.setAttribute( "creator", "MXM" );
+	root.setAttribute( "creatorversion", MXM_VERSION );
 	root.setAttribute("creatorplatform", QSysInfo::kernelType());
 	root.setAttribute("creatorplatformtype", QSysInfo::productType());
 	appendChild( root );
@@ -231,10 +231,10 @@ bool DataFile::validate( QString extension )
 				( extension == "xiz" && ! getPluginFactory()->pluginSupportingExtension(extension).isNull()) ||
 				extension == "sf2" || extension == "sf3" || extension == "pat" || extension == "mid" ||
 				extension == "dll"
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 				|| extension == "so"
 #endif
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 				|| extension == "lv2"
 #endif
 				) )
@@ -242,7 +242,7 @@ bool DataFile::validate( QString extension )
 			return true;
 		}
 		if( extension == "wav" || extension == "ogg" || extension == "ds"
-#ifdef LMMS_HAVE_SNDFILE_MP3
+#ifdef MXM_HAVE_SNDFILE_MP3
 				|| extension == "mp3"
 #endif
 				)
@@ -1139,7 +1139,7 @@ void DataFile::upgrade_1_1_91()
 	for( int i = 0; !list.item( i ).isNull(); ++i )
 	{
 		QDomElement el = list.item( i ).toElement();
-		if( el.attribute( "name" ) == "plugin" && el.attribute( "value" ) == "vocoder-lmms" ) {
+		if( el.attribute( "name" ) == "plugin" && el.attribute( "value" ) == "vocoder-mxm" ) {
 			el.setAttribute( "value", "vocoder" );
 		}
 	}
@@ -1769,7 +1769,7 @@ void DataFile::upgrade_fixCMTDelays()
 		// We are only interested in LADSPA plugins
 		if (effect.attribute("name") != "ladspaeffect") { continue; }
 
-		// Fetch all attributes (LMMS) beneath the LADSPA effect so that we can check the value of the plugin attribute (XML)
+		// Fetch all attributes (MXM) beneath the LADSPA effect so that we can check the value of the plugin attribute (XML)
 		auto attributes = effect.elementsByTagName("attribute");
 		for (int j = 0; j < attributes.size(); ++j)
 		{
@@ -2075,8 +2075,8 @@ void DataFile::upgrade()
 	// update document meta data
 	documentElement().setAttribute( "version", m_fileVersion );
 	documentElement().setAttribute( "type", typeName( type() ) );
-	documentElement().setAttribute( "creator", "LMMS" );
-	documentElement().setAttribute( "creatorversion", LMMS_VERSION );
+	documentElement().setAttribute( "creator", "MXM" );
+	documentElement().setAttribute( "creatorversion", MXM_VERSION );
 	documentElement().setAttribute("creatorplatform", QSysInfo::kernelType());
 	documentElement().setAttribute("creatorplatformtype", QSysInfo::productType());
 
@@ -2103,13 +2103,13 @@ void DataFile::loadData( const QByteArray & _data, const QString & _sourceFile )
 {
 	QString errorMsg;
 	int line = -1, col = -1;
-	if (!lmms::setContent(*this, _data, &errorMsg, &line, &col))
+	if (!mxm::setContent(*this, _data, &errorMsg, &line, &col))
 	{
 		// parsing failed? then try to uncompress data
 		QByteArray uncompressed = qUncompress( _data );
 		if( !uncompressed.isEmpty() )
 		{
-			if (lmms::setContent(*this, uncompressed, &errorMsg, &line, &col))
+			if (mxm::setContent(*this, uncompressed, &errorMsg, &line, &col))
 			{
 				line = col = -1;
 			}
@@ -2156,7 +2156,7 @@ void DataFile::loadData( const QByteArray & _data, const QString & _sourceFile )
 
 		// compareType defaults to All, so it doesn't have to be set here
 		ProjectVersion createdWith = root.attribute("creatorversion");
-		ProjectVersion openedWith = LMMS_VERSION;
+		ProjectVersion openedWith = MXM_VERSION;
 
 		if (createdWith.setCompareType(ProjectVersion::CompareType::Minor)
 		 !=  openedWith.setCompareType(ProjectVersion::CompareType::Minor)
@@ -2167,7 +2167,7 @@ void DataFile::loadData( const QByteArray & _data, const QString & _sourceFile )
 
 			gui::TextFloat::displayMessage(
 				SongEditor::tr("Version difference"),
-				SongEditor::tr("This %1 was created with LMMS %2")
+				SongEditor::tr("This %1 was created with MXM %2")
 				.arg(projectType).arg(createdWith.getVersion()),
 				embed::getIconPixmap("whatsthis", 24, 24),
 				2500
@@ -2210,4 +2210,4 @@ unsigned int DataFile::legacyFileVersion()
 	return std::distance( UPGRADE_VERSIONS.begin(), firstRequiredUpgrade );
 }
 
-} // namespace lmms
+} // namespace mxm

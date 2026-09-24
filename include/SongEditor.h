@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_GUI_SONG_EDITOR_H
-#define LMMS_GUI_SONG_EDITOR_H
+#ifndef MXM_GUI_SONG_EDITOR_H
+#define MXM_GUI_SONG_EDITOR_H
 
 #include "Editor.h"
 #include "TrackContainerView.h"
@@ -32,7 +32,7 @@
 class QLabel;
 class QScrollBar;
 
-namespace lmms
+namespace mxm
 {
 
 class IntModel;
@@ -86,7 +86,7 @@ public slots:
 	void stopSelectRegion();
 	void updateRubberband();
 
-	void setEditMode( lmms::gui::SongEditor::EditMode mode );
+	void setEditMode( mxm::gui::SongEditor::EditMode mode );
 	void setEditModeDraw();
 	void setEditModeKnife();
 	void setEditModeSelect();
@@ -232,6 +232,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_SONG_EDITOR_H
+#endif // MXM_GUI_SONG_EDITOR_H

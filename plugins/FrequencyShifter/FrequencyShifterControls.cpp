@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -26,7 +26,7 @@
 
 #include <QDomElement>
 
-namespace lmms
+namespace mxm
 {
 
 FrequencyShifterControls::FrequencyShifterControls(FrequencyShifterEffect* e) :
@@ -108,5 +108,5 @@ void FrequencyShifterControls::saveSettings(QDomDocument& doc, QDomElement& e)
 	m_phase.saveSettings(doc, e, "phase");
 }
 
-} // namespace lmms
+} // namespace mxm
 

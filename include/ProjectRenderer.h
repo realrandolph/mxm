@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,20 +22,20 @@
  *
  */
 
-#ifndef LMMS_PROJECT_RENDERER_H
-#define LMMS_PROJECT_RENDERER_H
+#ifndef MXM_PROJECT_RENDERER_H
+#define MXM_PROJECT_RENDERER_H
 
 #include "AudioFileDevice.h"
 #include "AudioEngine.h"
 #include "OutputSettings.h"
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
-class LMMS_EXPORT ProjectRenderer : public QThread
+class MXM_EXPORT ProjectRenderer : public QThread
 {
 	Q_OBJECT
 public:
@@ -96,6 +96,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PROJECT_RENDERER_H
+#endif // MXM_PROJECT_RENDERER_H

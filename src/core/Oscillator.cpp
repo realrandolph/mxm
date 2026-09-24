@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *               2018      Dave French	<dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -38,7 +38,7 @@
 #include "fft_helpers.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -828,4 +828,4 @@ inline sample_t Oscillator::getSample<Oscillator::WaveShape::UserDefined>(
 }
 
 
-} // namespace lmms
+} // namespace mxm

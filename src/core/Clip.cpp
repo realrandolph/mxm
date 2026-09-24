@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "TrackContainer.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 Clip::Clip( Track * track ) :
@@ -175,4 +175,4 @@ void Clip::setColor(const std::optional<QColor>& color)
 	emit colorChanged();
 }
 
-} // namespace lmms
+} // namespace mxm

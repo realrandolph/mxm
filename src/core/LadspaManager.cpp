@@ -5,7 +5,7 @@
  * Copyright (c) 2005-2008 Danny McRae <khjklujn@netscape.net>
  * Copyright (c) 2011-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,10 +36,10 @@
 #include "ConfigManager.h"
 #include "LadspaManager.h"
 #include "PluginFactory.h"
-#include "lmms_constants.h"
+#include "mxm_constants.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -48,14 +48,14 @@ LadspaManager::LadspaManager()
 	// Make sure plugin search paths are set up
 	PluginFactory::setupSearchPaths();
 
-	QList<QRegularExpression> excludePatterns = PluginFactory::getExcludePatterns("LMMS_EXCLUDE_LADSPA");
+	QList<QRegularExpression> excludePatterns = PluginFactory::getExcludePatterns("MXM_EXCLUDE_LADSPA");
 
 	QStringList ladspaDirectories = QString( getenv( "LADSPA_PATH" ) ).
 								split( LADSPA_PATH_SEPERATOR );
 	ladspaDirectories += ConfigManager::inst()->ladspaDir().split( ',' );
 
 	ladspaDirectories.push_back( "plugins:ladspa" );
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 	ladspaDirectories.push_back( qApp->applicationDirPath() + '/' + LIB_DIR + "ladspa" );
 	ladspaDirectories.push_back( "/usr/lib/ladspa" );
 	ladspaDirectories.push_back( "/usr/lib64/ladspa" );
@@ -81,7 +81,7 @@ LadspaManager::LadspaManager()
 			}
 
 			if (exclude || !f.isFile() || f.fileName().right(3).toLower() !=
-#if defined(LMMS_BUILD_WIN32) || defined(LMMS_BUILD_CYGWIN)
+#if defined(MXM_BUILD_WIN32) || defined(MXM_BUILD_CYGWIN)
 													"dll"
 #else
 				 									".so"
@@ -530,7 +530,7 @@ bool LadspaManager::isEnum( const ladspa_key_t & _plugin, uint32_t _port )
 	{
 		LADSPA_PortRangeHintDescriptor hintDescriptor =
 			desc->PortRangeHints[_port].HintDescriptor;
-		// This is an LMMS extension to ladspa
+		// This is an MXM extension to ladspa
 		return LADSPA_IS_HINT_INTEGER(hintDescriptor) && LADSPA_IS_HINT_TOGGLED(hintDescriptor);
 	}
 
@@ -704,4 +704,4 @@ bool LadspaManager::cleanup( const ladspa_key_t & _plugin,
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -37,8 +37,8 @@
  *
  */
 
-#ifndef LMMS_MIDI_FILE_H
-#define LMMS_MIDI_FILE_H
+#ifndef MXM_MIDI_FILE_H
+#define MXM_MIDI_FILE_H
 
 #include <cstddef>
 #include <filesystem>
@@ -48,10 +48,10 @@
 #include <string>
 #include <vector>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "MidiPatch.h"
 
-namespace lmms
+namespace mxm
 {
 
 //! MIDI file class for exporting purposes
@@ -242,6 +242,6 @@ private:
 	std::ofstream m_stream;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_FILE_H
+#endif // MXM_MIDI_FILE_H

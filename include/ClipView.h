@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_CLIP_VIEW_H
-#define LMMS_GUI_CLIP_VIEW_H
+#ifndef MXM_GUI_CLIP_VIEW_H
+#define MXM_GUI_CLIP_VIEW_H
 
 #include <optional>
 
@@ -36,7 +36,7 @@
 
 class QMenu;
 
-namespace lmms
+namespace mxm
 {
 
 class DataFile;
@@ -290,7 +290,7 @@ private:
 	//! @brief A pointer for the text bubble used when moving segments,
 	//! etc.
 	//!
-	//! In a number of situations, LMMS displays a floating text bubble
+	//! In a number of situations, MXM displays a floating text bubble
 	//! beside the cursor as you move or resize elements of a track
 	//! about. This pointer keeps track of it, as you only ever need
 	//! one at a time.
@@ -374,6 +374,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_CLIP_VIEW_H
+#endif // MXM_GUI_CLIP_VIEW_H

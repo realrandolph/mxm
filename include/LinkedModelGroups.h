@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2019 Johannes Lorenz <j.git$$$lorenz-ho.me, $$$=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_LINKED_MODEL_GROUPS_H
-#define LMMS_LINKED_MODEL_GROUPS_H
+#ifndef MXM_LINKED_MODEL_GROUPS_H
+#define MXM_LINKED_MODEL_GROUPS_H
 
 #include <cstddef>
 
@@ -32,7 +32,7 @@
 class QDomDocument;
 class QDomElement;
 
-namespace lmms
+namespace mxm
 {
 
 /**
@@ -111,8 +111,8 @@ signals:
 	// (who would know if the client is Qt, i.e. it may not have slots at all)
 	// In this case you'd e.g. send the UI something like
 	// "/added <model meta info>"
-	void modelAdded(lmms::AutomatableModel* added);
-	void modelRemoved(lmms::AutomatableModel* removed);
+	void modelAdded(mxm::AutomatableModel* added);
+	void modelRemoved(mxm::AutomatableModel* removed);
 
 public:
 	AutomatableModel* getModel(const std::string& s)
@@ -176,6 +176,6 @@ public:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LINKED_MODEL_GROUPS_H
+#endif // MXM_LINKED_MODEL_GROUPS_H

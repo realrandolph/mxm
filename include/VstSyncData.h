@@ -1,10 +1,10 @@
 /*
- * VstSyncData.h - type declarations needed for VST to lmms host sync
+ * VstSyncData.h - type declarations needed for VST to mxm host sync
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2013 Mike Choi <rdavidian71/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,10 +23,10 @@
  *
  */
 
-#ifndef LMMS_VST_SYNC_DATA_H
-#define LMMS_VST_SYNC_DATA_H
+#ifndef MXM_VST_SYNC_DATA_H
+#define MXM_VST_SYNC_DATA_H
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -59,6 +59,6 @@ struct VstSyncData
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_VST_SYNC_DATA_H
+#endif // MXM_VST_SYNC_DATA_H

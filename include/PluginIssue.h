@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019 Johannes Lorenz <j.git$$$lorenz-ho.me, $$$=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_PLUGIN_ISSUE_H
-#define LMMS_PLUGIN_ISSUE_H
+#ifndef MXM_PLUGIN_ISSUE_H
+#define MXM_PLUGIN_ISSUE_H
 
 #include <QDebug>
 #include <string>
 
-namespace lmms
+namespace mxm
 {
 
-//! Types of issues that can cause LMMS to not load a plugin
-//! LMMS Plugins should use this to indicate errors
+//! Types of issues that can cause MXM to not load a plugin
+//! MXM Plugins should use this to indicate errors
 enum class PluginIssueType
 {
 	// port flow & type
@@ -54,7 +54,7 @@ enum class PluginIssueType
 	LogScaleMaxMissing,
 	LogScaleMinMaxDifferentSigns,
 	// features
-	FeatureNotSupported, //!< plugin requires functionality LMMS can't offer
+	FeatureNotSupported, //!< plugin requires functionality MXM can't offer
 	// misc
 	BadPortType, //!< port type not supported
 	Blocked,
@@ -82,6 +82,6 @@ public:
 
 QDebug operator<<(QDebug stream, const PluginIssue& iss);
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PLUGIN_ISSUE_H
+#endif // MXM_PLUGIN_ISSUE_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -30,7 +30,7 @@
 #include <QLibrary>
 #include <QRegularExpression>
 #include <memory>
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
 #include "ConfigManager.h"
 #include "Plugin.h"
@@ -41,11 +41,11 @@ qint64 qHash(const QFileInfo& fi)
 	return qHash(fi.absoluteFilePath());
 }
 
-namespace lmms
+namespace mxm
 {
 
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	QStringList nameFilters("*.dll");
 #else
 	QStringList nameFilters("lib*.so");
@@ -69,24 +69,24 @@ void PluginFactory::setupSearchPaths()
 		}
 	};
 
-	// We're either running LMMS installed on an Unixoid or we're running a
+	// We're either running MXM installed on an Unixoid or we're running a
 	// portable version like we do on Windows.
 	// We want to find our plugins in both cases:
 	//  (a) Installed (Unix):
-	//      e.g. binary at /usr/bin/lmms - plugin dir at /usr/lib/lmms/
+	//      e.g. binary at /usr/bin/mxm - plugin dir at /usr/lib/mxm/
 	//  (b) Portable:
-	//      e.g. binary at "C:/Program Files/LMMS/lmms.exe"
-	//           plugins at "C:/Program Files/LMMS/plugins/"
+	//      e.g. binary at "C:/Program Files/MXM/mxm.exe"
+	//           plugins at "C:/Program Files/MXM/plugins/"
 
-#ifndef LMMS_BUILD_WIN32
-	addRelativeIfExists("../lib/lmms"); // Installed
+#ifndef MXM_BUILD_WIN32
+	addRelativeIfExists("../lib/mxm"); // Installed
 #endif
 	addRelativeIfExists("plugins"); // Portable
 #ifdef PLUGIN_DIR // We may also have received a relative directory via a define
 	addRelativeIfExists(PLUGIN_DIR);
 #endif
 	// Or via an environment variable:
-	if (const char* env_path = std::getenv("LMMS_PLUGIN_DIR"))
+	if (const char* env_path = std::getenv("MXM_PLUGIN_DIR"))
 		QDir::addSearchPath("plugins", env_path);
 
 	QDir::addSearchPath("plugins", ConfigManager::inst()->workingDir() + "plugins");
@@ -154,7 +154,7 @@ void PluginFactory::discoverPlugins()
 		files.unite(QSet<QFileInfo>(discoveredPluginList.begin(), discoveredPluginList.end()));
 	}
 
-	// Apply any plugin filters from environment LMMS_EXCLUDE_PLUGINS
+	// Apply any plugin filters from environment MXM_EXCLUDE_PLUGINS
 	filterPlugins(files);
 
 	// Cheap dependency handling: zynaddsubfx needs ZynAddSubFxCore. By loading
@@ -174,7 +174,7 @@ void PluginFactory::discoverPlugins()
 		}
 
 		Plugin::Descriptor* pluginDescriptor = nullptr;
-		if (library->resolve("lmms_plugin_main"))
+		if (library->resolve("mxm_plugin_main"))
 		{
 			QString descriptorName = file.baseName() + "_plugin_descriptor";
 			if( descriptorName.left(3) == "lib" )
@@ -185,7 +185,7 @@ void PluginFactory::discoverPlugins()
 			pluginDescriptor = reinterpret_cast<Plugin::Descriptor*>(library->resolve(descriptorName.toUtf8().constData()));
 			if(pluginDescriptor == nullptr)
 			{
-				qWarning() << qApp->translate("PluginFactory", "LMMS plugin %1 does not have a plugin descriptor named %2!").
+				qWarning() << qApp->translate("PluginFactory", "MXM plugin %1 does not have a plugin descriptor named %2!").
 							  arg(file.absoluteFilePath()).arg(descriptorName);
 				continue;
 			}
@@ -267,10 +267,10 @@ QList<QRegularExpression> PluginFactory::getExcludePatterns(const char* envVar) 
 	return excludePatterns;
 }
 
-// Filter plugins based on environment variable, e.g. export LMMS_EXCLUDE_PLUGINS="libcarla"
+// Filter plugins based on environment variable, e.g. export MXM_EXCLUDE_PLUGINS="libcarla"
 void PluginFactory::filterPlugins(QSet<QFileInfo>& files) {
 	// Get filter
-	QList<QRegularExpression> excludePatterns = getExcludePatterns("LMMS_EXCLUDE_PLUGINS");
+	QList<QRegularExpression> excludePatterns = getExcludePatterns("MXM_EXCLUDE_PLUGINS");
 	if (excludePatterns.isEmpty()) {
 		return;
 	}
@@ -305,4 +305,4 @@ QString PluginFactory::PluginInfo::name() const
 }
 
 
-} // namespace lmms
+} // namespace mxm

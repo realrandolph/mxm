@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,12 +25,12 @@
 #include "EqEffect.h"
 
 #include "Engine.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -39,13 +39,13 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT eq_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"Equalizer",
 	QT_TRANSLATE_NOOP( "PluginBrowser", "A native eq plugin" ),
 	"Dave French <contact/dot/dave/dot/french3/at/googlemail/dot/com>",
 	0x0100,
 	Plugin::Type::Effect,
-	new PixmapLoader("lmms-plugin-logo"),
+	new PixmapLoader("mxm-plugin-logo"),
 	nullptr,
 	nullptr,
 } ;
@@ -337,7 +337,7 @@ extern "C"
 {
 
 //needed for getting plugin out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* parent, void* data )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model* parent, void* data )
 {
 	return new EqEffect( parent , static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>( data ) );
 }
@@ -345,4 +345,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* parent, void* data )
 }
 
 
-} // namespace lmms
+} // namespace mxm

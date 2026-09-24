@@ -1,9 +1,9 @@
-/* Nes.cpp - A NES instrument plugin for LMMS
+/* Nes.cpp - A NES instrument plugin for MXM
  *                        
  * Copyright (c) 2014 Vesa Kivimäki
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -32,10 +32,10 @@
 #include "Oscillator.h"
 
 #include "embed.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -44,7 +44,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT nes_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"Nescaline",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"A NES-like synthesizer" ),
@@ -901,7 +901,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * _data )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * _data )
 {
 	return( new NesInstrument( static_cast<InstrumentTrack *>( m ) ) );
 }
@@ -910,4 +910,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * _data )
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2012-2013 Paul Giblock    <p/at/pgiblock.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#include "lmmsconfig.h"
-#include "lmmsversion.h"
+#include "mxmconfig.h"
+#include "mxmversion.h"
 #include "versioninfo.h"
 
 #include <QDebug>
@@ -37,23 +37,23 @@
 #include <QPushButton>
 #include <QTextStream>
 
-#ifdef LMMS_HAVE_SUIL
+#ifdef MXM_HAVE_SUIL
 #include <suil/suil.h>
 #endif
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 #include <windows.h>
 #endif
 
-#ifdef LMMS_HAVE_PROCESS_H
+#ifdef MXM_HAVE_PROCESS_H
 #include <process.h>
 #endif
 
-#ifdef LMMS_HAVE_UNISTD_H
+#ifdef MXM_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#ifdef LMMS_HAVE_SYS_PRCTL_H
+#ifdef MXM_HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>
 #endif
 
@@ -75,14 +75,14 @@
 #include "RenderManager.h"
 #include "Song.h"
 
-#ifdef LMMS_DEBUG_FPE
+#ifdef MXM_DEBUG_FPE
 #include <fenv.h> // For feenableexcept
 #include <execinfo.h> // For backtrace and backtrace_symbols_fd
 #include <unistd.h> // For STDERR_FILENO
 #endif
 
 
-#ifdef LMMS_DEBUG_FPE
+#ifdef MXM_DEBUG_FPE
 void sigfpeHandler(int signum)
 {
 
@@ -109,7 +109,7 @@ static inline QString baseName( const QString & file )
 }
 
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 // Workaround for old MinGW
 #ifdef __MINGW32__
 extern "C" _CRTIMP errno_t __cdecl freopen_s(FILE** _File,
@@ -123,11 +123,11 @@ void consoleMessageHandler(QtMsgType type,
     QByteArray localMsg = msg.toLocal8Bit();
     fprintf(stderr, "%s\n", localMsg.constData());
 }
-#endif // LMMS_BUILD_WIN32
+#endif // MXM_BUILD_WIN32
 
 
 inline void loadTranslation( const QString & tname,
-	const QString & dir = lmms::ConfigManager::inst()->localeDir() )
+	const QString & dir = mxm::ConfigManager::inst()->localeDir() )
 {
 	auto t = new QTranslator(QCoreApplication::instance());
 	QString name = tname + ".qm";
@@ -143,16 +143,16 @@ inline void loadTranslation( const QString & tname,
 
 void printVersion( char *executableName )
 {
-	printf("LMMS %s\n(%s %s, Qt %s, %s)\n\n"
+	printf("MXM %s\n(%s %s, Qt %s, %s)\n\n"
 		"Build options:\n%s\n\n"
 		"Copyright (c) %s\n\n"
 		"This program is free software; you can redistribute it and/or\n"
 		"modify it under the terms of the GNU General Public\n"
 		"License as published by the Free Software Foundation; either\n"
 		"version 2 of the License, or (at your option) any later version.\n\n"
-		"Try \"%s --help\" for more information.\n\n", LMMS_VERSION,
-		LMMS_BUILDCONF_PLATFORM, LMMS_BUILDCONF_MACHINE, QT_VERSION_STR, LMMS_BUILDCONF_COMPILER_VERSION, LMMS_BUILD_OPTIONS,
-		LMMS_PROJECT_COPYRIGHT, executableName);
+		"Try \"%s --help\" for more information.\n\n", MXM_VERSION,
+		MXM_BUILDCONF_PLATFORM, MXM_BUILDCONF_MACHINE, QT_VERSION_STR, MXM_BUILDCONF_COMPILER_VERSION, MXM_BUILD_OPTIONS,
+		MXM_PROJECT_COPYRIGHT, executableName);
 }
 
 
@@ -160,11 +160,11 @@ void printVersion( char *executableName )
 
 void printHelp()
 {
-	printf( "LMMS %s\n"
+	printf( "MXM %s\n"
 		"Copyright (c) %s\n\n"
-		"Usage: lmms [global options...] [<action> [action parameters...]]\n\n"
+		"Usage: mxm [global options...] [<action> [action parameters...]]\n\n"
 		"Actions:\n"
-		"  <no action> [options...] [<project>]  Start LMMS in normal GUI mode\n"
+		"  <no action> [options...] [<project>]  Start MXM in normal GUI mode\n"
 		"  dump <in>                             Dump XML of compressed file <in>\n"
 		"  compress <in>                         Compress file <in>\n"
 		"  render <project> [options...]         Render given project file\n"
@@ -186,7 +186,7 @@ void printHelp()
 		"          the main window\n"
 		"          geometry is <xsizexysize+xoffset+yoffsety>.\n"
 		"      --import <in> [-e]         Import MIDI or Hydrogen file <in>.\n"
-		"          If -e is specified lmms exits after importing the file.\n"
+		"          If -e is specified mxm exits after importing the file.\n"
 		"\nOptions for \"render\" and \"rendertracks\":\n"
 		"  -a, --float                    Use 32bit float bit depth\n"
 		"  -b, --bitrate <bitrate>        Specify output bitrate in KBit/s\n"
@@ -210,7 +210,7 @@ void printHelp()
 		"          Range: 44100 (default) to 192000\n"
 		"          Possible values: 1, 2, 4, 8\n"
 		"          Default: 2\n\n",
-		LMMS_VERSION, LMMS_PROJECT_COPYRIGHT );
+		MXM_VERSION, MXM_PROJECT_COPYRIGHT );
 }
 
 
@@ -249,9 +249,9 @@ int noInputFileError()
 
 int main( int argc, char * * argv )
 {
-	using namespace lmms;
+	using namespace mxm;
 
-#ifdef LMMS_HAVE_SUIL
+#ifdef MXM_HAVE_SUIL
 	suil_init(&argc, &argv, SUIL_ARG_NONE);
 #endif
 
@@ -302,7 +302,7 @@ int main( int argc, char * * argv )
 		}
 	}
 
-#ifdef LMMS_DEBUG_FPE
+#ifdef MXM_DEBUG_FPE
 	// Enable exceptions for certain floating point results
 	// FE_UNDERFLOW is disabled for the time being
 	feenableexcept( FE_INVALID   |
@@ -316,7 +316,7 @@ int main( int argc, char * * argv )
 #endif
 	signal(SIGINT, gui::GuiApplication::sigintHandler);
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	// Don't touch redirected streams here
 	// GetStdHandle should be called before AttachConsole
 	HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -343,8 +343,8 @@ int main( int argc, char * * argv )
 	qInstallMessageHandler(consoleMessageHandler);
 #endif
 
-#if defined(LMMS_HAVE_SYS_PRCTL_H) && defined(PR_SET_CHILD_SUBREAPER)
-	// Set the "child subreaper" attribute so that plugin child processes remain as lmms'
+#if defined(MXM_HAVE_SYS_PRCTL_H) && defined(PR_SET_CHILD_SUBREAPER)
+	// Set the "child subreaper" attribute so that plugin child processes remain as mxm'
 	// children even when some wrapper process exits, as it may happen with wine
 	if (prctl(PR_SET_CHILD_SUBREAPER, 1))
 	{
@@ -360,10 +360,10 @@ int main( int argc, char * * argv )
 
 	disableDenormals();
 
-#if !defined(LMMS_BUILD_WIN32) && !defined(LMMS_BUILD_HAIKU)
+#if !defined(MXM_BUILD_WIN32) && !defined(MXM_BUILD_HAIKU)
 	if ( ( getuid() == 0 || geteuid() == 0 ) && !allowRoot )
 	{
-		printf( "LMMS cannot be run as root.\nUse \"--allowroot\" to override.\n\n" );
+		printf( "MXM cannot be run as root.\nUse \"--allowroot\" to override.\n\n" );
 		return EXIT_FAILURE;
 	}
 #endif
@@ -435,7 +435,7 @@ int main( int argc, char * * argv )
 		else if( arg == "--allowroot" )
 		{
 			// Ignore, processed earlier
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 			if( allowRoot )
 			{
 				printf( "\nOption \"--allowroot\" will be ignored on this platform.\n\n" );
@@ -522,13 +522,13 @@ int main( int argc, char * * argv )
 			{
 				eff = ProjectRenderer::ExportFileFormat::Wave;
 			}
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 			else if( ext == "ogg" )
 			{
 				eff = ProjectRenderer::ExportFileFormat::Ogg;
 			}
 #endif
-#ifdef LMMS_HAVE_MP3LAME
+#ifdef MXM_HAVE_MP3LAME
 			else if( ext == "mp3" )
 			{
 				eff = ProjectRenderer::ExportFileFormat::MP3;
@@ -686,7 +686,7 @@ int main( int argc, char * * argv )
 		pos = QLocale::system().name().left( 2 );
 	}
 
-	// load actual translation for LMMS
+	// load actual translation for MXM
 	loadTranslation( pos );
 
 	// load translation for Qt-widgets/-dialogs
@@ -767,7 +767,7 @@ int main( int argc, char * * argv )
 	}
 	else // otherwise, start the GUI
 	{
-		using namespace lmms::gui;
+		using namespace mxm::gui;
 
 		new GuiApplication();
 
@@ -802,12 +802,12 @@ int main( int argc, char * * argv )
 				"</html>" ).arg(
 				MainWindow::tr( "There is a recovery file present. "
 					"It looks like the last session did not end "
-					"properly or another instance of LMMS is "
+					"properly or another instance of MXM is "
 					"already running. Do you want to recover the "
 					"project of this session?" ),
 				MainWindow::tr( "Recover" ),
 				MainWindow::tr( "Recover the file. Please don't run "
-					"multiple instances of LMMS when you do this." ),
+					"multiple instances of MXM when you do this." ),
 				MainWindow::tr( "Discard" ),
 				MainWindow::tr( "Launch a default session and delete "
 					"the restored files. This is not reversible." )
@@ -913,7 +913,7 @@ int main( int argc, char * * argv )
 
 		// Finally we start the auto save timer and also trigger the
 		// autosave one time as recover.mmp is a signal to possible other
-		// instances of LMMS.
+		// instances of MXM.
 		if( autoSaveEnabled )
 		{
 			gui::getGUI()->mainWindow()->autoSaveTimerReset();
@@ -934,7 +934,7 @@ int main( int argc, char * * argv )
 		printf( "\n" );
 	}
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	// Cleanup console
 	HWND hConsole = GetConsoleWindow();
 	if (hConsole)

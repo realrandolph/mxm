@@ -4,7 +4,7 @@
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2015 Maurizio Lo Bosco (rageboge on github)
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_MIDI_APPLE_H
-#define LMMS_MIDI_APPLE_H
+#ifndef MXM_MIDI_APPLE_H
+#define MXM_MIDI_APPLE_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 
 #include "MidiClient.h"
 #include "MidiPort.h"
@@ -38,7 +38,7 @@
 class QLineEdit;
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -151,8 +151,8 @@ signals:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_BUILD_APPLE
+#endif // MXM_BUILD_APPLE
 
-#endif // LMMS_MIDI_APPLE_H
+#endif // MXM_MIDI_APPLE_H

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_INSTRUMENT_H
-#define LMMS_INSTRUMENT_H
+#ifndef MXM_INSTRUMENT_H
+#define MXM_INSTRUMENT_H
 
 #include <QString>
 
 #include "Flags.h"
-#include "lmms_export.h"
-#include "LmmsTypes.h"
+#include "mxm_export.h"
+#include "MxmTypes.h"
 #include "MidiPatch.h"
 #include "Plugin.h"
 #include "TimePos.h"
@@ -39,7 +39,7 @@
 #include <optional>
 #include <string_view>
 
-namespace lmms
+namespace mxm
 {
 
 // forward-declarations
@@ -50,7 +50,7 @@ class Track;
 class SampleFrame;
 
 
-class LMMS_EXPORT Instrument : public Plugin
+class MXM_EXPORT Instrument : public Plugin
 {
 public:
 	enum class Flag
@@ -61,7 +61,7 @@ public:
 		IsNotBendable = 0x04,		/*! Instrument can't react to pitch bend changes */
 	};
 
-	using Flags = lmms::Flags<Flag>;
+	using Flags = mxm::Flags<Flag>;
 
 	Instrument(InstrumentTrack * _instrument_track,
 			const Descriptor * _descriptor,
@@ -192,9 +192,9 @@ private:
 };
 
 
-LMMS_DECLARE_OPERATORS_FOR_FLAGS(Instrument::Flag)
+MXM_DECLARE_OPERATORS_FOR_FLAGS(Instrument::Flag)
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INSTRUMENT_H
+#endif // MXM_INSTRUMENT_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_INSTRUMENT_SOUND_SHAPING_H
-#define LMMS_INSTRUMENT_SOUND_SHAPING_H
+#ifndef MXM_INSTRUMENT_SOUND_SHAPING_H
+#define MXM_INSTRUMENT_SOUND_SHAPING_H
 
 #include "ComboBoxModel.h"
 #include "EnvelopeAndLfoParameters.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -98,6 +98,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INSTRUMENT_SOUND_SHAPING_H
+#endif // MXM_INSTRUMENT_SOUND_SHAPING_H

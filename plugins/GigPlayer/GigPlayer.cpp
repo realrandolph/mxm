@@ -9,7 +9,7 @@
  * Copyright (C) 2005-2008 Christian Schoenebeck
  * Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -56,7 +56,7 @@
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -65,7 +65,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT gigplayer_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"GIG Player",
 	QT_TRANSLATE_NOOP( "PluginBrowser", "Player for GIG files" ),
 	"Garrett Wilson <g/at/floft/dot/net>",
@@ -1287,7 +1287,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * )
 {
 	return new GigInstrument( static_cast<InstrumentTrack *>( m ) );
 }
@@ -1295,4 +1295,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
 }
 
 
-} // namespace lmms
+} // namespace mxm

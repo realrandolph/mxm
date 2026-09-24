@@ -5,7 +5,7 @@
  * Copyright (c) 2009-2015 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2016 Oskar Wallgren <oskarwallgren13/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -42,10 +42,10 @@
 #include "InstrumentTrack.h"
 
 #include "embed.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -54,7 +54,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT malletsstk_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"Mallets",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"Tuneful things to bang on" ),
@@ -655,7 +655,7 @@ MalletsSynth::MalletsSynth( const StkFloat _pitch,
 		Stk::setSampleRate( _sample_rate );
 		Stk::setRawwavePath( QDir( ConfigManager::inst()->stkDir() ).absolutePath()
 						.toLocal8Bit().constData() );
-#ifndef LMMS_DEBUG
+#ifndef MXM_DEBUG
 		Stk::showWarnings( false );
 #endif
 
@@ -706,7 +706,7 @@ MalletsSynth::MalletsSynth( const StkFloat _pitch,
 		Stk::setSampleRate( _sample_rate );
 		Stk::setRawwavePath( QDir( ConfigManager::inst()->stkDir() ).absolutePath()
 						.toLocal8Bit().constData() );
-#ifndef LMMS_DEBUG
+#ifndef MXM_DEBUG
 		Stk::showWarnings( false );
 #endif
 
@@ -755,7 +755,7 @@ MalletsSynth::MalletsSynth( const StkFloat _pitch,
 		Stk::setSampleRate( _sample_rate );
 		Stk::setRawwavePath( QDir( ConfigManager::inst()->stkDir() ).absolutePath()
 						.toLocal8Bit().constData() );
-#ifndef LMMS_DEBUG
+#ifndef MXM_DEBUG
 		Stk::showWarnings( false );
 #endif
 
@@ -792,7 +792,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model * m, void * )
 {
 	return new MalletsInstrument( static_cast<InstrumentTrack *>( m ) );
 }
@@ -801,4 +801,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * m, void * )
 }
 
 
-} // namespace lmms
+} // namespace mxm

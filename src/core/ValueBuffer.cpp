@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -43,4 +43,4 @@ void ValueBuffer::interpolate(float start, float end_)
 }
 
 
-} // namespace lmms
+} // namespace mxm

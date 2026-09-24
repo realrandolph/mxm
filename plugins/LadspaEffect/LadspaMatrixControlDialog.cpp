@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2015 Michael Gregorius <michaelgregorius/at/web[dot]de>
  *
- * This file is part of LMMS - http://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - http://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -38,7 +38,7 @@
 #include "LedCheckBox.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 LadspaMatrixControlDialog::LadspaMatrixControlDialog(LadspaControls * ladspaControls) :
@@ -215,4 +215,4 @@ ch_cnt_t LadspaMatrixControlDialog::getChannelCount() const
 	return getLadspaControls()->m_processors;
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

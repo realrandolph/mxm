@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,10 +22,10 @@
  *
  */
 
-#ifndef LMMS_NOCOPYNOMOVE_H
-#define LMMS_NOCOPYNOMOVE_H
+#ifndef MXM_NOCOPYNOMOVE_H
+#define MXM_NOCOPYNOMOVE_H
 
-namespace lmms
+namespace mxm
 {
 
 /**
@@ -41,7 +41,7 @@ protected:
 	NoCopyNoMove& operator=(NoCopyNoMove&& other) = delete;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_NOCOPYNOMOVE_H
+#endif // MXM_NOCOPYNOMOVE_H
 

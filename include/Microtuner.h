@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_MICROTUNER_H
-#define LMMS_MICROTUNER_H
+#ifndef MXM_MICROTUNER_H
+#define MXM_MICROTUNER_H
 
 #include "AutomatableModel.h"
 #include "ComboBoxModel.h"
 #include "JournallingObject.h"
 
-namespace lmms
+namespace mxm
 {
 
-class LMMS_EXPORT Microtuner : public Model, public JournallingObject
+class MXM_EXPORT Microtuner : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -82,6 +82,6 @@ private:
 
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MICROTUNER_H
+#endif // MXM_MICROTUNER_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Raine M. Ekman <raine/at/iki/fi>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -58,7 +58,7 @@
 
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -67,7 +67,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT opulenz_plugin_descriptor =
 {
-        LMMS_STRINGIFY( PLUGIN_NAME ),
+        MXM_STRINGIFY( PLUGIN_NAME ),
         "OpulenZ",
         QT_TRANSLATE_NOOP( "PluginBrowser",
 			   "2-operator FM Synth" ),
@@ -80,7 +80,7 @@ Plugin::Descriptor PLUGIN_EXPORT opulenz_plugin_descriptor =
 };
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * )
 {
 	return( new OpulenzInstrument( static_cast<InstrumentTrack *>( m ) ) );
 }
@@ -363,14 +363,14 @@ bool OpulenzInstrument::handleMidiEvent( const MidiEvent& event, const TimePos& 
 			}
 			break;
 		default:
-#ifdef LMMS_DEBUG
+#ifdef MXM_DEBUG
 			printf("Midi CC %02x %02x\n", event.controllerNumber(), event.controllerValue() );
 #endif
 			break;
 		}
 		break;
         default:
-#ifdef LMMS_DEBUG
+#ifdef MXM_DEBUG
                 printf("Midi event type %d\n",event.type());
 #endif
 		break;
@@ -874,4 +874,4 @@ void OpulenzInstrumentView::modelChanged()
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

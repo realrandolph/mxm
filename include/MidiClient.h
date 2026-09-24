@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_MIDI_CLIENT_H
-#define LMMS_MIDI_CLIENT_H
+#ifndef MXM_MIDI_CLIENT_H
+#define MXM_MIDI_CLIENT_H
 
 #include <QStringList>
 #include <vector>
@@ -34,7 +34,7 @@
 class QObject;
 
 
-namespace lmms
+namespace mxm
 {
 
 class MidiPort;
@@ -171,6 +171,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_CLIENT_H
+#endif // MXM_MIDI_CLIENT_H

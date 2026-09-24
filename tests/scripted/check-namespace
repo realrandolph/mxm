@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # This script checks the code for namespace related issues
-# Note: This script is not perfect. It can not parse all LMMS files,
+# Note: This script is not perfect. It can not parse all MXM files,
 #       and does not contain a complete C++ parser. If you encounter
 #       difficulties with this tests, it could be a fault of your
 #       changes, but it could also be a fault of this script.
@@ -52,13 +52,13 @@ def error(where, match, my_str):
 
 
 if not Path('.gitmodules').is_file():
-    print('You need to call this script from the LMMS top directory')
+    print('You need to call this script from the MXM top directory')
     exit(1)
 
 result = subprocess.run(['git', 'ls-files', '*.[ch]', '*.[ch]pp', ':!tests/*'],
                         capture_output=True, text=True, check=True)
 
-known_no_namespace_lmms = {
+known_no_namespace_mxm = {
     # main.cpp
     'src/core/main.cpp',
     # nothing to set under a namespace
@@ -120,8 +120,8 @@ statement_pattern = re.compile(
 # Comments and whitespace followed by header guard
 header_guard_pattern = re.compile(r'^(/[*](.|\n)*?[*]/|//.*|\s)*#\s*(ifndef|pragma\s+once)')
 
-# Namespace lmms
-namespace_pattern = re.compile(r'^\s*namespace\s+lmms', re.MULTILINE)
+# Namespace mxm
+namespace_pattern = re.compile(r'^\s*namespace\s+mxm', re.MULTILINE)
 
 #
 # the real code
@@ -133,8 +133,8 @@ for cur_file in files:
     if cur_file.is_file():
         cur_text = cur_file.read_text(errors='replace')
 
-        if cur_file.as_posix() not in known_no_namespace_lmms:
-            namespace_pattern.search(cur_text) or error(cur_file, None, f'File has no namespace lmms')
+        if cur_file.as_posix() not in known_no_namespace_mxm:
+            namespace_pattern.search(cur_text) or error(cur_file, None, f'File has no namespace mxm')
 
         header_guard = str(cur_file).endswith('.h')
         expectations = []  # type: list[Expectation]

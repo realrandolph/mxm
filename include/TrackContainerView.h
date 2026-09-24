@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TRACK_CONTAINER_VIEW_H
-#define LMMS_GUI_TRACK_CONTAINER_VIEW_H
+#ifndef MXM_GUI_TRACK_CONTAINER_VIEW_H
+#define MXM_GUI_TRACK_CONTAINER_VIEW_H
 
 #include <QVector>
 #include <QScrollArea>
@@ -38,7 +38,7 @@
 
 class QVBoxLayout;
 
-namespace lmms
+namespace mxm
 {
 
 class InstrumentTrack;
@@ -153,8 +153,8 @@ public:
 
 public slots:
 	void realignTracks();
-	lmms::gui::TrackView * createTrackView( lmms::Track * _t );
-	void deleteTrackView( lmms::gui::TrackView * _tv );
+	mxm::gui::TrackView * createTrackView( mxm::Track * _t );
+	void deleteTrackView( mxm::gui::TrackView * _tv );
 
 	void dropEvent( QDropEvent * _de ) override;
 	void dragEnterEvent( QDragEnterEvent * _dee ) override;
@@ -199,7 +199,7 @@ private:
 	RubberBand * m_rubberBand;
 
 signals:
-	void positionChanged( const lmms::TimePos & _pos );
+	void positionChanged( const mxm::TimePos & _pos );
 	void tracksRealigned();
 
 
@@ -208,6 +208,6 @@ signals:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_TRACK_CONTAINER_VIEW_H
+#endif // MXM_GUI_TRACK_CONTAINER_VIEW_H

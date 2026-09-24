@@ -1,6 +1,6 @@
 #include "MicroTimer.h"
 
-namespace lmms
+namespace mxm
 {
 
 using namespace std;
@@ -25,4 +25,4 @@ int MicroTimer::elapsed() const
 	return std::chrono::duration_cast<std::chrono::duration<int, std::micro>>(now - begin).count();
 }
 
-} // namespace lmms
+} // namespace mxm

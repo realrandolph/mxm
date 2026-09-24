@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_VOLUME_H
-#define LMMS_VOLUME_H
+#ifndef MXM_VOLUME_H
+#define MXM_VOLUME_H
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -41,6 +41,6 @@ struct StereoVolumeVector
 	float vol[2];
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_VOLUME_H
+#endif // MXM_VOLUME_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,24 +24,24 @@
 
 #include "LOMM.h"
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 extern "C"
 {
 	Plugin::Descriptor PLUGIN_EXPORT lomm_plugin_descriptor =
 	{
-		LMMS_STRINGIFY(PLUGIN_NAME),
+		MXM_STRINGIFY(PLUGIN_NAME),
 		"LOMM",
 		QT_TRANSLATE_NOOP("PluginBrowser", "Upwards/downwards multiband compression plugin powered by the eldritch elder god LOMMUS."),
 		"Lost Robot <r94231/at/gmail/dot/com>",
 		0x0100,
 		Plugin::Type::Effect,
-		new PixmapLoader("lmms-plugin-logo"),
+		new PixmapLoader("mxm-plugin-logo"),
 		nullptr,
 		nullptr
 	};
@@ -426,10 +426,10 @@ Effect::ProcessStatus LOMMEffect::processImpl(SampleFrame* buf, const f_cnt_t fr
 extern "C"
 {
 	// necessary for getting instance out of shared lib
-	PLUGIN_EXPORT Plugin * lmms_plugin_main(Model* parent, void* data)
+	PLUGIN_EXPORT Plugin * mxm_plugin_main(Model* parent, void* data)
 	{
 		return new LOMMEffect(parent, static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>(data));
 	}
 }
 
-} // namespace lmms
+} // namespace mxm

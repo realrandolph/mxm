@@ -5,7 +5,7 @@
  * Based partially on Eq plugin code,
  * Copyright (c) 2014-2017, David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation; either
@@ -26,7 +26,7 @@
 #include "SaProcessor.h"
 
 #include <algorithm>
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include <cmath>
 #ifdef SA_DEBUG
 	#include <chrono>
@@ -36,14 +36,14 @@
 #include <QMutexLocker>
 
 #include "fft_helpers.h"
-#include "lmms_constants.h"
+#include "mxm_constants.h"
 #include "LocklessRingBuffer.h"
 #include "SaControls.h"
 
 #include <cassert>
 #include <limits>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -689,4 +689,4 @@ float SaProcessor::yPixelToAmp(float y, unsigned int height) const
 }
 
 
-} // namespace lmms
+} // namespace mxm

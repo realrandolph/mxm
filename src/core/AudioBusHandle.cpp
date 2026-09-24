@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2025 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -34,7 +34,7 @@
 #include "Engine.h"
 #include "MixHelpers.h"
 
-namespace lmms
+namespace mxm
 {
 
 AudioBusHandle::AudioBusHandle(const QString& name, bool hasEffectChain,
@@ -267,4 +267,4 @@ void AudioBusHandle::removePlayHandle(PlayHandle* handle)
 	}
 }
 
-} // namespace lmms
+} // namespace mxm

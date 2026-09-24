@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -30,15 +30,15 @@
  * -------------------------------------------------------------------------
  */
 
-#ifndef LMMS_HILBERT_TRANSFORM_H
-#define LMMS_HILBERT_TRANSFORM_H
+#ifndef MXM_HILBERT_TRANSFORM_H
+#define MXM_HILBERT_TRANSFORM_H
 #include <cmath>
 
 #ifdef __SSE2__
 	#include <emmintrin.h>
 #endif
 
-namespace lmms
+namespace mxm
 {
 
 template<int Channels>
@@ -220,6 +220,6 @@ struct HilbertIIRFloat
 	}
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HILBERT_TRANSFORM_H
+#endif // MXM_HILBERT_TRANSFORM_H

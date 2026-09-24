@@ -46,7 +46,7 @@
 
 #include "endian_handling.h"
 
-namespace lmms
+namespace mxm
 {
 
 MidiFile::MidiFile(const std::filesystem::path& file, std::size_t numTracks)
@@ -298,4 +298,4 @@ void MidiFile::Track::writeSingleEventToBuffer(Event& event)
 	}
 }
 
-} // namespace lmms
+} // namespace mxm

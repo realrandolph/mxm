@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include "MidiEvent.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -110,4 +110,4 @@ std::size_t writeToByteSeq(
 }
 
 
-} // namespace lmms
+} // namespace mxm

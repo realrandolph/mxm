@@ -91,8 +91,11 @@ IF(Git_FOUND AND NOT FORCE_VERSION)
 		set(FORCE_VERSION "${FORCE_VERSION}-${PRERELEASE_DATA}")
 	endif()
 
-	# If there is any build metadata, append it after a plus
-	if(BUILD_METADATA)
+	# If there is any build metadata, append it after a plus. This is only
+	# meaningful when a base version was derived from git tags; otherwise
+	# FORCE_VERSION is still empty and the build falls back to the version
+	# defined in CMakeLists.txt (see the ELSEIF(Git_FOUND) branch below).
+	if(BUILD_METADATA AND FORCE_VERSION)
 		string(REPLACE ";" "." BUILD_METADATA "${BUILD_METADATA}")
 		set(FORCE_VERSION "${FORCE_VERSION}+${BUILD_METADATA}")
 	endif()

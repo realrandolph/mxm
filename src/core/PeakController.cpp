@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2008 Paul Giblock <drfaygo/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 #include "EffectChain.h"
 #include "plugins/PeakControllerEffect/PeakControllerEffect.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -211,7 +211,7 @@ PeakController * PeakController::getControllerBySetting(const QDomElement & _thi
 			QMessageBox msgBox;
 			msgBox.setIcon( QMessageBox::Information );
 			msgBox.setWindowTitle( tr("Peak Controller Bug") );
-			msgBox.setText( tr("Due to a bug in older version of LMMS, the peak "
+			msgBox.setText( tr("Due to a bug in an older version of LMMS, the peak "
 							   "controllers may not be connect properly. "
 							   "Please ensure that peak controllers are connected "
 							   "properly and re-save this file. "
@@ -253,4 +253,4 @@ gui::ControllerDialog * PeakController::createDialog( QWidget * _parent )
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008 Paul Giblock <drfaygo/at/gmail.com>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_LFO_CONTROLLER_H
-#define LMMS_LFO_CONTROLLER_H
+#ifndef MXM_LFO_CONTROLLER_H
+#define MXM_LFO_CONTROLLER_H
 
 
 #include "AutomatableModel.h"
@@ -32,7 +32,7 @@
 #include "SampleBuffer.h"
 #include "TempoSyncKnobModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -132,6 +132,6 @@ private slots:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LFO_CONTROLLER_H
+#endif // MXM_LFO_CONTROLLER_H

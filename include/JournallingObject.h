@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,18 +22,18 @@
  *
  */
 
-#ifndef LMMS_JOURNALLING_OBJECT_H
-#define LMMS_JOURNALLING_OBJECT_H
+#ifndef MXM_JOURNALLING_OBJECT_H
+#define MXM_JOURNALLING_OBJECT_H
 
 #include <QStack>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "SerializingObject.h"
 
-namespace lmms
+namespace mxm
 {
 
-class LMMS_EXPORT JournallingObject : public SerializingObject
+class MXM_EXPORT JournallingObject : public SerializingObject
 {
 public:
 	JournallingObject();
@@ -101,6 +101,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_JOURNALLING_OBJECT_H
+#endif // MXM_JOURNALLING_OBJECT_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2024 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,9 +24,9 @@
 
 #include "Lv2Manager.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 #include <QGuiApplication>
 #endif
 
@@ -48,7 +48,7 @@
 #include "PluginIssue.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -172,7 +172,7 @@ const std::set<std::string_view> Lv2Manager::unstablePluginsBuffersizeLessEqual3
 Lv2Manager::Lv2Manager() :
 	m_uridCache(m_uridMap)
 {
-	const char* dbgStr = getenv("LMMS_LV2_DEBUG");
+	const char* dbgStr = getenv("MXM_LV2_DEBUG");
 	m_debug = (dbgStr && *dbgStr);
 
 	m_world = lilv_world_new();
@@ -291,23 +291,23 @@ void Lv2Manager::initPlugins()
 		{
 			qDebug() <<
 				"If you don't want to see all this debug output, please set\n"
-				"  environment variable \"LMMS_LV2_DEBUG\" to empty or\n"
+				"  environment variable \"MXM_LV2_DEBUG\" to empty or\n"
 				"  do not set it.";
 		}
 		else
 		{
 			qDebug() <<
 				"For details about not loaded plugins, please set\n"
-				"  environment variable \"LMMS_LV2_DEBUG\" to nonempty.";
+				"  environment variable \"MXM_LV2_DEBUG\" to nonempty.";
 		}
 	}
 
-	// TODO: might be better in the LMMS core
+	// TODO: might be better in the MXM core
 	if(ConfigManager::enableBlockedPlugins())
 	{
 		qWarning() <<
 			"WARNING! Blocked plugins enabled! If you want to disable them,\n"
-			"  please set environment variable \"LMMS_ENABLE_BLOCKED_PLUGINS\" to empty or\n"
+			"  please set environment variable \"MXM_ENABLE_BLOCKED_PLUGINS\" to empty or\n"
 			"  do not set it.";
 	}
 	else if(blocked > 0)
@@ -315,7 +315,7 @@ void Lv2Manager::initPlugins()
 		qDebug() <<
 			"Blocked Lv2 Plugins:" << blocked << "of" << pluginCount << "\n"
 			"  If you want to enable them (dangerous!), please set\n"
-			"  environment variable \"LMMS_ENABLE_BLOCKED_PLUGINS\" to nonempty.";
+			"  environment variable \"MXM_ENABLE_BLOCKED_PLUGINS\" to nonempty.";
 	}
 }
 
@@ -341,7 +341,7 @@ AutoLilvNodes Lv2Manager::findNodes(const LilvNode *subject,
 
 bool Lv2Manager::wantUi()
 {
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 	return QGuiApplication::platformName() == QStringLiteral("xcb");
 #else
 	return false;
@@ -371,6 +371,6 @@ bool Lv2Manager::isSubclassOf(const LilvPluginClass* pluginClass, const char* cl
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2

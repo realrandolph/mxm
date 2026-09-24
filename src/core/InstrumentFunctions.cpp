@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,13 +28,13 @@
 #include "embed.h"
 #include "Engine.h"
 #include "InstrumentTrack.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "PresetPreviewPlayHandle.h"
 
 #include <vector>
 #include <algorithm>
 
-namespace lmms
+namespace mxm
 {
 
 std::array<InstrumentFunctionNoteStacking::ChordTable::Init, InstrumentFunctionNoteStacking::NUM_CHORD_TABLES>
@@ -556,4 +556,4 @@ void InstrumentFunctionArpeggio::loadSettings( const QDomElement & _this )
 }
 
 
-} // namespace lmms
+} // namespace mxm

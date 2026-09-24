@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,7 +25,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 class MathTest : public QObject
 {
@@ -33,7 +33,7 @@ class MathTest : public QObject
 private slots:
 	void NumDigitsTest()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		QCOMPARE(numDigitsAsInt(1.f), 1);
 		QCOMPARE(numDigitsAsInt(9.9f), 2);
 		QCOMPARE(numDigitsAsInt(10.f), 2);

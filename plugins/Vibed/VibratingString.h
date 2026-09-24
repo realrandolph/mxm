@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2007 Danny McRae <khjklujn/at/yahoo/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,16 +22,16 @@
  *
  */
 
-#ifndef LMMS_VIBRATING_STRING_H
-#define LMMS_VIBRATING_STRING_H
+#ifndef MXM_VIBRATING_STRING_H
+#define MXM_VIBRATING_STRING_H
 
 #include <memory>
 #include <cstdlib>
 
-#include "LmmsTypes.h"
-#include "lmms_math.h"
+#include "MxmTypes.h"
+#include "mxm_math.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -238,6 +238,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_VIBRATING_STRING_H
+#endif // MXM_VIBRATING_STRING_H

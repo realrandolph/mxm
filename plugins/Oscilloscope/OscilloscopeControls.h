@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025-2026 Keratin
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,12 +21,12 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef LMMS_OSCILLOSCOPE_CONTROLS_H
-#define LMMS_OSCILLOSCOPE_CONTROLS_H
+#ifndef MXM_OSCILLOSCOPE_CONTROLS_H
+#define MXM_OSCILLOSCOPE_CONTROLS_H
 
 #include "EffectControls.h"
 
-namespace lmms
+namespace mxm
 {
 
 class Oscilloscope;
@@ -64,6 +64,6 @@ private:
 	friend class Oscilloscope;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_OSCILLOSCOPE_CONTROLS_H
+#endif // MXM_OSCILLOSCOPE_CONTROLS_H

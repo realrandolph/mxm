@@ -1,9 +1,9 @@
 /*
- * ConfigManager.h - class ConfigManager, a class for managing LMMS-configuration
+ * ConfigManager.h - class ConfigManager, a class for managing MXM-configuration
  *
  * Copyright (c) 2005-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,10 +22,10 @@
  *
  */
 
-#ifndef LMMS_CONFIG_MANAGER_H
-#define LMMS_CONFIG_MANAGER_H
+#ifndef MXM_CONFIG_MANAGER_H
+#define MXM_CONFIG_MANAGER_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
 #include <QMap>
 #include <QPair>
@@ -33,10 +33,10 @@
 #include <QObject>
 
 #include <vector>
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -52,7 +52,7 @@ const QString TRACK_ICON_PATH = "track_icons/";
 const QString LOCALE_PATH = "locale/";
 const QString PORTABLE_MODE_FILE = "/portable_mode.txt";
 
-class LMMS_EXPORT ConfigManager : public QObject
+class MXM_EXPORT ConfigManager : public QObject
 {
 	Q_OBJECT
 
@@ -142,14 +142,14 @@ public:
 		return m_sf2Dir;
 	}
 
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	const QString & sf2File() const
 	{
 		return m_sf2File;
 	}
 #endif
 
-#ifdef LMMS_HAVE_STK
+#ifdef MXM_HAVE_STK
 	const QString & stkDir() const
 	{
 		return m_stkDir;
@@ -225,7 +225,7 @@ public:
 	}
 
 	// Used when the configversion attribute is not present in a configuration file.
-	// Returns the appropriate config file version based on the LMMS version.
+	// Returns the appropriate config file version based on the MXM version.
 	unsigned int legacyConfigVersion();
 
 	QString defaultVersion() const;
@@ -235,7 +235,7 @@ public:
 	static QStringList availableVstEmbedMethods();
 	QString vstEmbedMethod() const;
 
-	// Returns true if the working dir (e.g. ~/lmms) exists on disk.
+	// Returns true if the working dir (e.g. ~/mxm) exists on disk.
 	bool hasWorkingDir() const;
 
 	void addRecentlyOpenedProject(const QString & _file);
@@ -291,16 +291,16 @@ private:
 	QString m_vstDir;
 	QString m_ladspaDir;
 	QString m_sf2Dir;
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	QString m_sf2File;
 #endif
-#ifdef LMMS_HAVE_STK
+#ifdef MXM_HAVE_STK
 	QString m_stkDir;
 #endif
 	QString m_gigDir;
 	QString m_themeDir;
 	QString m_backgroundPicFile;
-	QString m_lmmsRcFile;
+	QString m_mxmRcFile;
 	QString m_version;
 	unsigned int m_configVersion;
 	QStringList m_recentlyOpenedProjects;
@@ -315,6 +315,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_CONFIG_MANAGER_H
+#endif // MXM_CONFIG_MANAGER_H

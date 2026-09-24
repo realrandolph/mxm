@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_PATTERN_TRACK_H
-#define LMMS_PATTERN_TRACK_H
+#ifndef MXM_PATTERN_TRACK_H
+#define MXM_PATTERN_TRACK_H
 
 #include <QMap>
 
 #include "Track.h"
 
-namespace lmms
+namespace mxm
 {
 
 class TrackContainer;
@@ -43,7 +43,7 @@ class PatternTrackView;
 
 
 /*! Track type used in the Song (Editor) to reference a pattern in the PatternStore */
-class LMMS_EXPORT PatternTrack : public Track
+class MXM_EXPORT PatternTrack : public Track
 {
 	Q_OBJECT
 public:
@@ -98,6 +98,6 @@ private:
 
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PATTERN_TRACK_H
+#endif // MXM_PATTERN_TRACK_H

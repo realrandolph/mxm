@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_GUI_AUTOMATION_EDITOR_H
-#define LMMS_GUI_AUTOMATION_EDITOR_H
+#ifndef MXM_GUI_AUTOMATION_EDITOR_H
+#define MXM_GUI_AUTOMATION_EDITOR_H
 
 #include <QWidget>
 #include <array>
@@ -36,13 +36,13 @@
 #include "MidiClip.h"
 #include "SampleClip.h"
 #include "TimePos.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "SampleThumbnail.h"
 
 class QPushButton;
 class QScrollBar;
 
-namespace lmms
+namespace mxm
 {
 namespace gui
 {
@@ -383,6 +383,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_AUTOMATION_EDITOR_H
+#endif // MXM_GUI_AUTOMATION_EDITOR_H

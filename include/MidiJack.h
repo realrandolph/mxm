@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Shane Ambler <develop/at/shaneware.biz>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_MIDI_JACK_H
-#define LMMS_MIDI_JACK_H
+#ifndef MXM_MIDI_JACK_H
+#define MXM_MIDI_JACK_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_JACK
-#ifndef LMMS_HAVE_WEAKJACK
+#ifdef MXM_HAVE_JACK
+#ifndef MXM_HAVE_WEAKJACK
 #include <jack/jack.h>
 #include <jack/midiport.h>
 #else
@@ -40,7 +40,7 @@
 #include "MidiClient.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 constexpr size_t JACK_MIDI_BUFFER_MAX = 64; /* events */
@@ -97,8 +97,8 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_JACK
+#endif // MXM_HAVE_JACK
 
-#endif // LMMS_MIDI_JACK_H
+#endif // MXM_MIDI_JACK_H

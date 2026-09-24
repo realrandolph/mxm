@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Andrew Wiltshire <aw1lt / at/ proton/ dot/me >
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,18 +33,18 @@
 #include <QUrl>
 #include <optional>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-namespace lmms::gui {
+namespace mxm::gui {
 bool FileRevealer::s_canSelect = false;
 
 const QString& FileRevealer::getDefaultFileManager()
 {
 	static std::optional<QString> fileManagerCache;
 	if (fileManagerCache.has_value()) { return fileManagerCache.value(); }
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 	fileManagerCache = "explorer";
-#elif defined(LMMS_BUILD_APPLE)
+#elif defined(MXM_BUILD_APPLE)
 	fileManagerCache = "open";
 #else
 
@@ -180,4 +180,4 @@ bool FileRevealer::supportsArg(const QString& command, const QString& arg)
 	return output.contains(arg);
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

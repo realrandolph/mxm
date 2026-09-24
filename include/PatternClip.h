@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_PATTERN_CLIP_H
-#define LMMS_PATTERN_CLIP_H
+#ifndef MXM_PATTERN_CLIP_H
+#define MXM_PATTERN_CLIP_H
 
 #include "Clip.h"
 
-namespace lmms
+namespace mxm
 {
 
 /*! \brief Dummy clip for PatternTracks
@@ -61,6 +61,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PATTERN_CLIP_H
+#endif // MXM_PATTERN_CLIP_H

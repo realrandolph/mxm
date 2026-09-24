@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_TRACK_CONTAINER_H
-#define LMMS_TRACK_CONTAINER_H
+#ifndef MXM_TRACK_CONTAINER_H
+#define MXM_TRACK_CONTAINER_H
 
 #include <QReadWriteLock>
 
 #include "Track.h"
 #include "JournallingObject.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AutomationClip;
@@ -45,7 +45,7 @@ class TrackContainerView;
 }
 
 
-class LMMS_EXPORT TrackContainer : public Model, public JournallingObject
+class MXM_EXPORT TrackContainer : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -99,7 +99,7 @@ public:
 	virtual AutomatedValueMap automatedValuesAt(TimePos time, int clipNum = -1) const;
 
 signals:
-	void trackAdded( lmms::Track * _track );
+	void trackAdded( mxm::Track * _track );
 	void trackRemoved();
 	void trackMoved();
 
@@ -119,6 +119,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TRACK_CONTAINER_H
+#endif // MXM_TRACK_CONTAINER_H

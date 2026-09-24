@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,18 +22,18 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_H
-#define LMMS_SAMPLE_H
+#ifndef MXM_SAMPLE_H
+#define MXM_SAMPLE_H
 
 #include <memory>
 
 #include "AudioResampler.h"
 #include "Note.h"
 #include "SampleBuffer.h"
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms {
-class LMMS_EXPORT Sample
+namespace mxm {
+class MXM_EXPORT Sample
 {
 public:
 	enum class Loop
@@ -43,7 +43,7 @@ public:
 		PingPong
 	};
 
-	class LMMS_EXPORT PlaybackState
+	class MXM_EXPORT PlaybackState
 	{
 	public:
 		PlaybackState(AudioResampler::Mode interpolationMode = AudioResampler::Mode::Linear, int frameIndex = 0)
@@ -117,5 +117,5 @@ private:
 	std::atomic<float> m_frequency = DefaultBaseFreq;
 	std::atomic<bool> m_reversed = false;
 };
-} // namespace lmms
+} // namespace mxm
 #endif

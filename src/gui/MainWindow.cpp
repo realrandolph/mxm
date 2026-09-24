@@ -1,9 +1,9 @@
 /*
- * MainWindow.cpp - implementation of LMMS-main-window
+ * MainWindow.cpp - implementation of MXM-main-window
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -73,10 +73,10 @@
 #include "ToolPlugin.h"
 #include "VersionedSaveDialog.h"
 
-#include "lmmsversion.h"
+#include "mxmversion.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -137,15 +137,15 @@ MainWindow::MainWindow() :
 	QString title = tr("Root Directory");
 	bool dirs_as_items = false;
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 	title = tr( "Volumes" );
 	root_paths += "/Volumes";
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 	title = tr( "My Computer" );
 	dirs_as_items = true;
 #endif
 
-#if ! defined(LMMS_BUILD_APPLE)
+#if ! defined(MXM_BUILD_APPLE)
 	QFileInfoList drives = QDir::drives();
 	for( const QFileInfo & drive : drives )
 	{
@@ -386,7 +386,7 @@ void MainWindow::finalize()
 
 	help_menu->addSeparator();
 	help_menu->addAction( embed::getIconPixmap( "icon_small" ), tr( "About" ),
-				  this, SLOT(aboutLMMS()));
+				  this, SLOT(aboutMXM()));
 
 	// create tool-buttons
 	auto project_new = new ToolButton(
@@ -482,7 +482,7 @@ void MainWindow::finalize()
 		ConfigManager::inst()->value( "audioengine", "audiodev" ) ) )
 	{
 		QMessageBox::critical(nullptr, "Audio device setup failed",
-			tr("Failed to setup audio device for playback. Try adjusting your audio device settings (e.g. the sample rate), then restart LMMS."));
+			tr("Failed to setup audio device for playback. Try adjusting your audio device settings (e.g. the sample rate), then restart MXM."));
 
 		// if so, offer the audio settings section of the setup dialog
 		SetupDialog sd( SetupDialog::ConfigTab::AudioSettings );
@@ -590,7 +590,7 @@ void MainWindow::resetWindowTitle()
 		title += " - " + tr( "Recover session. Please save your work!" );
 	}
 
-	setWindowTitle( title + " - " + tr( "LMMS %1" ).arg( LMMS_VERSION ) );
+	setWindowTitle( title + " - " + tr( "MXM %1" ).arg( MXM_VERSION ) );
 }
 
 
@@ -747,7 +747,7 @@ void MainWindow::openProject()
 {
 	if( mayChangeProject(false) )
 	{
-		FileDialog ofd( this, tr( "Open Project" ), "", tr( "LMMS (*.mmp *.mmpz)" ) );
+		FileDialog ofd( this, tr( "Open Project" ), "", tr( "MXM (*.mmp *.mmpz)" ) );
 
 		ofd.setDirectory( ConfigManager::inst()->userProjectsDir() );
 		ofd.setFileMode( FileDialog::ExistingFiles );
@@ -791,8 +791,8 @@ bool MainWindow::saveProjectAs()
 {
 	auto optionsWidget = new SaveOptionsWidget(Engine::getSong()->getSaveOptions());
 	VersionedSaveDialog sfd( this, optionsWidget, tr( "Save Project" ), "",
-			tr( "LMMS Project" ) + " (*.mmpz *.mmp);;" +
-				tr( "LMMS Project Template" ) + " (*.mpt)" );
+			tr( "MXM Project" ) + " (*.mmpz *.mmp);;" +
+				tr( "MXM Project Template" ) + " (*.mpt)" );
 	QString f = Engine::getSong()->projectFileName();
 	if( f != "" )
 	{
@@ -894,7 +894,7 @@ void MainWindow::showSettingsDialog()
 
 
 
-void MainWindow::aboutLMMS()
+void MainWindow::aboutMXM()
 {
 	AboutDialog(this).exec();
 }
@@ -906,10 +906,10 @@ void MainWindow::help()
 {
 	QMessageBox::information( this, tr( "Help not available" ),
 				  tr( "Currently there's no help "
-						  "available in LMMS.\n"
+						  "available in MXM.\n"
 						  "Please visit "
-						  "http://lmms.sf.net/wiki "
-						  "for documentation on LMMS." ),
+						  "https://github.com/realrandolph/mxm "
+						  "for documentation on MXM." ),
 				  QMessageBox::Ok );
 }
 
@@ -1520,7 +1520,7 @@ void MainWindow::exportProject(bool multiExport)
 				suffix = efd.selectedNameFilter().mid( stx + 2, etx - stx - 2 ).split( " " )[0].trimmed();
 
 				Qt::CaseSensitivity cs = Qt::CaseSensitive;
-#if defined(LMMS_BUILD_APPLE) || defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_APPLE) || defined(MXM_BUILD_WIN32)
 				cs = Qt::CaseInsensitive;
 #endif
 				exportFileName.remove( "." + suffix, cs );
@@ -1700,4 +1700,4 @@ void MainWindow::MovableQMdiArea::mouseReleaseEvent(QMouseEvent* event)
 	m_isBeingMoved = false;
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

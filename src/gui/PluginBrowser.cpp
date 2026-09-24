@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -41,7 +41,7 @@
 #include "TrackContainerView.h"
 #include "PluginFactory.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -170,9 +170,9 @@ void PluginBrowser::addPlugins()
 		}
 	);
 
-	// Add a root node to the tree for native LMMS plugins
-	const auto lmmsRoot = addRoot("LMMS");
-	lmmsRoot->setExpanded(true);
+	// Add a root node to the tree for native MXM plugins
+	const auto mxmRoot = addRoot("MXM");
+	mxmRoot->setExpanded(true);
 
 	// Add all of the descriptors to the tree
 	for (const auto desc : descs)
@@ -195,7 +195,7 @@ void PluginBrowser::addPlugins()
 		}
 		else
 		{
-			addPlugin(Plugin::Descriptor::SubPluginFeatures::Key(desc, desc->name), lmmsRoot);
+			addPlugin(Plugin::Descriptor::SubPluginFeatures::Key(desc, desc->name), mxmRoot);
 		}
 	}
 }
@@ -314,4 +314,4 @@ void PluginDescWidget::openInNewInstrumentTrack(QString value)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

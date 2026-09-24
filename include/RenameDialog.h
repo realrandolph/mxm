@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2005 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_GUI_RENAME_DIALOG_H
-#define LMMS_GUI_RENAME_DIALOG_H
+#ifndef MXM_GUI_RENAME_DIALOG_H
+#define MXM_GUI_RENAME_DIALOG_H
 
 #include <QDialog>
 
 class QLineEdit;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class RenameDialog : public QDialog
@@ -58,6 +58,6 @@ private:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_RENAME_DIALOG_H
+#endif // MXM_GUI_RENAME_DIALOG_H

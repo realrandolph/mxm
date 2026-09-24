@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2010 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_PIANO_VIEW_H
-#define LMMS_GUI_PIANO_VIEW_H
+#ifndef MXM_GUI_PIANO_VIEW_H
+#define MXM_GUI_PIANO_VIEW_H
 
 #include <QPixmap>
 #include <QScrollBar>
@@ -32,7 +32,7 @@
 #include "ModelView.h"
 #include "embed.h"
 
-namespace lmms
+namespace mxm
 {
 
 class Piano;
@@ -192,6 +192,6 @@ signals:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_PIANO_VIEW_H
+#endif // MXM_GUI_PIANO_VIEW_H

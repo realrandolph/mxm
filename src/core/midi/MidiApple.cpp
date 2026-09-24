@@ -4,7 +4,7 @@
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2015 Maurizio Lo Bosco (rageboge on github)
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,7 +25,7 @@
 
 #include "MidiApple.h"
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 
 #include <QtAlgorithms>
 #include <algorithm>
@@ -37,7 +37,7 @@
 #include <CoreMIDI/CoreMIDI.h>
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -630,6 +630,6 @@ char * MidiApple::getFullName(MIDIEndpointRef &endpoint_ref)
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_BUILD_APPLE
+#endif // MXM_BUILD_APPLE

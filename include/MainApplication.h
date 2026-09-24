@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2017-2017 Tres Finocchiaro <tres.finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,24 +22,24 @@
  *
  */
 
-#ifndef LMMS_GUI_MAIN_APPLICATION_H
-#define LMMS_GUI_MAIN_APPLICATION_H
+#ifndef MXM_GUI_MAIN_APPLICATION_H
+#define MXM_GUI_MAIN_APPLICATION_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
 #include <QApplication>
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 #include <windows.h>
 #include <QAbstractNativeEventFilter>
 #endif
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 class MainApplication : public QApplication, public QAbstractNativeEventFilter
 #else
 class MainApplication : public QApplication
@@ -48,7 +48,7 @@ class MainApplication : public QApplication
 public:
 	MainApplication(int& argc, char** argv);
 	bool event(QEvent* event) override;
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 #if (QT_VERSION < QT_VERSION_CHECK(6,0,0))
 	using FilterResult = long;
 #else
@@ -56,7 +56,7 @@ public:
 #endif // QT6 check
 	bool win32EventFilter(MSG* msg, FilterResult* result);
 	bool nativeEventFilter(const QByteArray& eventType, void* message, FilterResult* result);
-#endif // LMMS_BUILD_WIN32
+#endif // MXM_BUILD_WIN32
 	inline QString& queuedFile()
 	{
 	    return m_queuedFile;
@@ -66,6 +66,6 @@ private:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_MAIN_APPLICATION_H
+#endif // MXM_GUI_MAIN_APPLICATION_H

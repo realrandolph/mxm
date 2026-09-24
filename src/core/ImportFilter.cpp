@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 #include "ProjectJournal.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 using std::unique_ptr;
@@ -82,7 +82,7 @@ void ImportFilter::import( const QString & _file_to_import,
 						"importing file %1.\n"
 						"You should convert this file "
 						"into a format supported by "
-						"LMMS using another software."
+						"MXM using another software."
 						).arg( _file_to_import ),
 					QMessageBox::Ok,
 					QMessageBox::NoButton );
@@ -114,4 +114,4 @@ bool ImportFilter::openFile()
 
 
 
-} // namespace lmms
+} // namespace mxm

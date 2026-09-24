@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -57,7 +57,7 @@
 #include "PeakController.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 tick_t TimePos::s_ticksPerBar = DefaultTicksPerBar;
@@ -112,7 +112,7 @@ Song::Song() :
 /*	connect( &m_masterPitchModel, SIGNAL(dataChanged()),
 			this, SLOT(masterPitchChanged()));*/
 
-	qRegisterMetaType<lmms::Note>( "lmms::Note" );
+	qRegisterMetaType<mxm::Note>( "mxm::Note" );
 	setType( Type::Song );
 
 	for (auto& scale : m_scales) {scale = std::make_shared<Scale>();}
@@ -1195,7 +1195,7 @@ void Song::loadProject( const QString & fileName )
 	{
 		if ( getGUI() != nullptr )
 		{
-			QMessageBox::warning( nullptr, tr("LMMS Error report"), errorSummary(),
+			QMessageBox::warning( nullptr, tr("MXM Error report"), errorSummary(),
 							QMessageBox::Ok );
 		}
 		else
@@ -1557,4 +1557,4 @@ void Song::setKeymap(unsigned int index, std::shared_ptr<Keymap> newMap)
 	emit keymapListChanged(index);
 	Engine::audioEngine()->doneChangeInModel();
 }
-} // namespace lmms
+} // namespace mxm

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2008 Paul Giblock <drfaygo/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -45,7 +45,7 @@
 #include "embed.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class AutoDetectMidiController : public MidiController
@@ -329,7 +329,7 @@ void ControllerConnectionDialog::selectController()
 
 		if( m_controller && m_controller->hasModel( m_targetModel ) )
 		{
-			QMessageBox::warning(this, tr("LMMS"), tr("Cycle Detected."));
+			QMessageBox::warning(this, tr("MXM"), tr("Cycle Detected."));
 			return;
 		}
 	
@@ -441,4 +441,4 @@ void ControllerConnectionDialog::enableAutoDetect( QAction * _a )
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 #include "SampleTrack.h"
 #include "Song.h"
 
-namespace lmms
+namespace mxm
 {
 
 SampleClip::SampleClip(Track* _track, Sample sample, bool isPlaying):
@@ -364,4 +364,4 @@ gui::ClipView * SampleClip::createView( gui::TrackView * _tv )
 }
 
 
-} // namespace lmms
+} // namespace mxm

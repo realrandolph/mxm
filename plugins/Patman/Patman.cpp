@@ -4,7 +4,7 @@
  * Copyright (c) 2007-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -46,7 +46,7 @@
 
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -55,7 +55,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT patman_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"PatMan",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"GUS-compatible patch instrument" ),
@@ -69,7 +69,7 @@ Plugin::Descriptor PLUGIN_EXPORT patman_plugin_descriptor =
 
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * )
 {
 	return new PatmanInstrument( static_cast<InstrumentTrack *>( m ) );
 }
@@ -636,4 +636,4 @@ void PatmanView::modelChanged()
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

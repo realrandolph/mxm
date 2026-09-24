@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,7 +36,7 @@
 #include "Song.h"
 #include "PluginFactory.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -217,7 +217,7 @@ Plugin * Plugin::instantiate(const QString& pluginName, Model * parent,
 	}
 	else
 	{
-		auto instantiationHook = reinterpret_cast<InstantiationHook>(pi.library->resolve("lmms_plugin_main"));
+		auto instantiationHook = reinterpret_cast<InstantiationHook>(pi.library->resolve("mxm_plugin_main"));
 		if (instantiationHook)
 		{
 			inst = instantiationHook(parent, data);
@@ -299,4 +299,4 @@ QDomElement Plugin::Descriptor::SubPluginFeatures::Key::saveXML(
 
 
 
-} // namespace lmms
+} // namespace mxm

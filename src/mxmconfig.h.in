@@ -1,0 +1,54 @@
+#cmakedefine MXM_BUILD_LINUX
+#cmakedefine MXM_BUILD_WIN32
+#cmakedefine MXM_BUILD_WIN64
+#cmakedefine MXM_BUILD_APPLE
+#cmakedefine MXM_BUILD_OPENBSD
+#cmakedefine MXM_BUILD_FREEBSD
+#cmakedefine MXM_BUILD_HAIKU
+#cmakedefine MXM_BUILD_CYGWIN
+
+#cmakedefine MXM_HOST_X86
+#cmakedefine MXM_HOST_X86_64
+#cmakedefine MXM_HOST_ARM32
+#cmakedefine MXM_HOST_ARM64
+#cmakedefine MXM_HOST_RISCV32
+#cmakedefine MXM_HOST_RISCV64
+#cmakedefine MXM_HOST_PPC32
+#cmakedefine MXM_HOST_PPC64
+
+#cmakedefine MXM_HAVE_ALSA
+#cmakedefine MXM_HAVE_FLUIDSYNTH
+#cmakedefine MXM_HAVE_JACK
+#cmakedefine MXM_HAVE_JACK_PRENAME
+#cmakedefine MXM_HAVE_WEAKJACK
+#cmakedefine MXM_HAVE_LV2
+#cmakedefine MXM_HAVE_SUIL
+#cmakedefine MXM_HAVE_LV2_UI
+#cmakedefine MXM_HAVE_MP3LAME
+#cmakedefine MXM_HAVE_SNDFILE_MP3
+#cmakedefine MXM_HAVE_OGGVORBIS
+#cmakedefine MXM_HAVE_SNDIO
+#cmakedefine MXM_HAVE_PORTAUDIO
+#cmakedefine MXM_HAVE_PULSEAUDIO
+#cmakedefine MXM_HAVE_SDL
+#cmakedefine MXM_HAVE_STK
+#cmakedefine MXM_HAVE_VST
+#cmakedefine MXM_HAVE_VST_32
+#cmakedefine MXM_HAVE_VST_64
+#cmakedefine MXM_HAVE_SF_COMPLEVEL
+#cmakedefine MXM_HAVE_WINMM
+
+#cmakedefine MXM_DEBUG_FPE
+
+#cmakedefine MXM_HAVE_PTHREAD_H
+#cmakedefine MXM_HAVE_UNISTD_H
+#cmakedefine MXM_HAVE_SYS_IPC_H
+#cmakedefine MXM_HAVE_SEMAPHORE_H
+#cmakedefine MXM_HAVE_SYS_TIMES_H
+#cmakedefine MXM_HAVE_SYS_PRCTL_H
+#cmakedefine MXM_HAVE_SCHED_H
+#cmakedefine MXM_HAVE_SYS_SOUNDCARD_H
+#cmakedefine MXM_HAVE_SOUNDCARD_H
+#cmakedefine MXM_HAVE_FCNTL_H
+#cmakedefine MXM_HAVE_SYS_IOCTL_H
+#cmakedefine MXM_HAVE_PROCESS_H

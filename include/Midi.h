@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,11 +22,11 @@
  *
  */
 
-#ifndef LMMS_MIDI_H
-#define LMMS_MIDI_H
+#ifndef MXM_MIDI_H
+#define MXM_MIDI_H
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -139,6 +139,6 @@ const int MidiMinPitchBend = 0;
 const int MidiMaxPitchBend = 16383;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_H
+#endif // MXM_MIDI_H

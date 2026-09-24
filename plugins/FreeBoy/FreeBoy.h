@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Attila Herman <attila589/at/gmail.com>
  *                    Csaba Hruska <csaba.hruska/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_FREEBOY_H
-#define LMMS_FREEBOY_H
+#ifndef MXM_FREEBOY_H
+#define MXM_FREEBOY_H
 
 
 #include "AutomatableModel.h"
@@ -32,7 +32,7 @@
 #include "InstrumentView.h"
 #include "Graph.h"
 
-namespace lmms
+namespace mxm
 {
 
 class NotePlayHandle;  // IWYU pragma: keep
@@ -171,6 +171,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FREEBOY_H
+#endif // MXM_FREEBOY_H

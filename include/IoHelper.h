@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018 Hyunjin Song <tteu.ingog/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,11 +22,11 @@
  *
  */
 
-// NOTE: The LMMS/zynaddsubfx repo contains a copy of this header.
+// NOTE: The MXM/zynaddsubfx repo contains a copy of this header.
 //       If you modify this file, consider modifying it there as well.
 
-#ifndef LMMS_IO_HELPER_H
-#define LMMS_IO_HELPER_H
+#ifndef MXM_IO_HELPER_H
+#define MXM_IO_HELPER_H
 
 #include <cstdio>
 #include <limits>
@@ -48,7 +48,7 @@
 #	include <unistd.h>
 #endif
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -119,6 +119,6 @@ inline int fileToDescriptor(std::FILE* file, bool closeFile = true)
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_IO_HELPER_H
+#endif // MXM_IO_HELPER_H

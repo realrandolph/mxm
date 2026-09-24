@@ -4,7 +4,7 @@
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_GUI_AMPLIFIER_CONTROL_DIALOG_H
-#define LMMS_GUI_AMPLIFIER_CONTROL_DIALOG_H
+#ifndef MXM_GUI_AMPLIFIER_CONTROL_DIALOG_H
+#define MXM_GUI_AMPLIFIER_CONTROL_DIALOG_H
 
 #include "EffectControlDialog.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AmplifierControls;
@@ -46,6 +46,6 @@ public:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_AMPLIFIER_CONTROL_DIALOG_H
+#endif // MXM_GUI_AMPLIFIER_CONTROL_DIALOG_H

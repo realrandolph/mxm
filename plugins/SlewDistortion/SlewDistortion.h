@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_SLEW_DISTORTION_H
-#define LMMS_SLEW_DISTORTION_H
+#ifndef MXM_SLEW_DISTORTION_H
+#define MXM_SLEW_DISTORTION_H
 
 #include "Effect.h"
 #include "SlewDistortionControls.h"
 
 #include "BasicFilters.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "OversamplingHelpers.h"
 
-namespace lmms
+namespace mxm
 {
 constexpr inline float SLEW_DISTORTION_MIN_FLOOR = 0.0012589f;// -72 dBFS
 constexpr inline float SLEW_DISTORTION_DC_FREQ = 7.f;
@@ -86,6 +86,6 @@ private:
 	friend class gui::SlewDistortionControlDialog;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SLEW_DISTORTION_H
+#endif // MXM_SLEW_DISTORTION_H

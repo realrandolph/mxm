@@ -1,36 +1,27 @@
 <div align="center">
 	<h1>
-	<img src="https://raw.githubusercontent.com/LMMS/artwork/master/Icon%20%26%20Mimetypes/lmms-64x64.svg" alt="LMMS Logo"><br>LMMS
+	<img src="https://raw.githubusercontent.com/realrandolph/mxm/master/data/themes/default/icon.png" alt="MXM Logo"><br>MXM
 	</h1>
+	<p><b>Musica ex Machina</b> — pronounced <i>"Mix 'em"</i></p>
 	<p>Cross-platform music production software</p>
 	<p>
-		<a href="https://lmms.io/">Website</a>
+		<a href="https://github.com/realrandolph/mxm">Repository</a>
 		⦁︎
-		<a href="https://github.com/LMMS/lmms/releases">Releases</a>
-		⦁︎
-		<a href="https://lmms.io/documentation">User manual</a>
-		⦁︎
-		<a href="https://lmms.io/showcase/">Showcase</a>
-		⦁︎
-		<a href="https://lmms.io/lsp/">Sharing platform</a>
-		⦁︎
-		<a href="https://github.com/LMMS/lmms/wiki">Developer wiki</a>
-		⦁︎
-		<a href="https://lmms.github.io/lmms">Internal documentation</a>
-	</p>
-	<p>
-		<a href="https://github.com/LMMS/lmms/actions/workflows/build.yml"><img src="https://github.com/LMMS/lmms/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
-		<a href="https://lmms.io/download"><img src="https://img.shields.io/github/release/LMMS/lmms.svg?maxAge=3600" 	alt="Latest stable release"></a>
-		<a href="https://github.com/LMMS/lmms/releases"><img src="https://img.shields.io/github/downloads/LMMS/lmms/total.svg?maxAge=3600" alt="Overall downloads on Github"></a>
-		<a href="https://discord.gg/3sc5su7"><img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Join the chat at Discord"></a>
-		<a href="https://www.transifex.com/lmms/lmms/"><img src="https://img.shields.io/badge/localise-on_transifex-green.svg"></a>
+		<a href="https://github.com/realrandolph/mxm/releases">Releases</a>
 	</p>
 </div>
 
-What is LMMS?
+What is MXM?
 --------------
 
-LMMS is an open-source cross-platform digital audio workstation designed for music production. It includes an advanced Piano Roll, Beat Sequencer, Song Editor, and Mixer for composing, arranging, and mixing music. It comes with 15+ synthesizer plugins by default, along with VST2 and SoundFont2 support.
+MXM (Musica ex Machina) is an independent, open-source, cross-platform digital
+audio workstation designed for music production. It descends from
+[LMMS](https://lmms.io/) and retains full compatibility with existing `.mmp`
+and `.mmpz` project files.
+
+MXM includes an advanced Piano Roll, Beat Sequencer, Song Editor, and Mixer for
+composing, arranging, and mixing music. It ships with 15+ synthesizer plugins by
+default, along with VST2 and SoundFont2 support.
 
 Features
 ---------
@@ -38,7 +29,7 @@ Features
 * Song-Editor for arranging melodies, samples, patterns, and automation
 * Pattern-Editor for creating beats and patterns
 * An easy-to-use Piano-Roll for editing patterns and melodies
-* A Mixer with unlimited mixer channels and arbitrary number of effects
+* A Mixer with unlimited mixer channels and an arbitrary number of effects
 * Many powerful instrument and effect-plugins out of the box
 * Full user-defined track-based automation and computer-controlled automation sources
 * Compatible with many standards such as SoundFont2, VST2 (instruments and effects), LADSPA, LV2, GUS Patches, and full MIDI support
@@ -47,13 +38,26 @@ Features
 Building
 ---------
 
-See [Compiling LMMS](https://github.com/LMMS/lmms/wiki/Compiling)
+See [Compiling](https://github.com/realrandolph/mxm/blob/master/INSTALL.txt).
 
-Join LMMS-development
-----------------------
+The build produces the `mxm` executable.
 
-If you are interested in LMMS, its programming, artwork, testing, writing demo songs, (and improving this README...) or something like that, you're welcome to participate in the development of LMMS!
+Join development
+----------------
 
-Information about what you can do and how can be found in the [wiki](https://github.com/LMMS/lmms/wiki).
+If you are interested in MXM, its programming, artwork, testing, writing demo
+songs, (and improving this README...) or something like that, you're welcome to
+participate in its development!
 
-Before coding a new big feature, please _always_ [file an issue](https://github.com/LMMS/lmms/issues/new) for your idea and suggestions about your feature and about the intended implementation on GitHub, or ask in one of the tech channels on Discord and wait for replies! Maybe there are different ideas, improvements, or hints, or maybe your feature is not welcome/needed at the moment.
+Before coding a new big feature, please _always_ [file an issue](https://github.com/realrandolph/mxm/issues/new)
+for your idea and suggestions about your feature and about the intended
+implementation, and wait for replies. There may be different ideas,
+improvements, or hints, or your feature may not be welcome or needed at the
+moment.
+
+Attribution
+-----------
+
+MXM is a fork of [LMMS](https://github.com/LMMS/lmms). It is distributed under
+the terms of the GNU General Public License (see `LICENSE.txt`). See `AUTHORS`
+and `CONTRIBUTORS` for the full list of contributors.

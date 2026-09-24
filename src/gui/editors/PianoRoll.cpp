@@ -5,7 +5,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2008 Andrew Kelley <superjoe30/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -60,7 +60,7 @@
 #include "FontHelper.h"
 #include "InstrumentTrack.h"
 #include "KeyboardShortcuts.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "MainWindow.h"
 #include "MidiClip.h"
 #include "PatternStore.h"
@@ -74,7 +74,7 @@
 #include "FileDialog.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -296,16 +296,16 @@ PianoRoll::PianoRoll() :
 	connect(Engine::getSong(), &Song::playbackStateChanged, m_positionLine, qOverload<>(&QWidget::update));
 
 	//update timeline when in step-recording mode
-	connect( &m_stepRecorderWidget, SIGNAL( positionChanged( const lmms::TimePos& ) ),
-			this, SLOT( updatePositionStepRecording( const lmms::TimePos& ) ) );
+	connect( &m_stepRecorderWidget, SIGNAL( positionChanged( const mxm::TimePos& ) ),
+			this, SLOT( updatePositionStepRecording( const mxm::TimePos& ) ) );
 
 	// update timeline when in record-accompany mode
 	connect(&Engine::getSong()->getTimeline(Song::PlayMode::Song), &Timeline::positionChanged, this, &PianoRoll::updatePositionAccompany);
 	// TODO
 /*	connect( engine::getSong()->getPlayPos( Song::PlayMode::Pattern ).m_timeLine,
-				SIGNAL( positionChanged( const lmms::TimePos& ) ),
+				SIGNAL( positionChanged( const mxm::TimePos& ) ),
 			this,
-			SLOT( updatePositionAccompany( const lmms::TimePos& ) ) );*/
+			SLOT( updatePositionAccompany( const mxm::TimePos& ) ) );*/
 
 	removeSelection();
 
@@ -912,10 +912,10 @@ void PianoRoll::setCurrentMidiClip( MidiClip* newMidiClip )
 	resizeEvent( nullptr );
 
 	// make sure to always get informed about the MIDI clip being destroyed
-	connect( m_midiClip, SIGNAL(destroyedMidiClip(lmms::MidiClip*)), this, SLOT(hideMidiClip(lmms::MidiClip*)));
+	connect( m_midiClip, SIGNAL(destroyedMidiClip(mxm::MidiClip*)), this, SLOT(hideMidiClip(mxm::MidiClip*)));
 
-	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOn( const lmms::Note& ) ), this, SLOT( startRecordNote( const lmms::Note& ) ) );
-	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOff( const lmms::Note& ) ), this, SLOT( finishRecordNote( const lmms::Note& ) ) );
+	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOn( const mxm::Note& ) ), this, SLOT( startRecordNote( const mxm::Note& ) ) );
+	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOff( const mxm::Note& ) ), this, SLOT( finishRecordNote( const mxm::Note& ) ) );
 	connect( m_midiClip, SIGNAL(dataChanged()), this, SLOT(update()));
 	connect( m_midiClip->instrumentTrack()->pianoModel(), SIGNAL(dataChanged()), this, SLOT(update()));
 
@@ -5893,4 +5893,4 @@ void PianoRollWindow::updateStepRecordingIcon()
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

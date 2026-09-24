@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2009 Paul Giblock <drfaygo/at/gmail.com>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,15 +22,15 @@
  *
  */
 
-#ifndef LMMS_PEAK_CONTROLLER_H
-#define LMMS_PEAK_CONTROLLER_H
+#ifndef MXM_PEAK_CONTROLLER_H
+#define MXM_PEAK_CONTROLLER_H
 
 #include "Controller.h"
 #include "ControllerDialog.h"
 
 class QWidget;
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -38,7 +38,7 @@ class PeakControllerEffect;
 
 using PeakControllerEffectVector = std::vector<PeakControllerEffect*>;
 
-class LMMS_EXPORT PeakController : public Controller
+class MXM_EXPORT PeakController : public Controller
 {
 	Q_OBJECT
 public:
@@ -105,6 +105,6 @@ protected:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PEAK_CONTROLLER_H
+#endif // MXM_PEAK_CONTROLLER_H

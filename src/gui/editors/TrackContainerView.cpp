@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -44,7 +44,7 @@
 #include "GuiApplication.h"
 #include "PluginFactory.h"
 
-namespace lmms
+namespace mxm
 {
 
 using namespace std;
@@ -115,8 +115,8 @@ TrackContainerView::TrackContainerView( TrackContainer * _tc ) :
 
 	connect( Engine::getSong(), SIGNAL(timeSignatureChanged(int,int)),
 						this, SLOT(realignTracks()));
-	connect( m_tc, SIGNAL(trackAdded(lmms::Track*)),
-			this, SLOT(createTrackView(lmms::Track*)),
+	connect( m_tc, SIGNAL(trackAdded(mxm::Track*)),
+			this, SLOT(createTrackView(mxm::Track*)),
 			Qt::QueuedConnection );
 }
 
@@ -493,4 +493,4 @@ unsigned int TrackContainerView::totalHeightOfTracks() const
 } // namespace gui
 
 
-} // namespace lmms
+} // namespace mxm

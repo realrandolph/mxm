@@ -16,7 +16,7 @@
 
 #define MAX_LAYERS 4
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -25,10 +25,10 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT hydrogenimport_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"Hydrogen Import",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
-				"Filter for importing Hydrogen files into LMMS" ),
+				"Filter for importing Hydrogen files into MXM" ),
 	"frank mather",
 	0x0100,
 	Plugin::Type::ImportFilter,
@@ -345,7 +345,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *, void * _data )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *, void * _data )
 {
 	return new HydrogenImport( QString::fromUtf8(
 									static_cast<const char *>( _data ) ) );
@@ -355,4 +355,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *, void * _data )
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -1,9 +1,9 @@
 /*
- * ToolButton.cpp - implementation of LMMS-tool-button for common (cool) look
+ * ToolButton.cpp - implementation of MXM-tool-button for common (cool) look
  *
  * Copyright (c) 2005-2006 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,7 +25,7 @@
 
 #include "ToolButton.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -45,4 +45,4 @@ ToolButton::ToolButton( const QPixmap & _pixmap, const QString & _tooltip,
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

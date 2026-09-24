@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_AUDIO_SDL_H
-#define LMMS_AUDIO_SDL_H
+#ifndef MXM_AUDIO_SDL_H
+#define MXM_AUDIO_SDL_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_SDL
+#ifdef MXM_HAVE_SDL
 
 #include <SDL2/SDL_audio.h>
 
@@ -36,7 +36,7 @@
 
 class QComboBox;
 
-namespace lmms
+namespace mxm
 {
 
 class AudioSdl : public AudioDevice
@@ -90,8 +90,8 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_SDL
+#endif // MXM_HAVE_SDL
 
-#endif // LMMS_AUDIO_SDL_H
+#endif // MXM_AUDIO_SDL_H

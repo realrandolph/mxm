@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2014 grejppi <grejppi/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,9 +31,9 @@
 #include "DspEffectLibrary.h"
 #include "Oscillator.h"
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -107,6 +107,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_KEYMAP_H
-#define LMMS_KEYMAP_H
+#ifndef MXM_KEYMAP_H
+#define MXM_KEYMAP_H
 
 #include <vector>
 #include <QObject>
@@ -31,7 +31,7 @@
 
 #include "SerializingObject.h"
 
-namespace lmms
+namespace mxm
 {
 
 class Keymap : public QObject, public SerializingObject
@@ -87,6 +87,6 @@ private:
 	float m_baseFreq;               //!< frequency of the base note (usually A4 @440 Hz)
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_KEYMAP_H
+#endif // MXM_KEYMAP_H

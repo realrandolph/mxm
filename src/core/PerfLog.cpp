@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2017-2018 LMMS Developers
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,9 +24,9 @@
 
 #include "PerfLog.h"
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#if defined(LMMS_HAVE_SYS_TIMES_H) && defined(LMMS_HAVE_UNISTD_H)
+#if defined(MXM_HAVE_SYS_TIMES_H) && defined(MXM_HAVE_UNISTD_H)
 #	define USE_POSIX_TIME
 #endif
 
@@ -36,7 +36,7 @@
 #endif
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -136,4 +136,4 @@ void PerfLogTimer::end()
 }
 
 
-} // namespace lmms
+} // namespace mxm

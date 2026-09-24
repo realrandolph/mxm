@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "AudioFileFlac.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -53,7 +53,7 @@ const std::array<ProjectRenderer::FileEncodeDevice, 5> ProjectRenderer::fileEnco
 	FileEncodeDevice{ ProjectRenderer::ExportFileFormat::Ogg,
 		QT_TRANSLATE_NOOP( "ProjectRenderer", "OGG (*.ogg)" ),
 					".ogg",
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 					&AudioFileOgg::getInst
 #else
 					nullptr
@@ -62,7 +62,7 @@ const std::array<ProjectRenderer::FileEncodeDevice, 5> ProjectRenderer::fileEnco
 	FileEncodeDevice{ ProjectRenderer::ExportFileFormat::MP3,
 		QT_TRANSLATE_NOOP( "ProjectRenderer", "MP3 (*.mp3)" ),
 					".mp3",
-#ifdef LMMS_HAVE_MP3LAME
+#ifdef MXM_HAVE_MP3LAME
 					&AudioFileMP3::getInst
 #else
 					nullptr
@@ -142,7 +142,7 @@ void ProjectRenderer::startProcessing()
 		Engine::audioEngine()->setAudioDevice(m_fileDev, false);
 
 		start(
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 			QThread::HighPriority
 #endif
 						);
@@ -228,4 +228,4 @@ void ProjectRenderer::updateConsoleProgress()
 }
 
 
-} // namespace lmms
+} // namespace mxm

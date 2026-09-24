@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2015 Colin Wallace <wallace.colin.a@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,20 +24,20 @@
  *
  */
 
-#ifndef LMMS_GUI_SUBWINDOW_H
-#define LMMS_GUI_SUBWINDOW_H
+#ifndef MXM_GUI_SUBWINDOW_H
+#define MXM_GUI_SUBWINDOW_H
 
 #include <QMdiSubWindow>
 #include <QString>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QGraphicsDropShadowEffect;
 class QLabel;
 class QPushButton;
 class QWidget;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -45,8 +45,8 @@ namespace lmms::gui
 //! @brief The SubWindow class
 //! 
 //! Because of a bug in the QMdiSubWindow class to save the right position and size of a subwindow in a project and
-//! because of the inability for customizing the title bar appearance, lmms implements its own subwindow class.
-class LMMS_EXPORT SubWindow : public QMdiSubWindow
+//! because of the inability for customizing the title bar appearance, mxm implements its own subwindow class.
+class MXM_EXPORT SubWindow : public QMdiSubWindow
 {
 	Q_OBJECT
 	Q_PROPERTY( QBrush activeColor READ activeColor WRITE setActiveColor )
@@ -159,6 +159,6 @@ private slots:
 
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_SUBWINDOW_H
+#endif // MXM_GUI_SUBWINDOW_H

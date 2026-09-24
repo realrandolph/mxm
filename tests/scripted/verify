@@ -29,22 +29,22 @@ class ScriptTest():
 
 	def __enter__(self):
 		"""Create temporary, minimal test environment, and change to it"""
-		self.lmms_tmpdir = tempfile.TemporaryDirectory(dir='.')
-		os.chdir(self.lmms_tmpdir.name)
+		self.mxm_tmpdir = tempfile.TemporaryDirectory(dir='.')
+		os.chdir(self.mxm_tmpdir.name)
 		# prerequirements
 		Path('data/themes').mkdir(parents=True)
 		subprocess.run(['git', 'init', '-b', 'main'], check=True)
 		set_git_config()
 		subprocess.run(['git', 'submodule', 'add', '../../carla', 'plugins/CarlaBase/carla'], check=True)
-		create_file('src/core/classes.cpp', 'namespace lmms {\nclass TestClass\n}')
+		create_file('src/core/classes.cpp', 'namespace mxm {\nclass TestClass\n}')
 		create_file('data/locale/de.ts',
 					'<?xml version="1.0" ?><!DOCTYPE TS><TS language="de" version="2.1">\n'
 					'    <context>\n'
 					'    <name>TestClass</name>\n'
 					'     <message>\n'
 					'        <location filename="../../src/core/classes.cpp" line="20"/>\n'
-					'        <source>About LMMS</source>\n'
-					'        <translation>Über LMMS</translation>\n'
+					'        <source>About MXM</source>\n'
+					'        <translation>Über MXM</translation>\n'
 					'    </message>\n'
 					'</context>\n'
 					'</TS>\n')
@@ -54,7 +54,7 @@ class ScriptTest():
 	def __exit__(self, type, value, traceback):
 		"""Leave and destroy temporary test environment"""
 		os.chdir('..')
-		self.lmms_tmpdir.cleanup()
+		self.mxm_tmpdir.cleanup()
 
 	def expect(self, expectation: str):
 		"""Check if "expectation" is in the output"""
@@ -80,12 +80,12 @@ class ScriptTest():
 							   f"but {expected_returncode} expected")
 
 
-lmms_main_path = Path(__file__).resolve().parent.parent.parent
+mxm_main_path = Path(__file__).resolve().parent.parent.parent
 
 with tempfile.TemporaryDirectory() as tmpdir:
 	os.chdir(tmpdir)
-	check_strings = lmms_main_path / 'tests' / 'scripted' / 'check-strings'
-	check_namespace = lmms_main_path / 'tests' / 'scripted' / 'check-namespace'
+	check_strings = mxm_main_path / 'tests' / 'scripted' / 'check-strings'
+	check_namespace = mxm_main_path / 'tests' / 'scripted' / 'check-namespace'
 
 	# create dummy carla repo
 	Path('carla').mkdir()
@@ -96,8 +96,8 @@ with tempfile.TemporaryDirectory() as tmpdir:
 	subprocess.run(['git', 'commit', '-m', 'Initial commit'], check=True)
 	os.chdir('..')
 
-	Path('lmms').mkdir()
-	os.chdir('lmms')
+	Path('mxm').mkdir()
+	os.chdir('mxm')
 
 	# minimal working example
 	with ScriptTest(check_strings) as test:
@@ -111,8 +111,8 @@ with tempfile.TemporaryDirectory() as tmpdir:
 					'    <name>NonExistentClass</name>\n'
 					'     <message>\n'
 					'        <location filename="../../src/core/classes.cpp" line="20"/>\n'
-					'        <source>About LMMS</source>\n'
-					'        <translation>À propos de LMMS</translation>\n'
+					'        <source>About MXM</source>\n'
+					'        <translation>À propos de MXM</translation>\n'
 					'    </message>\n'
 					'</context>\n'
 					'</TS>\n')
@@ -122,7 +122,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
 	with ScriptTest(check_strings) as test:
 		create_file('data/themes/classic/style.css',
-					'lmms--gui--NonExistentClass {'
+					'mxm--gui--NonExistentClass {'
 					'\tcolor: #d1d8e4;\n'
 					'}')
 		test.run()
@@ -136,9 +136,9 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
 		create_file('01_OddBraceWithinMacro.cpp', '''
 					#if HAS_EVEN_BRACES
-						namespace lmms {}
+						namespace mxm {}
 					#endif
-					namespace lmms {
+					namespace mxm {
 					#if HAS_ODD_BRACE
 					}
 					#endif
@@ -148,7 +148,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 					extern "C" {
 						#include "alright.c"
 					}
-					namespace lmms {
+					namespace mxm {
 						#include <bad>
 					}
 					''')
@@ -157,7 +157,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 					#define HEADER_GUARD_NEEDS_NO_COMMENT
 						#ifdef HAS_NESTED_NEEDS_COMMENT
 							#ifdef SHORT_NO_NESTED_NEEDS_NO_COMMENT
-								namespace lmms {}
+								namespace mxm {}
 							#endif
 						#endif
 						#ifdef HAS_COMMENT
@@ -168,7 +168,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 					#endif
 					''')
 		create_file('04_NamespaceComments.cpp', '''
-					namespace lmms {
+					namespace mxm {
 						namespace ShortNamespace {
 							class WithDeclarationsOnly;
 						}
@@ -177,38 +177,38 @@ with tempfile.TemporaryDirectory() as tmpdir:
 								int x;
 							};
 						}
-					} // namespace lmms
+					} // namespace mxm
 					''')
 		create_file('05_NoHeaderGuard.h', '''
 					#include <cstdio>
-					namespace lmms {}
+					namespace mxm {}
 					''')
 		create_file('06_PragmaButNoLmms.h', '''
 					// should not cause header guard warning
 					#pragma once
-					namespace not_lmms {}
+					namespace not_mxm {}
 					''')
 		create_file('07_MismatchingEndifName.h', '''
 					#ifndef ABC_H
-					namespace lmms {
+					namespace mxm {
 					\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 					}
 					#endif // XYZ_H
 					''')
 		create_file('08_MismatchingNamespaceEndName.h', '''
 					#ifndef ABC_H
-					namespace lmms {
+					namespace mxm {
 					{}
 					} // namespace smml
 					#endif // ABC_H
 					''')
 		create_file('09_NoEndifAfterElseIsOk.cpp', '''
 					#ifdef XYZ
-					namespace lmms {
+					namespace mxm {
 					\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 					}
 					#else
-					namespace lmms {
+					namespace mxm {
 					\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
 					}
 					#endif
@@ -221,9 +221,9 @@ Error: 02_IncludeInCodeBlock.cpp:7: #include inside a code block
 Error: 03_MacroComments.h:8: Missing comment // HAS_NESTED_NEEDS_COMMENT
 Error: 04_NamespaceComments.cpp:10: Missing comment // namespace LongNamespace
 Error: 05_NoHeaderGuard.h: First statement should be header guard
-Error: 06_PragmaButNoLmms.h: File has no namespace lmms
+Error: 06_PragmaButNoLmms.h: File has no namespace mxm
 Error: 07_MismatchingEndifName.h:36: Missing comment // ABC_H
-Error: 08_MismatchingNamespaceEndName.h:5: Missing comment // namespace lmms
+Error: 08_MismatchingNamespaceEndName.h:5: Missing comment // namespace mxm
 ''')
 
 

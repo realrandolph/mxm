@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,23 +22,23 @@
  *
  */
 
-#ifndef LMMS_GUI_LV2_VIEW_BASE_H
-#define LMMS_GUI_LV2_VIEW_BASE_H
+#ifndef MXM_GUI_LV2_VIEW_BASE_H
+#define MXM_GUI_LV2_VIEW_BASE_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 
 #include "LinkedModelGroupViews.h"
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "Lv2Basics.h"
 #include <memory>
 
 
 class QPushButton;
 class QMdiSubWindow;
-namespace lmms
+namespace mxm
 {
 
 
@@ -49,7 +49,7 @@ class Lv2ControlBase;
 namespace gui
 {
 
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 class Lv2UiHost;
 #endif
 
@@ -83,7 +83,7 @@ public:
 
 
 //! Base class for view for one Lv2 plugin
-class LMMS_EXPORT Lv2ViewBase : public LinkedModelGroupsView
+class MXM_EXPORT Lv2ViewBase : public LinkedModelGroupsView
 {
 	friend class HelpWindowEventFilter;
 protected:
@@ -120,7 +120,7 @@ private:
 	Lv2ViewProc* m_procView;
 	QWidget* m_pluginWidget = nullptr;
 	Lv2ControlBase* m_ctrlBase = nullptr;
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 	std::unique_ptr<Lv2UiHost> m_uiHost;
 #endif
 
@@ -133,8 +133,8 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_GUI_LV2_VIEW_BASE_H
+#endif // MXM_GUI_LV2_VIEW_BASE_H

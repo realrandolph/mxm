@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,27 +28,27 @@
 #include <type_traits>
 #include <utility>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 #include "RaiiHelpers.h"
 
-#ifdef LMMS_HAVE_UNISTD_H
+#ifdef MXM_HAVE_UNISTD_H
 #	include <unistd.h>
 #endif
 
-#if (_POSIX_SEMAPHORES > 0 && !defined(__MINGW32__)) || defined(LMMS_BUILD_APPLE)
+#if (_POSIX_SEMAPHORES > 0 && !defined(__MINGW32__)) || defined(MXM_BUILD_APPLE)
 #	include <fcntl.h>
 #	include <semaphore.h>
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 #	include <windows.h>
 #else
 #	error "No system semaphore implementation available"
 #endif
 
-namespace lmms {
+namespace mxm {
 
 namespace detail {
 
-#if (_POSIX_SEMAPHORES > 0 && !defined(__MINGW32__)) || defined(LMMS_BUILD_APPLE)
+#if (_POSIX_SEMAPHORES > 0 && !defined(__MINGW32__)) || defined(MXM_BUILD_APPLE)
 
 namespace {
 
@@ -117,7 +117,7 @@ private:
 	UniqueSemaphore m_ownedSemaphore;
 };
 
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 
 namespace {
 
@@ -178,4 +178,4 @@ auto SystemSemaphore::operator=(SystemSemaphore&& other) noexcept -> SystemSemap
 auto SystemSemaphore::acquire() noexcept -> bool { return m_impl->acquire(); }
 auto SystemSemaphore::release() noexcept -> bool { return m_impl->release(); }
 
-} // namespace lmms
+} // namespace mxm

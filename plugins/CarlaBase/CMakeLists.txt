@@ -1,5 +1,5 @@
 # If Carla was not provided by the system, make a dummy library instead
-if(LMMS_HAVE_WEAKCARLA)
+if(MXM_HAVE_WEAKCARLA)
   SET(CARLA_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/carla/source
     ${CMAKE_CURRENT_SOURCE_DIR}/carla/source/includes
@@ -8,7 +8,7 @@ if(LMMS_HAVE_WEAKCARLA)
   )
 
   # force "lib" prefix
-  IF(LMMS_BUILD_WIN32)
+  IF(MXM_BUILD_WIN32)
       SET(CMAKE_SHARED_LIBRARY_PREFIX "lib")
   ENDIF()
 
@@ -25,7 +25,7 @@ if(LMMS_HAVE_WEAKCARLA)
   SET(CARLA_LIBRARIES ${CARLA_LIBRARIES} PARENT_SCOPE)
 endif()
 
-if(LMMS_HAVE_CARLA OR LMMS_HAVE_WEAKCARLA)
+if(MXM_HAVE_CARLA OR MXM_HAVE_WEAKCARLA)
         # Mimic the missing "config.h"
         SET(CARLA_INCLUDE_DIRS ${CARLA_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/CarlaConfig)
         SET(CARLA_INCLUDE_DIRS ${CARLA_INCLUDE_DIRS} PARENT_SCOPE)
@@ -44,7 +44,7 @@ if(LMMS_HAVE_CARLA OR LMMS_HAVE_WEAKCARLA)
                 BUILD_WITH_INSTALL_RPATH TRUE
                 INSTALL_RPATH_USE_LINK_PATH TRUE
                 INSTALL_RPATH "${CARLA_RPATH}")
-        IF(LMMS_HAVE_WEAKCARLA)
+        IF(MXM_HAVE_WEAKCARLA)
                 ADD_DEPENDENCIES(carlabase ${CARLA_NATIVE_LIB})
         ENDIF()
 endif()

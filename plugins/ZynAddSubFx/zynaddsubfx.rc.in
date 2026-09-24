@@ -13,13 +13,13 @@ BEGIN
     BLOCK "040904E4"
     //language ID = U.S. English, charset = Windows, Multilingual
     BEGIN
-      VALUE "Comments",		"ZynAddSubFX Plugin - LMMS (http://lmms.sf.net)\0"
-      VALUE "CompanyName",	"LMMS Developers\0"
-      VALUE "FileDescription",	"ZynAddSubFX LMMS Plugin\0"
+      VALUE "Comments",		"ZynAddSubFX Plugin - MXM (https://github.com/realrandolph/mxm)\0"
+      VALUE "CompanyName",	"MXM Developers\0"
+      VALUE "FileDescription",	"ZynAddSubFX MXM Plugin\0"
       VALUE "FileVersion",	"2.3.0/@VERSION@\0"
       VALUE "LegalCopyright",	"Copyright (c) Nasca Octavian Paul, Mark McCurry, Harald Hvaal, Tobias Doerffel\0"
       VALUE "OriginalFilename",	"RemoteZynAddSubFx.exe\0"
-      VALUE "ProductName",	"ZynAddSubFX/LMMS\0"
+      VALUE "ProductName",	"ZynAddSubFX/MXM\0"
       VALUE "ProductVersion",	"2.3.0/@VERSION@\0"
     END
   END

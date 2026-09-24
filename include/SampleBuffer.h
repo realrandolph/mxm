@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_BUFFER_H
-#define LMMS_SAMPLE_BUFFER_H
+#ifndef MXM_SAMPLE_BUFFER_H
+#define MXM_SAMPLE_BUFFER_H
 
 #include <QString>
 #include <memory>
@@ -31,11 +31,11 @@
 
 #include "AudioEngine.h"
 #include "Engine.h"
-#include "LmmsTypes.h"
-#include "lmms_export.h"
+#include "MxmTypes.h"
+#include "mxm_export.h"
 
-namespace lmms {
-class LMMS_EXPORT SampleBuffer
+namespace mxm {
+class MXM_EXPORT SampleBuffer
 {
 public:
 	using value_type = SampleFrame;
@@ -93,6 +93,6 @@ private:
 	sample_rate_t m_sampleRate = Engine::audioEngine()->outputSampleRate();
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SAMPLE_BUFFER_H
+#endif // MXM_SAMPLE_BUFFER_H

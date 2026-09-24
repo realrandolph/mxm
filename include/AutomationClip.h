@@ -5,7 +5,7 @@
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef LMMS_AUTOMATION_CLIP_H
-#define LMMS_AUTOMATION_CLIP_H
+#ifndef MXM_AUTOMATION_CLIP_H
+#define MXM_AUTOMATION_CLIP_H
 
 #include <QMap>
 #include <QPointer>
@@ -34,7 +34,7 @@
 #include "Clip.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class AutomationTrack;
@@ -48,7 +48,7 @@ class AutomationEditor;
 
 
 
-class LMMS_EXPORT AutomationClip : public Clip
+class MXM_EXPORT AutomationClip : public Clip
 {
 	Q_OBJECT
 public:
@@ -239,7 +239,7 @@ public:
 
 public slots:
 	void clear();
-	void objectDestroyed( lmms::jo_id_t );
+	void objectDestroyed( mxm::jo_id_t );
 	void flipY( int min, int max );
 	void flipY();
 	void flipX(int start = -1, int end = -1);
@@ -335,6 +335,6 @@ inline int POS(AutomationClip::TimemapIterator it)
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUTOMATION_CLIP_H
+#endif // MXM_AUTOMATION_CLIP_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_REMOTE_PLUGIN_BASE_H
-#define LMMS_REMOTE_PLUGIN_BASE_H
+#ifndef MXM_REMOTE_PLUGIN_BASE_H
+#define MXM_REMOTE_PLUGIN_BASE_H
 
 #include <atomic>  // IWYU pragma: keep
 #include <vector>
@@ -33,28 +33,28 @@
 #include <cstring>
 #include <string>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#if !(defined(LMMS_HAVE_SYS_IPC_H) && defined(LMMS_HAVE_SEMAPHORE_H))
+#if !(defined(MXM_HAVE_SYS_IPC_H) && defined(MXM_HAVE_SEMAPHORE_H))
 #define SYNC_WITH_SHM_FIFO
 
-#ifdef LMMS_HAVE_PROCESS_H
+#ifdef MXM_HAVE_PROCESS_H
 #include <process.h>
 #endif
-#else // !(LMMS_HAVE_SYS_IPC_H && LMMS_HAVE_SEMAPHORE_H)
-#ifdef LMMS_HAVE_UNISTD_H
+#else // !(MXM_HAVE_SYS_IPC_H && MXM_HAVE_SEMAPHORE_H)
+#ifdef MXM_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#endif // !(LMMS_HAVE_SYS_IPC_H && LMMS_HAVE_SEMAPHORE_H)
+#endif // !(MXM_HAVE_SYS_IPC_H && MXM_HAVE_SEMAPHORE_H)
 
-#ifdef LMMS_HAVE_PTHREAD_H
+#ifdef MXM_HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
 
 
 #ifdef BUILD_REMOTE_PLUGIN_CLIENT
-#undef LMMS_EXPORT
-#define LMMS_EXPORT
+#undef MXM_EXPORT
+#define MXM_EXPORT
 
 #ifndef SYNC_WITH_SHM_FIFO
 #include <sys/socket.h>
@@ -62,7 +62,7 @@
 #endif // SYNC_WITH_SHM_FIFO
 
 #else // BUILD_REMOTE_PLUGIN_CLIENT
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include <QString>
 
 #ifndef SYNC_WITH_SHM_FIFO
@@ -77,7 +77,7 @@
 #include "SystemSemaphore.h"
 #endif
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -255,7 +255,7 @@ private:
 				_len > m_data->endPtr - m_data->startPtr )
 		{
 			unlock();
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 			usleep( 5 );
 #endif
 			lock();
@@ -291,7 +291,7 @@ private:
 				m_data->startPtr = 0;
 			}
 			unlock();
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 			usleep( 5 );
 #endif
 			lock();
@@ -346,7 +346,7 @@ enum RemoteMessageIDs
 
 
 
-class LMMS_EXPORT RemotePluginBase
+class MXM_EXPORT RemotePluginBase
 {
 public:
 	struct message
@@ -637,6 +637,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_REMOTE_PLUGIN_BASE_H
+#endif // MXM_REMOTE_PLUGIN_BASE_H

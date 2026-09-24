@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016-2017 Orr Dvori
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -46,13 +46,13 @@
 
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
 extern "C" {
 
-Plugin::Descriptor PLUGIN_EXPORT xpressive_plugin_descriptor = { LMMS_STRINGIFY(
+Plugin::Descriptor PLUGIN_EXPORT xpressive_plugin_descriptor = { MXM_STRINGIFY(
 	PLUGIN_NAME), "Xpressive", QT_TRANSLATE_NOOP("PluginBrowser",
 	"Mathematical expression parser"), "Orr Dvori", 0x0100,
 	Plugin::Type::Instrument, new PluginPixmapLoader("logo"), nullptr, nullptr };
@@ -72,7 +72,7 @@ O2 -> trianglew(2t*f)*(0.5+0.5sinew(12*A1*t))+sinew(t*f)*(0.5+0.5sinew(12*A1*t+0
  *
  *	class Xpressive
  *
- *	lmms - plugin
+ *	mxm - plugin
  *
  ***********************************************************************/
 #define GRAPH_LENGTH 4096
@@ -885,11 +885,11 @@ void XpressiveView::helpClicked() {
 extern "C" {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main(Model *m, void *) {
+PLUGIN_EXPORT Plugin * mxm_plugin_main(Model *m, void *) {
 	return (new Xpressive(static_cast<InstrumentTrack *>(m)));
 }
 
 }
 
 
-} // namespace lmms
+} // namespace mxm

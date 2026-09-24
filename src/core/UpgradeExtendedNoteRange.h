@@ -1,7 +1,7 @@
 /*
  * UpgradeExtendedNoteRange.h - Upgrades the extended note range
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
 
 #pragma once
 
-#ifndef LMMS_UPGRADEEXTENDEDNOTERANGE_H
-#define LMMS_UPGRADEEXTENDEDNOTERANGE_H
+#ifndef MXM_UPGRADEEXTENDEDNOTERANGE_H
+#define MXM_UPGRADEEXTENDEDNOTERANGE_H
 
 
 class QDomElement;
 
-namespace lmms
+namespace mxm
 {
 
 class UpgradeExtendedNoteRange
@@ -42,6 +42,6 @@ private:
 	QDomElement & m_domElement;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_UPGRADEEXTENDEDNOTERANGE_H
+#endif // MXM_UPGRADEEXTENDEDNOTERANGE_H

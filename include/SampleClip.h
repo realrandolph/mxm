@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_CLIP_H
-#define LMMS_SAMPLE_CLIP_H
+#ifndef MXM_SAMPLE_CLIP_H
+#define MXM_SAMPLE_CLIP_H
 
 #include <memory>
 #include "Clip.h"
 #include "Sample.h"
 
-namespace lmms
+namespace mxm
 {
 
 class SampleBuffer;
@@ -112,6 +112,6 @@ signals:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SAMPLE_CLIP_H
+#endif // MXM_SAMPLE_CLIP_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2024 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_LV2_MANAGER_H
-#define LMMS_LV2_MANAGER_H
+#ifndef MXM_LV2_MANAGER_H
+#define MXM_LV2_MANAGER_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <map>
 #include <set>
@@ -40,7 +40,7 @@
 #include "Plugin.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 /*
@@ -147,7 +147,7 @@ public:
 			unstablePluginsBuffersizeLessEqual32.end();
 	}
 
-	//! Whether native LV2 UI support was built into this LMMS instance.
+	//! Whether native LV2 UI support was built into this MXM instance.
 	static bool wantUi();
 
 private:
@@ -171,8 +171,8 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2_MANAGER_H
+#endif // MXM_LV2_MANAGER_H

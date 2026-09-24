@@ -4,7 +4,7 @@
  * Copyright (c) 2025 Michael Gregorius
  * Copyright (c) 2025 Tres Finocchiaro <tres.finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_KEYBOARDSHORTCUTS_H
-#define LMMS_KEYBOARDSHORTCUTS_H
+#ifndef MXM_KEYBOARDSHORTCUTS_H
+#define MXM_KEYBOARDSHORTCUTS_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
 #include "qnamespace.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 // Qt on macOS maps:
@@ -41,14 +41,14 @@ namespace lmms
 //
 // Our UI hints need to be adjusted to accommodate for this
 constexpr const char* UI_CTRL_KEY =
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 "⌘";
 #else
 "Ctrl";
 #endif
 
 constexpr const char* UI_ALT_KEY =
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 "Option";
 #else
 "Alt";
@@ -57,7 +57,7 @@ constexpr const char* UI_ALT_KEY =
 // UI hint for copying OR linking a UI component
 // this MUST be consistent with KBD_COPY_MODIFIER
 constexpr const char* UI_COPY_KEY =
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 UI_ALT_KEY;
 #else
 UI_CTRL_KEY;
@@ -66,12 +66,12 @@ UI_CTRL_KEY;
 // Shortcut for copying OR linking a UI component
 // this MUST be consistent with UI_COPY_KEY
 constexpr Qt::KeyboardModifier KBD_COPY_MODIFIER =
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 Qt::AltModifier;
 #else
 Qt::ControlModifier;
 #endif
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_KEYBOARDSHORTCUTS_H
+#endif // MXM_KEYBOARDSHORTCUTS_H

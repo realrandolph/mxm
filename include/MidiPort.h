@@ -1,10 +1,10 @@
 /*
- * MidiPort.h - abstraction of MIDI ports which are part of LMMS' MIDI
+ * MidiPort.h - abstraction of MIDI ports which are part of MXM's MIDI
  *              sequencing system
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_MIDI_PORT_H
-#define LMMS_MIDI_PORT_H
+#ifndef MXM_MIDI_PORT_H
+#define MXM_MIDI_PORT_H
 
 #include <QString>
 #include <QList>
@@ -34,7 +34,7 @@
 #include "TimePos.h"
 #include "AutomatableModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 class MidiClient;
@@ -187,6 +187,6 @@ signals:
 
 using MidiPortList = QList<MidiPort*>;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_PORT_H
+#endif // MXM_MIDI_PORT_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *               2018      Dave French	<dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_OSCILLATOR_H
-#define LMMS_OSCILLATOR_H
+#ifndef MXM_OSCILLATOR_H
+#define MXM_OSCILLATOR_H
 
 #include <cassert>
 #include <fftw3.h>
@@ -33,19 +33,19 @@
 #include <cmath>
 
 #include "Engine.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "AudioEngine.h"
 #include "OscillatorConstants.h"
 #include "SampleBuffer.h"
 
-namespace lmms
+namespace mxm
 {
 
 
 class IntModel;
 
 
-class LMMS_EXPORT Oscillator
+class MXM_EXPORT Oscillator
 {
 public:
 	enum class WaveShape
@@ -318,6 +318,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_OSCILLATOR_H
+#endif // MXM_OSCILLATOR_H

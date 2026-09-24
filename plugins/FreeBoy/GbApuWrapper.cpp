@@ -2,7 +2,7 @@
  * GbApuWrapper.cpp - Gb_Apu subclass which allows direct buffer access
  * Copyright (c) 2017 Tres Finocchiaro <tres.finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,7 +23,7 @@
 
 #include "GbApuWrapper.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -61,4 +61,4 @@ void GbApuWrapper::endFrame(blip_time_t endTime)
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,15 +22,15 @@
  *
  */
 
-#ifndef LMMS_GUI_FILE_SEARCH_JOB_H
-#define LMMS_GUI_FILE_SEARCH_JOB_H
+#ifndef MXM_GUI_FILE_SEARCH_JOB_H
+#define MXM_GUI_FILE_SEARCH_JOB_H
 
 #include <QDir>
 #include <QObject>
 #include <QString>
 #include <future>
 
-namespace lmms::gui {
+namespace mxm::gui {
 //! The `FileSearchJob` class allows for searching for files on the filesystem.
 //! Searching occurs on a background thread, and results are emitted as a Qt slot back to the user.
 class FileSearchJob : public QObject
@@ -77,6 +77,6 @@ private:
 	std::future<void> m_task;
 	std::atomic_flag m_stop = ATOMIC_FLAG_INIT;
 };
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_FILE_SEARCH_JOB_H
+#endif // MXM_GUI_FILE_SEARCH_JOB_H

@@ -7,11 +7,11 @@ If this project WAS provided with submodules, there are detailed dependencies
 doc/wiki/Compiling.md including platform-specific build instructions (e.g.
 apt-get, dnf, pacman, etc).
 
-Online documentation:
+Online documentation (inherited from the upstream LMMS wiki):
 
-   https://github.com/LMMS/lmms/wiki/
+   https://github.com/realrandolph/mxm
 
-Live online chat via Discord (similar to IRC):
+Live online chat for the upstream LMMS project (Discord, similar to IRC):
 
    https://lmms.io/chat, Channel #programming
 
@@ -33,7 +33,7 @@ If you want to use custom compiler flags simply set the environment variables
 CFLAGS and CXXFLAGS.
 
 After running cmake (the 3rd command above) you can see a summary of things
-that are going to be built into LMMS or built as plugins. Install the
+that are going to be built into MXM or built as plugins. Install the
 according libraries and development files if a certain feature is not enabled.
 Then remove CMakeCache.txt and run cmake again.
 

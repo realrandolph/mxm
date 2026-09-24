@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Daniel Kauss Serna <daniel.kauss.serna@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,15 +22,15 @@
  *
  */
 
-#ifndef LMMS_GUI_SLICERT_WAVEFORM_H
-#define LMMS_GUI_SLICERT_WAVEFORM_H
+#ifndef MXM_GUI_SLICERT_WAVEFORM_H
+#define MXM_GUI_SLICERT_WAVEFORM_H
 
 #include <QElapsedTimer>
 #include <QWidget>
 
 #include "SampleThumbnail.h"
 
-namespace lmms {
+namespace mxm {
 
 class SlicerT;
 
@@ -121,5 +121,5 @@ private:
 	void updateCursor();
 };
 } // namespace gui
-} // namespace lmms
-#endif // LMMS_GUI_SLICERT_WAVEFORM_H
+} // namespace mxm
+#endif // MXM_GUI_SLICERT_WAVEFORM_H

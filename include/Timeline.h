@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,8 +21,8 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef LMMS_TIMELINE_H
-#define LMMS_TIMELINE_H
+#ifndef MXM_TIMELINE_H
+#define MXM_TIMELINE_H
 
 #include <QObject>
 
@@ -31,7 +31,7 @@
 #include "JournallingObject.h"
 #include "TimePos.h"
 
-namespace lmms {
+namespace mxm {
 
 class Timeline : public QObject, public JournallingObject
 {
@@ -92,7 +92,7 @@ public:
 
 signals:
 	void loopEnabledChanged(bool enabled);
-	void stopBehaviourChanged(lmms::Timeline::StopBehaviour behaviour);
+	void stopBehaviourChanged(mxm::Timeline::StopBehaviour behaviour);
 	void positionChanged();
 	void positionJumped();
 
@@ -114,6 +114,6 @@ private:
 	TimePos m_playStartPosition = TimePos{-1};
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TIMELINE_H
+#endif // MXM_TIMELINE_H

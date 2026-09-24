@@ -1,0 +1,4 @@
+?package(mxm):needs="X11" section="Apps/Sound" \
+  title="MXM" hints="Audio" command="/usr/bin/mxm" \
+  longtitle="MXM" \
+  icon="/usr/share/icons/hicolor/scalable/apps/mxm.svg"

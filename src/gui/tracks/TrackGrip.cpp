@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,7 +36,7 @@
 #include <QMouseEvent>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 QPixmap* TrackGrip::s_grabbedPixmap = nullptr;
@@ -124,4 +124,4 @@ void TrackGrip::paintEvent(QPaintEvent*)
 	p.drawTiledPixmap(r, m_isGrabbed ? *s_grabbedPixmap : *s_releasedPixmap);
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

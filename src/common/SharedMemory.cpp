@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Dominic Clark <mrdomclark/at/gmail.com>
  * Copyright (c) 2025-2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,24 +28,24 @@
 #include <system_error>
 #include <utility>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 #include "RaiiHelpers.h"
 
-#ifdef LMMS_HAVE_UNISTD_H
+#ifdef MXM_HAVE_UNISTD_H
 #	include <unistd.h>
 #endif
 
-#if _POSIX_SHARED_MEMORY_OBJECTS > 0 || defined(LMMS_BUILD_APPLE)
+#if _POSIX_SHARED_MEMORY_OBJECTS > 0 || defined(MXM_BUILD_APPLE)
 #	include <sys/mman.h>
 #	include <sys/stat.h>
 #	include <fcntl.h>
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 #	include <windows.h>
 #else
 #	error "No shared memory implementation available"
 #endif
 
-namespace lmms::detail {
+namespace mxm::detail {
 
 namespace {
 
@@ -59,7 +59,7 @@ struct Header
 
 } // namespace
 
-#if _POSIX_SHARED_MEMORY_OBJECTS > 0 || defined(LMMS_BUILD_APPLE)
+#if _POSIX_SHARED_MEMORY_OBJECTS > 0 || defined(MXM_BUILD_APPLE)
 
 namespace {
 
@@ -169,7 +169,7 @@ private:
 	ShmObject m_object;
 };
 
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 
 namespace {
 
@@ -311,4 +311,4 @@ auto SharedMemoryData::arraySize() const noexcept -> std::size_t
 	return m_impl ? m_impl->arraySize() : 0;
 }
 
-} // namespace lmms::detail
+} // namespace mxm::detail

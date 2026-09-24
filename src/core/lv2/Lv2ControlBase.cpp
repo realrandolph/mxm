@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "Lv2ControlBase.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <algorithm>
 #include <QDebug>
@@ -33,12 +33,12 @@
 
 #include "AudioEngine.h"
 #include "Engine.h"
-#include "lmms_constants.h"
+#include "mxm_constants.h"
 #include "Lv2Manager.h"
 #include "Lv2Proc.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -79,7 +79,7 @@ Lv2ControlBase::~Lv2ControlBase()
 
 void Lv2ControlBase::init(Model* meAsModel)
 {
-	int channelsLeft = DEFAULT_CHANNELS; // LMMS plugins are stereo
+	int channelsLeft = DEFAULT_CHANNELS; // MXM plugins are stereo
 	while (channelsLeft > 0)
 	{
 		std::unique_ptr<Lv2Proc> newOne = std::make_unique<Lv2Proc>(m_plugin, meAsModel);
@@ -257,7 +257,7 @@ void Lv2ControlBase::handleMidiInputEvent(const MidiEvent &event,
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2

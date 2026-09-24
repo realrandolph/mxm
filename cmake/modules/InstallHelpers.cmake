@@ -1,5 +1,5 @@
 #
-# install all files matching certain wildcards below ${LMMS_DATA_DIR}/<subdir>
+# install all files matching certain wildcards below ${MXM_DATA_DIR}/<subdir>
 #
 # example:
 #
@@ -39,7 +39,7 @@ MACRO(INSTALL_DATA_SUBDIRS _subdir _wildcards)
 			FILE(GLOB files "${_item}/${_wildcard}")
 			LIST(SORT files)
 			FOREACH(_file ${files})
-				INSTALL(FILES "${_file}" DESTINATION "${LMMS_DATA_DIR}/${_subdir}/${_item}/")
+				INSTALL(FILES "${_file}" DESTINATION "${MXM_DATA_DIR}/${_subdir}/${_item}/")
 			ENDFOREACH(_file ${files})
 		ENDFOREACH(_item ${SUBDIRS})
 	ENDFOREACH(_wildcard ${_wildcards})

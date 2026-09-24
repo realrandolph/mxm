@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2024 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,19 +22,19 @@
  *
  */
 
-#ifndef LMMS_LV2BASICS_H
-#define LMMS_LV2BASICS_H
+#ifndef MXM_LV2BASICS_H
+#define MXM_LV2BASICS_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <lilv/lilv.h>
 #include <memory>
 #include <QString>
 #include <string>
 
-namespace lmms
+namespace mxm
 {
 
 template<class T>
@@ -84,8 +84,8 @@ QString qStringFromPortName(const LilvPlugin* plug, const LilvPort* port);
 //! Return port name as std::string, everything will be freed automatically
 std::string stdStringFromPortName(const LilvPlugin* plug, const LilvPort* port);
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2BASICS_H
+#endif // MXM_LV2BASICS_H

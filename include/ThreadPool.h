@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 saker
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_THREAD_POOL_H
-#define LMMS_THREAD_POOL_H
+#ifndef MXM_THREAD_POOL_H
+#define MXM_THREAD_POOL_H
 
 #include <atomic>
 #include <queue>
@@ -36,7 +36,7 @@
 #include <mutex>
 #include <thread>
 
-namespace lmms {
+namespace mxm {
 //! A thread pool that can be used for asynchronous processing.
 class ThreadPool
 {
@@ -88,6 +88,6 @@ private:
 	std::mutex m_runMutex;
 	inline static size_t s_numWorkers = std::thread::hardware_concurrency();
 };
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_THREAD_POOL_H
+#endif // MXM_THREAD_POOL_H

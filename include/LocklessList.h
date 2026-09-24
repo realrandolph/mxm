@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016 Javier Serrano Polo <javier@jasp.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_LOCKLESS_LIST_H
-#define LMMS_LOCKLESS_LIST_H
+#ifndef MXM_LOCKLESS_LIST_H
+#define MXM_LOCKLESS_LIST_H
 
 #include "LocklessAllocator.h"
 
 #include <atomic>
 
-namespace lmms
+namespace mxm
 {
 
 template<typename T>
@@ -95,6 +95,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LOCKLESS_LIST_H
+#endif // MXM_LOCKLESS_LIST_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -38,7 +38,7 @@
 #include "EqParameterWidget.h"
 #include "EqSpectrumView.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -239,4 +239,4 @@ EqBand* EqControlsDialog::setBand(int index, BoolModel* active, FloatModel* freq
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

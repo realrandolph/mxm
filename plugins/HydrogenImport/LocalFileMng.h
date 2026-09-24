@@ -3,7 +3,7 @@
 
 #include <QDomDocument>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -20,7 +20,7 @@ public:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif //LFILEMNG_H
 

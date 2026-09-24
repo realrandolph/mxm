@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_COMBOBOX_MODEL_H
-#define LMMS_COMBOBOX_MODEL_H
+#ifndef MXM_COMBOBOX_MODEL_H
+#define MXM_COMBOBOX_MODEL_H
 
 #include <memory>
 #include <utility>
@@ -32,10 +32,10 @@
 #include "AutomatableModel.h"
 #include "embed.h"
 
-namespace lmms
+namespace mxm
 {
 
-class LMMS_EXPORT ComboBoxModel : public IntModel
+class MXM_EXPORT ComboBoxModel : public IntModel
 {
 	Q_OBJECT
 	MODEL_IS_VISITABLE
@@ -89,6 +89,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_COMBOBOX_MODEL_H
+#endif // MXM_COMBOBOX_MODEL_H

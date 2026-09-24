@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_REMOTE_PLUGIN_H
-#define LMMS_REMOTE_PLUGIN_H
+#ifndef MXM_REMOTE_PLUGIN_H
+#define MXM_REMOTE_PLUGIN_H
 
 #include <QThread>
 #include <QProcess>
@@ -31,9 +31,9 @@
 
 #include "RemotePluginBase.h"
 #include "SharedMemory.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 class MidiEvent;
@@ -67,7 +67,7 @@ private:
 } ;
 
 
-class LMMS_EXPORT RemotePlugin : public QObject, public RemotePluginBase
+class MXM_EXPORT RemotePlugin : public QObject, public RemotePluginBase
 {
 	Q_OBJECT
 public:
@@ -191,6 +191,6 @@ inline std::string QSTR_TO_STDSTR(QString const& qstr)
 	return qstr.toStdString();
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_REMOTE_PLUGIN_H
+#endif // MXM_REMOTE_PLUGIN_H

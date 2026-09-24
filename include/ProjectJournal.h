@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2010 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_PROJECT_JOURNAL_H
-#define LMMS_PROJECT_JOURNAL_H
+#ifndef MXM_PROJECT_JOURNAL_H
+#define MXM_PROJECT_JOURNAL_H
 
 #include <QHash>
 #include <QStack>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "DataFile.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -124,6 +124,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PROJECT_JOURNAL_H
+#endif // MXM_PROJECT_JOURNAL_H

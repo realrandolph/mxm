@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,18 +23,18 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_OGG_H
-#define LMMS_AUDIO_FILE_OGG_H
+#ifndef MXM_AUDIO_FILE_OGG_H
+#define MXM_AUDIO_FILE_OGG_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 
 #include <vorbis/codec.h>
 
 #include "AudioFileDevice.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioFileOgg : public AudioFileDevice
@@ -67,8 +67,8 @@ private:
 	ogg_page m_page;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_OGGVORBIS
+#endif // MXM_HAVE_OGGVORBIS
 
-#endif // LMMS_AUDIO_FILE_OGG_H
+#endif // MXM_AUDIO_FILE_OGG_H

@@ -49,7 +49,7 @@ if(MSVC)
 	target_link_options(veal PRIVATE "/EXPORT:ladspa_descriptor")
 endif()
 
-if(LMMS_BUILD_WIN32)
+if(MXM_BUILD_WIN32)
 	add_custom_command(
 		TARGET veal
 		POST_BUILD
@@ -58,6 +58,6 @@ if(LMMS_BUILD_WIN32)
 		COMMAND_EXPAND_LISTS
 	)
 endif()
-IF(NOT LMMS_BUILD_APPLE AND NOT LMMS_BUILD_OPENBSD)
+IF(NOT MXM_BUILD_APPLE AND NOT MXM_BUILD_OPENBSD)
 	target_link_libraries(veal PRIVATE -shared)
 ENDIF()

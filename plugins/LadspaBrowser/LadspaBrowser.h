@@ -5,7 +5,7 @@
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "ToolPlugin.h"
 #include "ToolPluginView.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -50,7 +50,7 @@ public:
 
 
 public slots:
-	void showPorts( const ::lmms::ladspa_key_t & _key );
+	void showPorts( const ::mxm::ladspa_key_t & _key );
 
 
 private:
@@ -93,6 +93,6 @@ public:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

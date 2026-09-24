@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_WAVE_H
-#define LMMS_AUDIO_FILE_WAVE_H
+#ifndef MXM_AUDIO_FILE_WAVE_H
+#define MXM_AUDIO_FILE_WAVE_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 #include "AudioFileDevice.h"
 
 #include <sndfile.h>
 
-namespace lmms
+namespace mxm
 {
 
 class AudioFileWave : public AudioFileDevice
@@ -67,6 +67,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_FILE_WAVE_H
+#endif // MXM_AUDIO_FILE_WAVE_H

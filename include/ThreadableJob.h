@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_THREADABLE_JOB_H
-#define LMMS_THREADABLE_JOB_H
+#ifndef MXM_THREADABLE_JOB_H
+#define MXM_THREADABLE_JOB_H
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 #include <atomic>
 
-namespace lmms
+namespace mxm
 {
 
 class ThreadableJob
@@ -88,6 +88,6 @@ protected:
 	std::atomic<ProcessingState> m_state;
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_THREADABLE_JOB_H
+#endif // MXM_THREADABLE_JOB_H

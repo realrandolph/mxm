@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TRACK_CONTENT_WIDGET_H
-#define LMMS_GUI_TRACK_CONTENT_WIDGET_H
+#ifndef MXM_GUI_TRACK_CONTENT_WIDGET_H
+#define MXM_GUI_TRACK_CONTENT_WIDGET_H
 
 #include <QWidget>
 
@@ -33,7 +33,7 @@
 class QMimeData;  // IWYU pragma: keep
 
 
-namespace lmms
+namespace mxm
 {
 
 class Track;
@@ -151,7 +151,7 @@ public slots:
 	//! Responsible for moving track-content-widgets to appropriate position after change of visible viewport
 	//!
 	//! @param newPos The MIDI time to move to.
-	void changePosition( const lmms::TimePos & newPos = TimePos( -1 ) );
+	void changePosition( const mxm::TimePos & newPos = TimePos( -1 ) );
 
 	//! @brief Updates the background tile pixmap.
 	void updateBackground();
@@ -238,6 +238,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_TRACK_CONTENT_WIDGET_H
+#endif // MXM_GUI_TRACK_CONTENT_WIDGET_H

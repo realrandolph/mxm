@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include "Lv2Effect.h"
 #include "Lv2FxControlDialog.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -102,4 +102,4 @@ void Lv2FxControls::changeControl() // TODO: what is that?
 }
 
 
-} // namespace lmms
+} // namespace mxm

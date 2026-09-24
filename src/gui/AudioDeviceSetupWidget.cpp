@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2015 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "AudioDeviceSetupWidget.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 AudioDeviceSetupWidget::AudioDeviceSetupWidget(const QString & caption, QWidget * parent) :
@@ -38,4 +38,4 @@ void AudioDeviceSetupWidget::show()
 	QWidget::show();
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

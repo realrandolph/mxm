@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -71,7 +71,7 @@
 #include "Track.h"
 #include "embed.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -605,9 +605,9 @@ void FileBrowserTreeWidget::focusOutEvent(QFocusEvent* fe)
 
 void FileBrowserTreeWidget::contextMenuEvent(QContextMenuEvent* e)
 {
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 	QString fileManager = tr("Finder");
-#elif defined(LMMS_BUILD_WIN32)
+#elif defined(MXM_BUILD_WIN32)
 	QString fileManager = tr("Explorer");
 #else
 	QString fileManager = tr("file manager");
@@ -813,7 +813,7 @@ void FileBrowserTreeWidget::previewFileItem(FileItem* file)
 		qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 		if (auto buffer = SampleBuffer::fromFile(fileName))
 		{
-			auto s = new SamplePlayHandle(new lmms::Sample{std::move(buffer)});
+			auto s = new SamplePlayHandle(new mxm::Sample{std::move(buffer)});
 			s->setDoneMayReturnTrue(false);
 			newPPH = s;
 		}
@@ -1267,12 +1267,12 @@ void FileItem::determineFileType()
 		m_type = FileType::Midi;
 		m_handling = FileHandling::ImportAsProject;
 	}
-#ifdef LMMS_HAVE_VST
+#ifdef MXM_HAVE_VST
 	else if (
-#	if defined(LMMS_BUILD_LINUX)
+#	if defined(MXM_BUILD_LINUX)
 		ext == "so" ||
 #	endif
-#	if defined(LMMS_HAVE_VST_32) || defined(LMMS_HAVE_VST_64)
+#	if defined(MXM_HAVE_VST_32) || defined(MXM_HAVE_VST_64)
 		ext == "dll" ||
 #	endif
 		false
@@ -1330,13 +1330,13 @@ QString FileItem::defaultFilters()
 	const auto midiFilters = QStringList{"*.mid", "*.midi", "*.rmi"};
 	
 	auto vstPluginFilters = QStringList{"*.dll"};
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 	vstPluginFilters.append("*.so");
 #endif
 
 	auto audioFilters
 		= QStringList{"*.wav", "*.ogg", "*.ds", "*.flac", "*.spx", "*.voc", "*.aif", "*.aiff", "*.au", "*.raw"};
-#ifdef LMMS_HAVE_SNDFILE_MP3
+#ifdef MXM_HAVE_SNDFILE_MP3
 	audioFilters.append("*.mp3");
 #endif
 
@@ -1347,4 +1347,4 @@ QString FileItem::defaultFilters()
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

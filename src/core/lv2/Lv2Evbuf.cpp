@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 
 #include "Lv2Evbuf.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <cassert>
 #include <cstdlib>
@@ -36,7 +36,7 @@
 
 #include <lv2/atom/atom.h>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -200,6 +200,6 @@ lv2_evbuf_write(LV2_Evbuf_Iterator* iter,
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2

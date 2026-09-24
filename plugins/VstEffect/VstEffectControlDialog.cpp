@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2011 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@
 #include <QToolBar>
 #include <QLabel>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -100,7 +100,7 @@ VstEffectControlDialog::VstEffectControlDialog( VstEffectControls * _ctl ) :
 							"controls" ) );
 		connect( m_managePluginButton, SIGNAL( clicked() ),  _ctl,
 						SLOT( managePlugin() ) );
-		m_managePluginButton->setToolTip(tr("Control VST plugin from LMMS host"));
+		m_managePluginButton->setToolTip(tr("Control VST plugin from MXM host"));
 
 		m_managePluginButton->setMinimumWidth( 26 );
 		m_managePluginButton->setMaximumWidth( 26 );
@@ -282,4 +282,4 @@ void VstEffectControlDialog::togglePluginUI( bool checked )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

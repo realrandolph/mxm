@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 dolf <dolfnimmer@proton.me>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "Lv2UiHost.h"
 
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 
 #include <algorithm>
 #include <array>
@@ -60,7 +60,7 @@
 #include "Lv2Manager.h"
 #include "Lv2Proc.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 namespace
@@ -546,6 +546,6 @@ void Lv2UiHost::show()
 	m_impl->show();
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_LV2_UI
+#endif // MXM_HAVE_LV2_UI

@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,23 +24,23 @@
  *
  */
 
-#ifndef LMMS_LV2_SUBPLUGIN_FEATURES_H
-#define LMMS_LV2_SUBPLUGIN_FEATURES_H
+#ifndef MXM_LV2_SUBPLUGIN_FEATURES_H
+#define MXM_LV2_SUBPLUGIN_FEATURES_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <lilv/lilv.h>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "Plugin.h"
 
-namespace lmms
+namespace mxm
 {
 
 
-class LMMS_EXPORT Lv2SubPluginFeatures : public Plugin::Descriptor::SubPluginFeatures
+class MXM_EXPORT Lv2SubPluginFeatures : public Plugin::Descriptor::SubPluginFeatures
 {
 private:
 	static const LilvPlugin *getPlugin(const Key &k);
@@ -62,8 +62,8 @@ public:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2_SUBPLUGIN_FEATURES_H
+#endif // MXM_LV2_SUBPLUGIN_FEATURES_H

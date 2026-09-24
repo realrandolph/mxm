@@ -1,5 +1,5 @@
-if(LMMS_MSVC_YEAR)
-	set(WIN_PLATFORM "msvc${LMMS_MSVC_YEAR}")
+if(MXM_MSVC_YEAR)
+	set(WIN_PLATFORM "msvc${MXM_MSVC_YEAR}")
 elseif(DEFINED ENV{MSYSTEM})
     string(TOLOWER "$ENV{MSYSTEM}" WIN_PLATFORM)
 else()
@@ -66,9 +66,9 @@ if(CPACK_DEBUG)
 endif()
 
 # Windows resource compilers
-CONFIGURE_FILE("lmms.rc.in"             "${CMAKE_BINARY_DIR}/lmms.rc")
+CONFIGURE_FILE("mxm.rc.in"             "${CMAKE_BINARY_DIR}/mxm.rc")
 CONFIGURE_FILE("zynaddsubfx.rc.in"      "${CMAKE_BINARY_DIR}/plugins/ZynAddSubFx/zynaddsubfx.rc")
 
-INSTALL(FILES "lmms.exe.manifest" DESTINATION .)
-INSTALL(FILES "lmms.VisualElementsManifest.xml" DESTINATION .)
+INSTALL(FILES "mxm.exe.manifest" DESTINATION .)
+INSTALL(FILES "mxm.VisualElementsManifest.xml" DESTINATION .)
 INSTALL(DIRECTORY "assets" DESTINATION .)

@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -26,7 +26,7 @@
 #include "ToolPlugin.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -54,4 +54,4 @@ ToolPlugin * ToolPlugin::instantiate( const QString & _plugin_name, Model * _par
 }
 
 
-} // namespace lmms
+} // namespace mxm

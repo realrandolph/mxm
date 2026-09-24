@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2020 Ian Caio <iancaio_dev/at/hotmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,10 +23,10 @@
  *
  */
 
-#ifndef LMMS_AUTOMATION_NODE_H
-#define LMMS_AUTOMATION_NODE_H
+#ifndef MXM_AUTOMATION_NODE_H
+#define MXM_AUTOMATION_NODE_H
 
-namespace lmms
+namespace mxm
 {
 
 class AutomationClip;
@@ -136,6 +136,6 @@ private:
 	bool m_lockedTangents;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUTOMATION_NODE_H
+#endif // MXM_AUTOMATION_NODE_H

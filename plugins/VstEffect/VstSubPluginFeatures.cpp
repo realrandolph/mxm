@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2006-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "ConfigManager.h"
 #include "Effect.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -84,7 +84,7 @@ void VstSubPluginFeatures::addPluginsFromDir( QStringList* filenames, QString pa
 	}
 	QStringList dlls = QDir( ConfigManager::inst()->vstDir() + path ).
 				entryList( QStringList() << "*.dll"
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 										 << "*.so"
 #endif
 						,
@@ -98,4 +98,4 @@ void VstSubPluginFeatures::addPluginsFromDir( QStringList* filenames, QString pa
 }
 
 
-} // namespace lmms
+} // namespace mxm

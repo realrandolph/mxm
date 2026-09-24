@@ -6,7 +6,7 @@
  * Based partially on Eq plugin code,
  * Copyright (c) 2014-2017, David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,10 +33,10 @@
 #endif
 
 #include "embed.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -49,7 +49,7 @@ extern "C" {
 		"Martin Pavelek <he29/dot/HS/at/gmail/dot/com>",
 		0x0112,
 		Plugin::Type::Effect,
-		new PixmapLoader("lmms-plugin-logo"),
+		new PixmapLoader("mxm-plugin-logo"),
 		nullptr,
 		nullptr,
 	};
@@ -61,7 +61,7 @@ Analyzer::Analyzer(Model *parent, const Plugin::Descriptor::SubPluginFeatures::K
 	m_processor(&m_controls),
 	m_controls(this),
 	m_processorThread(m_processor, m_inputBuffer),
-	// Buffer is sized to cover 4* the current maximum LMMS audio buffer size,
+	// Buffer is sized to cover 4* the current maximum MXM audio buffer size,
 	// so that it has some reserve space in case data processor is busy.
 	m_inputBuffer(4 * m_maxBufferSize)
 {
@@ -111,11 +111,11 @@ Effect::ProcessStatus Analyzer::processImpl(SampleFrame* buf, const f_cnt_t fram
 
 extern "C" {
 	// needed for getting plugin out of shared lib
-	PLUGIN_EXPORT Plugin *lmms_plugin_main(Model *parent, void *data)
+	PLUGIN_EXPORT Plugin *mxm_plugin_main(Model *parent, void *data)
 	{
 		return new Analyzer(parent, static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>(data));
 	}
 }
 
 
-} // namespace lmms
+} // namespace mxm

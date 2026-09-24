@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_DECODER_H
-#define LMMS_SAMPLE_DECODER_H
+#ifndef MXM_SAMPLE_DECODER_H
+#define MXM_SAMPLE_DECODER_H
 
 #include <QString>
 #include <optional>
@@ -32,7 +32,7 @@
 
 #include "SampleFrame.h"
 
-namespace lmms {
+namespace mxm {
 class SampleDecoder
 {
 public:
@@ -51,6 +51,6 @@ public:
 	static auto decode(const QString& audioFile) -> std::optional<Result>;
 	static auto supportedAudioTypes() -> const std::vector<AudioType>&;
 };
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SAMPLE_DECODER_H
+#endif // MXM_SAMPLE_DECODER_H

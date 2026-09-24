@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,16 +23,16 @@
  *
  */
 
-#ifndef LMMS_PANNING_H
-#define LMMS_PANNING_H
+#ifndef MXM_PANNING_H
+#define MXM_PANNING_H
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "Midi.h"
 #include "volume.h"
 
 #include <cmath>
 
-namespace lmms
+namespace mxm
 {
 
 inline constexpr panning_t PanningRight = 100;
@@ -59,6 +59,6 @@ inline int panningToMidi( panning_t _p )
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PANNING_H
+#endif // MXM_PANNING_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_PATTERN_STORE_H
-#define LMMS_PATTERN_STORE_H
+#ifndef MXM_PATTERN_STORE_H
+#define MXM_PATTERN_STORE_H
 
 #include "TrackContainer.h"
 #include "ComboBoxModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -61,7 +61,7 @@ namespace gui
  * - PatternTracks are used in the Song Editor. Each one reference a "pattern" in the PatternStore.
  * - PatternClips are stored inside PatternTracks. They are just empty placeholders.
  */
-class LMMS_EXPORT PatternStore : public TrackContainer
+class MXM_EXPORT PatternStore : public TrackContainer
 {
 	Q_OBJECT
 	mapPropertyFromModel(int, currentPattern, setCurrentPattern, m_patternComboBoxModel);
@@ -112,6 +112,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PATTERN_STORE_H
+#endif // MXM_PATTERN_STORE_H

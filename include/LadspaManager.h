@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2005-2008 Danny McRae <khjklujn@netscape.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef LMMS_LADSPA_MANAGER_H
-#define LMMS_LADSPA_MANAGER_H
+#ifndef MXM_LADSPA_MANAGER_H
+#define MXM_LADSPA_MANAGER_H
 
 #include <ladspa.h>
 
@@ -35,11 +35,11 @@
 #include <QStringList>
 
 
-#include "lmms_export.h"
-#include "LmmsTypes.h"
+#include "mxm_export.h"
+#include "MxmTypes.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 const float NOHINT = -99342.2243f;
@@ -81,7 +81,7 @@ struct LadspaManagerDescription
 	uint16_t outputChannels;
 };
 
-class LMMS_EXPORT LadspaManager
+class MXM_EXPORT LadspaManager
 {
 public:
 
@@ -347,6 +347,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LADSPA_MANAGER_H
+#endif // MXM_LADSPA_MANAGER_H

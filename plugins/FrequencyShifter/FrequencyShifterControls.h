@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,13 +21,13 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef LMMS_FREQUENCY_SHIFTER_CONTROLS_H
-#define LMMS_FREQUENCY_SHIFTER_CONTROLS_H
+#ifndef MXM_FREQUENCY_SHIFTER_CONTROLS_H
+#define MXM_FREQUENCY_SHIFTER_CONTROLS_H
 
 #include "EffectControls.h"
 #include "FrequencyShifterControlDialog.h"
 
-namespace lmms
+namespace mxm
 {
 
 class FrequencyShifterEffect;
@@ -81,6 +81,6 @@ public:
 	BoolModel m_resetLfo;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FREQUENCY_SHIFTER_CONTROLS_H
+#endif // MXM_FREQUENCY_SHIFTER_CONTROLS_H

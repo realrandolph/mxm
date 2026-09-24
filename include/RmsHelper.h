@@ -4,7 +4,7 @@
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  * Copyright (c) 2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,13 +23,13 @@
  *
  */
 
-#ifndef LMMS_RMS_HELPER_H
-#define LMMS_RMS_HELPER_H
+#ifndef MXM_RMS_HELPER_H
+#define MXM_RMS_HELPER_H
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -96,6 +96,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_RMS_HELPER_H
+#endif // MXM_RMS_HELPER_H

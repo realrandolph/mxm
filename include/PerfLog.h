@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2017-2018 LMMS Developers
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_PERFLOG_H
-#define LMMS_PERFLOG_H
+#ifndef MXM_PERFLOG_H
+#define MXM_PERFLOG_H
 
 #include <ctime>
 #include <QString>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -75,6 +75,6 @@ class PerfLogTimer
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PERFLOG_H
+#endif // MXM_PERFLOG_H

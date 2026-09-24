@@ -1,7 +1,7 @@
 # Provides a fast mechanism for filtering the plugins used at build-time
 SET(PLUGIN_LIST "" CACHE STRING "List of plug-ins to build")
 STRING(REPLACE " " ";" PLUGIN_LIST "${PLUGIN_LIST}")
-OPTION(LMMS_MINIMAL "Build a minimal list of plug-ins" OFF)
+OPTION(MXM_MINIMAL "Build a minimal list of plug-ins" OFF)
 OPTION(LIST_PLUGINS "Lists the available plugins for building" OFF)
 
 SET(MINIMAL_LIST
@@ -10,7 +10,7 @@ SET(MINIMAL_LIST
 	TripleOscillator
 )
 
-IF(LMMS_MINIMAL)
+IF(MXM_MINIMAL)
 	IF("${PLUGIN_LIST}" STREQUAL "")
 		STRING(REPLACE ";" " " MINIMAL_LIST_STRING "${MINIMAL_LIST}")
 		MESSAGE(
@@ -21,7 +21,7 @@ IF(LMMS_MINIMAL)
 	SET(PLUGIN_LIST ${MINIMAL_LIST} ${PLUGIN_LIST})
 ENDIF()
 
-SET(LMMS_PLUGIN_LIST
+SET(MXM_PLUGIN_LIST
 	${MINIMAL_LIST}
 	Amplifier
 	BassBooster
@@ -82,18 +82,18 @@ SET(LMMS_PLUGIN_LIST
 )
 
 IF("${PLUGIN_LIST}" STREQUAL "")
-	SET(PLUGIN_LIST ${LMMS_PLUGIN_LIST})
+	SET(PLUGIN_LIST ${MXM_PLUGIN_LIST})
 ENDIF()
 
 MACRO(LIST_ALL_PLUGINS)
 	MESSAGE("\n\nAll possible -DPLUGIN_LIST values")
 	MESSAGE("\n   KEYWORD:")
-	MESSAGE("      -DLMMS_MINIMAL=True")
+	MESSAGE("      -DMXM_MINIMAL=True")
 	FOREACH(item IN LISTS MINIMAL_LIST)
 		MESSAGE("         ${item}")
 	ENDFOREACH()
 	MESSAGE("\n   NAME:")
-	FOREACH(item IN LISTS LMMS_PLUGIN_LIST)
+	FOREACH(item IN LISTS MXM_PLUGIN_LIST)
 		MESSAGE("      ${item}")
 	ENDFOREACH()
 	MESSAGE("\nNote:  This value also impacts the fetching of git submodules.\n")

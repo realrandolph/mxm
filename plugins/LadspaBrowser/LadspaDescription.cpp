@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2007 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,11 +31,11 @@
 #include <QVBoxLayout>
 
 #include "Engine.h"
-#include "Ladspa2LMMS.h"
-#include "lmms_constants.h"
+#include "Ladspa2MXM.h"
+#include "mxm_constants.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -43,7 +43,7 @@ LadspaDescription::LadspaDescription( QWidget * _parent,
 						LadspaPluginType _type ) :
 	QWidget( _parent )
 {
-	Ladspa2LMMS * manager = Engine::getLADSPAManager();
+	Ladspa2MXM * manager = Engine::getLADSPAManager();
 
 	l_sortable_plugin_t plugins;
 	switch( _type )
@@ -120,7 +120,7 @@ void LadspaDescription::update( const ladspa_key_t & _key )
 	auto layout = new QVBoxLayout(description);
 	layout->setSizeConstraint( QLayout::SetFixedSize );
 
-	Ladspa2LMMS * manager = Engine::getLADSPAManager();
+	Ladspa2MXM * manager = Engine::getLADSPAManager();
 
 	auto name = new QLabel(description);
 	name->setText(tr("Name: ") + manager->getName(_key));
@@ -178,4 +178,4 @@ void LadspaDescription::onDoubleClicked( QListWidgetItem * _item )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

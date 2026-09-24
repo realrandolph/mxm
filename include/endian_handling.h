@@ -4,7 +4,7 @@
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2026      Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,13 +23,13 @@
  *
  */
 
-#ifndef LMMS_ENDIAN_HANDLING_H
-#define LMMS_ENDIAN_HANDLING_H
+#ifndef MXM_ENDIAN_HANDLING_H
+#define MXM_ENDIAN_HANDLING_H
 
 #include <bit>
 #include <type_traits>
 
-namespace lmms {
+namespace mxm {
 
 constexpr bool isLittleEndian() noexcept
 {
@@ -74,6 +74,6 @@ constexpr Int byteswapIfBE(Int i) noexcept { return byteswapIf<std::endian::big>
 template<typename Int>
 constexpr Int byteswapIfLE(Int i) noexcept { return byteswapIf<std::endian::little>(i); }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_ENDIAN_HANDLING_H
+#endif // MXM_ENDIAN_HANDLING_H

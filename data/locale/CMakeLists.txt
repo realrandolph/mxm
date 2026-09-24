@@ -20,14 +20,14 @@ SET(ts_targets "")
 SET(qm_targets "")
 SET(QM_FILES "")
 
-FILE(GLOB lmms_LOCALES ${CMAKE_CURRENT_SOURCE_DIR}/*.ts)
-LIST(SORT lmms_LOCALES)
-FOREACH(_ts_file ${lmms_LOCALES})
+FILE(GLOB mxm_LOCALES ${CMAKE_CURRENT_SOURCE_DIR}/*.ts)
+LIST(SORT mxm_LOCALES)
+FOREACH(_ts_file ${mxm_LOCALES})
 	GET_FILENAME_COMPONENT(_ts_target "${_ts_file}" NAME)
 	STRING(REPLACE ".ts" ".qm" _qm_file "${_ts_file}")
 	STRING(REPLACE ".ts" ".qm" _qm_target "${_ts_target}")
 	ADD_CUSTOM_TARGET(${_ts_target}
-		COMMAND "${QT_LUPDATE_EXECUTABLE}" -locations none -no-obsolete -I ${CMAKE_SOURCE_DIR}/include/ ${LMMS_SRCS}  ${LMMS_UIS} ${CMAKE_SOURCE_DIR}/plugins  -ts "\"${_ts_file}\""
+		COMMAND "${QT_LUPDATE_EXECUTABLE}" -locations none -no-obsolete -I ${CMAKE_SOURCE_DIR}/include/ ${MXM_SRCS}  ${MXM_UIS} ${CMAKE_SOURCE_DIR}/plugins  -ts "\"${_ts_file}\""
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 	add_custom_command(
 		OUTPUT "${_qm_file}"
@@ -40,7 +40,7 @@ FOREACH(_ts_file ${lmms_LOCALES})
 	LIST(APPEND ts_targets "${_ts_target}")
 	LIST(APPEND qm_targets "${_qm_target}")
 	LIST(APPEND QM_FILES "${_qm_file}")
-ENDFOREACH(_ts_file ${lmms_LOCALES})
+ENDFOREACH(_ts_file ${mxm_LOCALES})
 
 ADD_CUSTOM_TARGET(update-locales)
 FOREACH(_item ${ts_targets})
@@ -57,4 +57,4 @@ IF(BUNDLE_QT_TRANSLATIONS)
 	LIST(SORT QT_QM_FILES)
 ENDIF()
 
-INSTALL(FILES ${QM_FILES} ${QT_QM_FILES} DESTINATION "${LMMS_DATA_DIR}/locale")
+INSTALL(FILES ${QM_FILES} ${QT_QM_FILES} DESTINATION "${MXM_DATA_DIR}/locale")

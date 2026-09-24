@@ -5,7 +5,7 @@
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@
 #include "LadspaControlView.h"
 #include "LedCheckBox.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -126,10 +126,10 @@ void LadspaControlDialog::updateEffectView( LadspaControls * _ctl )
 		m_stereoLink->setModel( &_ctl->m_stereoLinkModel );
 	}
 
-	connect( _ctl, SIGNAL( effectModelChanged( lmms::LadspaControls * ) ),
-				this, SLOT( updateEffectView( lmms::LadspaControls * ) ),
+	connect( _ctl, SIGNAL( effectModelChanged( mxm::LadspaControls * ) ),
+				this, SLOT( updateEffectView( mxm::LadspaControls * ) ),
 							Qt::DirectConnection );
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

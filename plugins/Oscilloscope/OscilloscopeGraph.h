@@ -3,7 +3,7 @@
 *
 * Copyright (c) 2025-2026 Keratin
 *
-* This file is part of LMMS - https://lmms.io
+* This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -21,14 +21,14 @@
 * Boston, MA 02110-1301 USA.
 */
 
-#ifndef LMMS_GUI_OSCILLOSCOPE_GRAPH_H
-#define LMMS_GUI_OSCILLOSCOPE_GRAPH_H
+#ifndef MXM_GUI_OSCILLOSCOPE_GRAPH_H
+#define MXM_GUI_OSCILLOSCOPE_GRAPH_H
 
 #include "OscilloscopeControls.h"
 #include "LocklessRingBuffer.h"
 #include <QWidget>
 
-namespace lmms
+namespace mxm
 {
 
 class OscilloscopeControls;
@@ -84,6 +84,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_OSCILLOSCOPE_GRAPH_H
+#endif // MXM_GUI_OSCILLOSCOPE_GRAPH_H

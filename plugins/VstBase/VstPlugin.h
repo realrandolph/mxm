@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@
 
 #include "vstbase_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -125,7 +125,7 @@ public:
 	QString embedMethod() const;
 
 public slots:
-	void setTempo( lmms::bpm_t _bpm );
+	void setTempo( mxm::bpm_t _bpm );
 	void updateSampleRate();
 	void openPreset();
 	void setProgram( int index );
@@ -200,6 +200,6 @@ private:
 };
 
 } // namespace gui
-} // namespace lmms
+} // namespace mxm
 
 #endif

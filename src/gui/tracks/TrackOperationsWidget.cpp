@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -40,7 +40,7 @@
 #include "embed.h"
 #include "Engine.h"
 #include "InstrumentTrackView.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "KeyboardShortcuts.h"
 #include "Song.h"
 #include "StringPairDrag.h"
@@ -49,7 +49,7 @@
 #include "TrackGrip.h"
 #include "TrackView.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 TrackOperationsWidget::TrackOperationsWidget(TrackView* parent)
@@ -101,9 +101,9 @@ TrackOperationsWidget::TrackOperationsWidget(TrackView* parent)
 
 	layout->addWidget(operationsWidget, 0, Qt::AlignTop | Qt::AlignLeading);
 
-	connect( this, SIGNAL(trackRemovalScheduled(lmms::gui::TrackView*)),
+	connect( this, SIGNAL(trackRemovalScheduled(mxm::gui::TrackView*)),
 			m_trackView->trackContainerView(),
-				SLOT(deleteTrackView(lmms::gui::TrackView*)),
+				SLOT(deleteTrackView(mxm::gui::TrackView*)),
 							Qt::QueuedConnection );
 
 	connect( m_trackView->getTrack()->getMutedModel(), SIGNAL(dataChanged()),
@@ -310,4 +310,4 @@ void TrackOperationsWidget::recordingOff()
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

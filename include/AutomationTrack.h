@@ -5,7 +5,7 @@
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,15 +24,15 @@
  *
  */
 
-#ifndef LMMS_AUTOMATION_TRACK_H
-#define LMMS_AUTOMATION_TRACK_H
+#ifndef MXM_AUTOMATION_TRACK_H
+#define MXM_AUTOMATION_TRACK_H
 
 #include "Track.h"
 
-namespace lmms
+namespace mxm
 {
 
-class LMMS_EXPORT AutomationTrack : public Track
+class MXM_EXPORT AutomationTrack : public Track
 {
 	Q_OBJECT
 public:
@@ -59,6 +59,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUTOMATION_TRACK_H
+#endif // MXM_AUTOMATION_TRACK_H

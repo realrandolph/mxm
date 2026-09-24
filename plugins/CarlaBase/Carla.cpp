@@ -1,9 +1,9 @@
 /*
- * carla.cpp - Carla for LMMS
+ * carla.cpp - Carla for MXM
  *
  * Copyright (C) 2014-2018 Filipe Coelho <falktx@falktx.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -58,7 +58,7 @@
 
 #include "embed.h"
 
-namespace lmms
+namespace mxm
 {
 
 // this doesn't seem to be defined anywhere
@@ -451,7 +451,7 @@ void CarlaInstrument::clearParamModels()
 }
 
 void CarlaInstrument::paramModelChanged(uint32_t index)
-{ // Update Carla param (LMMS -> Carla)
+{ // Update Carla param (MXM -> Carla)
 	if (!m_paramModels[index]->isOutput())
 	{
 		if (fDescriptor->set_parameter_value != nullptr)
@@ -469,7 +469,7 @@ void CarlaInstrument::paramModelChanged(uint32_t index)
 }
 
 void CarlaInstrument::updateParamModel(uint32_t index)
-{ // Called on param changed (Carla -> LMMS)
+{ // Called on param changed (Carla -> MXM)
 	if (fDescriptor->get_parameter_value != nullptr)
 	{
 		m_paramModels[index]->setValue(
@@ -586,7 +586,7 @@ gui::PluginView* CarlaInstrument::instantiateView(QWidget* parent)
 
     // TODO - get plugin instance name
     //fHost.uiName = strdup(parent->windowTitle().toUtf8().constData());
-    fHost.uiName = strdup(kIsPatchbay ? "CarlaPatchbay-LMMS" : "CarlaRack-LMMS");
+    fHost.uiName = strdup(kIsPatchbay ? "CarlaPatchbay-MXM" : "CarlaRack-MXM");
 
     return new gui::CarlaInstrumentView(this, parent);
 }
@@ -674,7 +674,7 @@ void CarlaInstrumentView::toggleUI(bool visible)
 {
     if (fHandle != nullptr && fDescriptor->ui_show != nullptr) {
 // TODO: remove when fixed upstream
-// change working path to location of carla.dll to avoid conflict with lmms
+// change working path to location of carla.dll to avoid conflict with mxm
 #if defined(CARLA_OS_WIN32) || defined(CARLA_OS_WIN64)
         if (visible) {
             QString backupDir = QDir::currentPath();
@@ -1111,4 +1111,4 @@ void CarlaParamsView::clearKnobs()
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

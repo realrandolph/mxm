@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -55,7 +55,7 @@ namespace
 	constexpr std::int32_t makeID(const char c[4]) { return c[0] | (c[1] << 8) | (c[2] << 16) | (c[3] << 24); }
 }
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -64,9 +64,9 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT midiimport_plugin_descriptor =
 {
-	LMMS_STRINGIFY(PLUGIN_NAME),
+	MXM_STRINGIFY(PLUGIN_NAME),
 	"MIDI Import",
-	QT_TRANSLATE_NOOP("PluginBrowser", "Filter for importing MIDI files into LMMS"),
+	QT_TRANSLATE_NOOP("PluginBrowser", "Filter for importing MIDI files into MXM"),
 	"Tobias Doerffel <tobydox/at/users/dot/sf/dot/net>",
 	0x0100,
 	Plugin::Type::ImportFilter,
@@ -75,7 +75,7 @@ Plugin::Descriptor PLUGIN_EXPORT midiimport_plugin_descriptor =
 	nullptr,
 };
 
-PLUGIN_EXPORT Plugin* lmms_plugin_main(Model*, void* data)
+PLUGIN_EXPORT Plugin* mxm_plugin_main(Model*, void* data)
 {
 	return new MidiImport(QString::fromUtf8(static_cast<const char*>(data)));
 }
@@ -92,7 +92,7 @@ bool MidiImport::tryImport(TrackContainer* tc)
 {
 	if (!openFile()) { return false; }
 
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	if (gui::getGUI() != nullptr && ConfigManager::inst()->sf2File().isEmpty())
 	{
 		QMessageBox::information(gui::getGUI()->mainWindow(),
@@ -109,7 +109,7 @@ bool MidiImport::tryImport(TrackContainer* tc)
 	{
 		QMessageBox::information(gui::getGUI()->mainWindow(),
 			tr("Setup incomplete"),
-			tr("You did not compile LMMS with support for "
+			tr("You did not compile MXM with support for "
 				"SoundFont2 player, which is used to add default "
 				"sound to imported MIDI files. "
 				"Therefore no sound will be played back after "
@@ -147,7 +147,7 @@ public:
 	{
 		if (!at)
 		{
-			// Keep LMMS responsive, for now the import runs
+			// Keep MXM responsive, for now the import runs
 			// in the main thread. This should probably be
 			// removed if that ever changes.
 			qApp->processEvents();
@@ -200,11 +200,11 @@ public:
 	smfMidiChannel* create(TrackContainer* tc, QString tn)
 	{
 		if (!it) {
-			// Keep LMMS responsive
+			// Keep MXM responsive
 			qApp->processEvents();
 			it = dynamic_cast<InstrumentTrack*>(Track::create(Track::Type::Instrument, tc));
 
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 			it_inst = it->loadInstrument("sf2player");
 
 			if (it_inst)
@@ -415,7 +415,7 @@ bool MidiImport::readSMF(TrackContainer* tc)
 			}
 			else if (evt->is_note())
 			{
-				// LMMS does not currently support specifying the channel of a single note
+				// MXM does not currently support specifying the channel of a single note
 				// To be safe, put the notes from different channels on separate tracks so that no information is lost
 				smfMidiChannel* ch = chs[evt->chan + 16 * t].create(tc, trackName);
 				auto noteEvt = static_cast<Alg_note*>(evt);
@@ -424,7 +424,7 @@ bool MidiImport::readSMF(TrackContainer* tc)
 					ticks < 1 ? 1 : ticks,
 					noteEvt->get_start_time() * ticksPerBeat,
 					noteEvt->get_identifier(),
-					// Map from MIDI velocity to LMMS volume
+					// Map from MIDI velocity to MXM volume
 					noteEvt->get_loud() * (200.f / 127.f)
 				);
 				ch->addNote(n);
@@ -479,7 +479,7 @@ bool MidiImport::readSMF(TrackContainer* tc)
 					{
 						double cc = evt->get_real_value();
 						AutomatableModel* modelObject = nullptr;
-						// Some CC knobs correspond to specific things like pitch and volume, so in that case, set the lmms pitch/volume/etc knobs.
+						// Some CC knobs correspond to specific things like pitch and volume, so in that case, set the mxm pitch/volume/etc knobs.
 						// Otherwise, set the knob in the instrument track CC rack
 						switch (ccid)
 						{
@@ -631,4 +631,4 @@ void MidiImport::error()
 }
 
 
-} // namespace lmms
+} // namespace mxm

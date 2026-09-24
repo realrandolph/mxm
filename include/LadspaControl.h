@@ -4,7 +4,7 @@
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_LADSPA_CONTROL_H
-#define LMMS_LADSPA_CONTROL_H
+#ifndef MXM_LADSPA_CONTROL_H
+#define MXM_LADSPA_CONTROL_H
 
 #include <ladspa.h>
 
@@ -32,7 +32,7 @@
 #include "TempoSyncKnobModel.h"
 #include "ValueBuffer.h"
 
-namespace lmms
+namespace mxm
 {
 
 struct port_desc_t;
@@ -46,7 +46,7 @@ class LadspaMatrixControlDialog;
 } // namespace gui
 
 
-class LMMS_EXPORT LadspaControl : public Model, public JournallingObject
+class MXM_EXPORT LadspaControl : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -131,6 +131,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LADSPA_CONTROL_H
+#endif // MXM_LADSPA_CONTROL_H

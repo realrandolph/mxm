@@ -1,6 +1,6 @@
 set_directory_properties(PROPERTIES SYSTEM TRUE)
 
-if(LMMS_BUILD_LINUX AND LMMS_HAVE_VST AND NOT WANT_QT6)
+if(MXM_BUILD_LINUX AND MXM_HAVE_VST AND NOT WANT_QT6)
 	set(BUILD_SHARED_LIBS OFF)
 	add_subdirectory(qt5-x11embed)
 ENDIF()
@@ -22,11 +22,11 @@ target_include_directories(ringbuffer PUBLIC
 )
 # Create a dummy ringbuffer_export.h, since ringbuffer is not compiled as a library
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ringbuffer_export.h.in" [[
-	#include "${CMAKE_BINARY_DIR}/src/lmms_export.h"
-	#define RINGBUFFER_EXPORT LMMS_EXPORT
+	#include "${CMAKE_BINARY_DIR}/src/mxm_export.h"
+	#define RINGBUFFER_EXPORT MXM_EXPORT
 ]])
 configure_file("${CMAKE_CURRENT_BINARY_DIR}/ringbuffer_export.h.in" ringbuffer_export.h)
-target_compile_definitions(ringbuffer PRIVATE lmmsobjs_EXPORTS)
+target_compile_definitions(ringbuffer PRIVATE mxmobjs_EXPORTS)
 # Enable MLOCK support for ringbuffer if available
 INCLUDE(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(sys/mman.h HAVE_SYS_MMAN)

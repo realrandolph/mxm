@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Paul Giblock <pgib/at/users.sourceforge.net>
  * Copyright (c) 2026 Fawn Sannar <rubiefawn/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * Lb302FilterIIR2 is based on the gsyn filter code by Andy Sloane.
  *
@@ -40,7 +40,7 @@
 #include "InstrumentView.h"
 #include "NotePlayHandle.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace DspEffectLibrary { class Distortion; }
@@ -223,7 +223,7 @@ private:
 
 	//! @brief The maximum number of note events Lb302 can process per audio buffer.
 	//!
-	//! This value was arbitrarily chosen based off of stress tests with LMMS's
+	//! This value was arbitrarily chosen based off of stress tests with MXM'ss
 	//! buffer size set to its maximum value (4096 samples) to maximize the
 	//! ratio of enqueue operations to dequeue operations per buffer. It may be
 	//! adjusted as needed, but it must always be a power of 2.
@@ -257,7 +257,7 @@ private:
 
 	//! @brief Backing array for the multiple-producer single-consumer realtime-safe ring buffer queue for note events.
 	//!
-	//! This is used to implement monophony, since multiple LMMS threads can
+	//! This is used to implement monophony, since multiple MXM threads can
 	//! independently send note events to an instance of Lb302.
 	//!
 	//! @see s_maxPendingNotes
@@ -341,6 +341,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif // LB302_H

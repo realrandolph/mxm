@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_CLIPBOARD_H
-#define LMMS_CLIPBOARD_H
+#ifndef MXM_CLIPBOARD_H
+#define MXM_CLIPBOARD_H
 
 #include <QDomElement>
 #include <QMap>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QMimeData;
 
-namespace lmms::Clipboard
+namespace mxm::Clipboard
 {
 
 	enum class MimeType
@@ -46,7 +46,7 @@ namespace lmms::Clipboard
 	bool hasFormat( MimeType mT );
 
 	// Helper methods for String data
-	void LMMS_EXPORT copyString(const QString& str, MimeType mT);
+	void MXM_EXPORT copyString(const QString& str, MimeType mT);
 	QString getString( MimeType mT );
 
 	// Helper methods for String Pair data
@@ -59,15 +59,15 @@ namespace lmms::Clipboard
 		switch( type )
 		{
 			case MimeType::StringPair:
-				return "application/x-lmms-stringpair";
+				return "application/x-mxm-stringpair";
 			break;
 			case MimeType::Default:
 			default:
-				return "application/x-lmms-clipboard";
+				return "application/x-mxm-clipboard";
 				break;
 		}
 	}
 
-} // namespace lmms::Clipboard
+} // namespace mxm::Clipboard
 
-#endif // LMMS_CLIPBOARD_H
+#endif // MXM_CLIPBOARD_H

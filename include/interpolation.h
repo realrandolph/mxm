@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2005 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_INTERPOLATION_H
-#define LMMS_INTERPOLATION_H
+#ifndef MXM_INTERPOLATION_H
+#define MXM_INTERPOLATION_H
 
 #include <cmath>
 #include <numbers>
 
-namespace lmms
+namespace mxm
 {
 
 inline float hermiteInterpolate( float x0, float x1, float x2, float x3,
@@ -126,6 +126,6 @@ inline float lagrangeInterpolate( float v0, float v1, float v2, float v3, float 
 
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INTERPOLATION_H
+#endif // MXM_INTERPOLATION_H

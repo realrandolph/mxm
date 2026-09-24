@@ -12,7 +12,7 @@ if(NOT MSVC)
 	target_compile_options(cmt PRIVATE -O3 -fno-strict-aliasing)
 endif()
 
-if(LMMS_BUILD_WIN32)
+if(MXM_BUILD_WIN32)
 	add_custom_command(
 		TARGET cmt
 		POST_BUILD
@@ -26,11 +26,11 @@ if(MSVC)
 	target_link_options(cmt PRIVATE "/EXPORT:ladspa_descriptor")
 endif()
 
-if(NOT LMMS_BUILD_WIN32)
+if(NOT MXM_BUILD_WIN32)
 	target_compile_options(cmt PRIVATE -fPIC)
 endif()
 
-IF(NOT LMMS_BUILD_APPLE AND NOT LMMS_BUILD_OPENBSD)
+IF(NOT MXM_BUILD_APPLE AND NOT MXM_BUILD_OPENBSD)
 	target_link_libraries(cmt PRIVATE -shared)
 ENDIF()
 

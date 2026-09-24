@@ -22,7 +22,7 @@ if command -v carla > /dev/null 2>&1; then
 	done
 else
 	echo "[${0##*/}] Carla does not appear to be installed, we'll remove it from the plugin listing." >&2
-	export "LMMS_EXCLUDE_PLUGINS=libcarla,${LMMS_EXCLUDE_PLUGINS}"
+	export "MXM_EXCLUDE_PLUGINS=libcarla,${MXM_EXCLUDE_PLUGINS}"
 fi
 
 # Additional workarounds for library conflicts
@@ -34,7 +34,7 @@ if [ -n "$CARLA_LIB_FILE" ]; then
 		if [ -e "$APPDIR/usr/lib/$conflict" ]; then
 			conflict_sys="$(ldd "$CARLA_LIB_FILE" | grep "$conflict" | awk '{print $3}')"
 			if [ -e "$conflict_sys" ]; then
-				# Add library to LD_PRELOAD so lmms can find it over its bundled version
+				# Add library to LD_PRELOAD so mxm can find it over its bundled version
 				echo "[${0##*/}] Preferring the system's \"$conflict\" over the version bundled." >&2
 				export LD_PRELOAD="$conflict_sys:$LD_PRELOAD"
 			fi

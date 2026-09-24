@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2015 Michael Gregorius <michaelgregorius/at/web[dot]de>
  *
- * This file is part of LMMS - http://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - http://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,13 +28,13 @@
 
 #include "EffectControlDialog.h"
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 
 class QGridLayout;
 class QScrollArea;
 
-namespace lmms
+namespace mxm
 {
 
 class LadspaControls;
@@ -77,6 +77,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

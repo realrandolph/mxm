@@ -1,5 +1,5 @@
-IF(LMMS_BUILD_LINUX)
-	if(LMMS_HOST_X86_64)
+IF(MXM_BUILD_LINUX)
+	if(MXM_HOST_X86_64)
 		set(CXX_FLAGS -m64)
 	endif()
 	ExternalProject_Add(NativeLinuxRemoteVstPlugin64

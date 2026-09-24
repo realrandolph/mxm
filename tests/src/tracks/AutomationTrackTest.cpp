@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2017 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -43,19 +43,19 @@ class AutomationTrackTest : public QObject
 private slots:
 	void initTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::init(true);
 	}
 
 	void cleanupTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::destroy();
 	}
 
 	void testClipLinear()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		AutomationClip c(nullptr);
 		c.setProgressionType(AutomationClip::ProgressionType::Linear);
@@ -72,7 +72,7 @@ private slots:
 
 	void testClipDiscrete()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		AutomationClip c(nullptr);
 		c.setProgressionType(AutomationClip::ProgressionType::Discrete);
@@ -87,7 +87,7 @@ private slots:
 
 	void testClips()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		FloatModel model;
 
@@ -123,7 +123,7 @@ private slots:
 
 	void testLengthRespected()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		FloatModel model;
 
@@ -150,7 +150,7 @@ private slots:
 
 	void testInlineAutomation()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		auto song = Engine::getSong();
 
@@ -174,7 +174,7 @@ private slots:
 
 	void testPatternTrack()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		auto song = Engine::getSong();
 		auto patternStore = Engine::patternStore();
@@ -214,7 +214,7 @@ private slots:
 
 	void testGlobalAutomation()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		// Global automation should not have priority, see https://github.com/LMMS/lmms/issues/4268
 		// Tests regression caused by 75077f6200a5aee3a5821aae48a3b8466ed8714a

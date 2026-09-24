@@ -4,7 +4,7 @@
  * Copyright (c) 1998-2000 Paul Kellett (mda-vst.com)
  * Copyright (c) 2007 Paul Giblock <drfaygo/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,17 +23,17 @@
  *
  */
 
-#ifndef LMMS_DRUM_SYNTH_H
-#define LMMS_DRUM_SYNTH_H
+#ifndef MXM_DRUM_SYNTH_H
+#define MXM_DRUM_SYNTH_H
 
 #include <cstddef>
 #include <cstdint>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 class QString;
 
-namespace lmms {
+namespace mxm {
 
 class DrumSynth
 {
@@ -56,6 +56,6 @@ private:
 	float GetPrivateProfileFloat(const char* sec, const char* key, float def, QString file);
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DRUM_SYNTH_H
+#endif // MXM_DRUM_SYNTH_H

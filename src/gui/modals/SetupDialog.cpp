@@ -1,9 +1,9 @@
 /*
- * SetupDialog.cpp - dialog for setting up LMMS
+ * SetupDialog.cpp - dialog for setting up MXM
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -65,7 +65,7 @@
 #include "MidiWinMM.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -152,7 +152,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	m_ladspaDir(QDir::toNativeSeparators(ConfigManager::inst()->ladspaDir())),
 	m_gigDir(QDir::toNativeSeparators(ConfigManager::inst()->gigDir())),
 	m_sf2Dir(QDir::toNativeSeparators(ConfigManager::inst()->sf2Dir())),
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	m_sf2File(QDir::toNativeSeparators(ConfigManager::inst()->sf2File())),
 #endif
 	m_themeDir(QDir::toNativeSeparators(ConfigManager::inst()->themeDir())),
@@ -504,32 +504,32 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	as_w_layout->setSpacing(0);
 	as_w_layout->setContentsMargins(0, 0, 0, 0);
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	m_audioIfaceSetupWidgets[AudioJack::name()] =
 			new AudioJack::setupWidget(as_w);
 #endif
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	m_audioIfaceSetupWidgets[AudioAlsa::name()] =
 			new AudioAlsaSetupWidget(as_w);
 #endif
 
-#ifdef LMMS_HAVE_PULSEAUDIO
+#ifdef MXM_HAVE_PULSEAUDIO
 	m_audioIfaceSetupWidgets[AudioPulseAudio::name()] =
 			new AudioPulseAudio::setupWidget(as_w);
 #endif
 
-#ifdef LMMS_HAVE_PORTAUDIO
+#ifdef MXM_HAVE_PORTAUDIO
 	m_audioIfaceSetupWidgets[AudioPortAudio::name()] =
 			new AudioPortAudioSetupWidget(as_w);
 #endif
 
-#ifdef LMMS_HAVE_SDL
+#ifdef MXM_HAVE_SDL
 	m_audioIfaceSetupWidgets[AudioSdl::name()] =
 			new AudioSdl::setupWidget(as_w);
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	m_audioIfaceSetupWidgets[AudioSndio::name()] =
 			new AudioSndio::setupWidget(as_w);
 #endif
@@ -680,29 +680,29 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	ms_w_layout->setSpacing(0);
 	ms_w_layout->setContentsMargins(0, 0, 0, 0);
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	m_midiIfaceSetupWidgets[MidiAlsaSeq::name()] =
 			MidiSetupWidget::create<MidiAlsaSeq>(ms_w);
 	m_midiIfaceSetupWidgets[MidiAlsaRaw::name()] =
 			MidiSetupWidget::create<MidiAlsaRaw>(ms_w);
 #endif
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	m_midiIfaceSetupWidgets[MidiJack::name()] =
 			MidiSetupWidget::create<MidiJack>(ms_w);
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	m_midiIfaceSetupWidgets[MidiSndio::name()] =
 			MidiSetupWidget::create<MidiSndio>(ms_w);
 #endif
 
-#ifdef LMMS_HAVE_WINMM
+#ifdef MXM_HAVE_WINMM
 	m_midiIfaceSetupWidgets[MidiWinMM::name()] =
 			MidiSetupWidget::create<MidiWinMM>(ms_w);
 #endif
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
     m_midiIfaceSetupWidgets[MidiApple::name()] =
 			MidiSetupWidget::create<MidiApple>(ms_w);
 #endif
@@ -822,7 +822,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 		pathSelectorsLayout->addSpacing(10);
 	};
 
-	addPathEntry(tr("LMMS working directory"), m_workingDir,
+	addPathEntry(tr("MXM working directory"), m_workingDir,
 		SLOT(setWorkingDir(const QString&)),
 		SLOT(openWorkingDir()),
 		m_workingDirLineEdit);
@@ -838,7 +838,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 		SLOT(setSF2Dir(const QString&)),
 		SLOT(openSF2Dir()),
 		m_sf2DirLineEdit);
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	addPathEntry(tr("Default SF2"), m_sf2File,
 		SLOT(setSF2File(const QString&)),
 		SLOT(openSF2File()),
@@ -957,7 +957,7 @@ SetupDialog::~SetupDialog()
 void SetupDialog::accept()
 {
 	/* Hide dialog before setting values. This prevents an obscure bug
-	where non-embedded VST windows would steal focus and prevent LMMS
+	where non-embedded VST windows would steal focus and prevent MXM
 	from taking mouse input, rendering the application unusable. */
 	QDialog::accept();
 
@@ -1028,7 +1028,7 @@ void SetupDialog::accept()
 	ConfigManager::inst()->setVSTDir(QDir::fromNativeSeparators(m_vstDir));
 	ConfigManager::inst()->setLADSPADir(QDir::fromNativeSeparators(m_ladspaDir));
 	ConfigManager::inst()->setSF2Dir(QDir::fromNativeSeparators(m_sf2Dir));
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	ConfigManager::inst()->setSF2File(m_sf2File);
 #endif
 	ConfigManager::inst()->setGIGDir(QDir::fromNativeSeparators(m_gigDir));
@@ -1243,7 +1243,7 @@ void SetupDialog::updateBufferSizeWarning(int value)
 {
 	QString text = "<ul>";
 	// 'value' is not a power of 2 (for value > 0) and under 256. On buffer sizes larger than 256
-	// lmms works with chunks of size 256 and only the final mix will use the actual buffer size.
+	// mxm works with chunks of size 256 and only the final mix will use the actual buffer size.
 	// Plugins don't see a larger buffer size than 256 so anything larger than this is functionally
 	// a 'power of 2' value.
 	if(((value & (value - 1)) != 0) && value < 256)
@@ -1320,7 +1320,7 @@ void SetupDialog::toggleMidiAutoQuantization(bool enabled)
 void SetupDialog::openWorkingDir()
 {
 	QString new_dir = FileDialog::getExistingDirectory(this,
-		tr("Choose the LMMS working directory"), m_workingDir);
+		tr("Choose the MXM working directory"), m_workingDir);
 	if (!new_dir.isEmpty())
 	{
 		m_workingDirLineEdit->setText(new_dir);
@@ -1395,7 +1395,7 @@ void SetupDialog::setSF2Dir(const QString & sf2Dir)
 
 void SetupDialog::openSF2File()
 {
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	QString new_file = FileDialog::getOpenFileName(this,
 		tr("Choose your default SF2"), m_sf2File, "SoundFont 2 files (*.sf2)");
 
@@ -1409,7 +1409,7 @@ void SetupDialog::openSF2File()
 
 void SetupDialog::setSF2File(const QString & sf2File)
 {
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	m_sf2File = sf2File;
 #endif
 }
@@ -1492,4 +1492,4 @@ void SetupDialog::showRestartWarning()
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

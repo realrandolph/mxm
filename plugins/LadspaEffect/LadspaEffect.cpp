@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -30,7 +30,7 @@
 #include "LadspaEffect.h"
 #include "DataFile.h"
 #include "AudioEngine.h"
-#include "Ladspa2LMMS.h"
+#include "Ladspa2MXM.h"
 #include "LadspaBase.h"
 #include "LadspaControl.h"
 #include "LadspaSubPluginFeatures.h"
@@ -42,7 +42,7 @@
 
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -51,11 +51,11 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT ladspaeffect_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"LADSPA",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"plugin for using arbitrary LADSPA-effects "
-				"inside LMMS." ),
+				"inside MXM." ),
 	"Danny McRae <khjklujn/at/users.sourceforge.net>",
 	0x0100,
 	Plugin::Type::Effect,
@@ -71,7 +71,7 @@ LadspaEffect::LadspaEffect(Model* _parent, const Descriptor::SubPluginFeatures::
 	, m_controls(nullptr)
 	, m_key(LadspaSubPluginFeatures::subPluginKeyToLadspaKey(_key))
 {
-	Ladspa2LMMS * manager = Engine::getLADSPAManager();
+	Ladspa2MXM * manager = Engine::getLADSPAManager();
 	if( manager->getDescription( m_key ) == nullptr )
 	{
 		Engine::getSong()->collectError(tr( "Unknown LADSPA plugin %1 requested." ).arg(
@@ -134,7 +134,7 @@ Effect::ProcessStatus LadspaEffect::processImpl(SampleFrame* buf, const f_cnt_t 
 		return ProcessStatus::Sleep;
 	}
 
-	// Copy the LMMS audio buffer to the LADSPA input buffer and initialize
+	// Copy the MXM audio buffer to the LADSPA input buffer and initialize
 	// the control ports.
 	ch_cnt_t channel = 0;
 	for( ch_cnt_t proc = 0; proc < processorCount(); ++proc )
@@ -199,7 +199,7 @@ Effect::ProcessStatus LadspaEffect::processImpl(SampleFrame* buf, const f_cnt_t 
 		(m_descriptor->run)(m_handles[proc], frames);
 	}
 
-	// Copy the LADSPA output buffers to the LMMS buffer.
+	// Copy the LADSPA output buffers to the MXM buffer.
 	channel = 0;
 	const float d = dryLevel();
 	const float w = wetLevel();
@@ -252,7 +252,7 @@ void LadspaEffect::setControl( int _control, LADSPA_Data _value )
 
 void LadspaEffect::pluginInstantiation()
 {
-	Ladspa2LMMS * manager = Engine::getLADSPAManager();
+	Ladspa2MXM * manager = Engine::getLADSPAManager();
 
 	// Calculate how many processing units are needed.
 	int effect_channels = manager->getDescription( m_key )->inputChannels;
@@ -511,7 +511,7 @@ void LadspaEffect::pluginDestruction()
 
 	for( ch_cnt_t proc = 0; proc < processorCount(); proc++ )
 	{
-		Ladspa2LMMS * manager = Engine::getLADSPAManager();
+		Ladspa2MXM * manager = Engine::getLADSPAManager();
 		manager->deactivate( m_key, m_handles[proc] );
 		manager->cleanup( m_key, m_handles[proc] );
 		for( int port = 0; port < m_portCount; port++ )
@@ -534,7 +534,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * _parent, void * _data )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model * _parent, void * _data )
 {
 	return new LadspaEffect( _parent,
 		static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>(
@@ -544,4 +544,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * _parent, void * _data )
 }
 
 
-} // namespace lmms
+} // namespace mxm

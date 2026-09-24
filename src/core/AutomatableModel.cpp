@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -26,7 +26,7 @@
 
 #include <QRegularExpression>
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include "AudioEngine.h"
 #include "AutomationClip.h"
@@ -35,7 +35,7 @@
 #include "ProjectJournal.h"
 #include "Song.h"
 
-namespace lmms
+namespace mxm
 {
 
 long AutomatableModel::s_periodCounter = 0;
@@ -329,7 +329,7 @@ void AutomatableModel::setValueInternal(const float value)
 
 template<class T> T AutomatableModel::logToLinearScale( T value ) const
 {
-	return castValue<T>( lmms::logToLinearScale( minValue<float>(), maxValue<float>(), static_cast<float>( value ) ) );
+	return castValue<T>( mxm::logToLinearScale( minValue<float>(), maxValue<float>(), static_cast<float>( value ) ) );
 }
 
 
@@ -345,7 +345,7 @@ float AutomatableModel::inverseScaledValue( float value ) const
 {
 	return m_scaleType == ScaleType::Linear
 		? value
-		: lmms::linearToLogScale( minValue<float>(), maxValue<float>(), value );
+		: mxm::linearToLogScale( minValue<float>(), maxValue<float>(), value );
 }
 
 
@@ -354,7 +354,7 @@ float AutomatableModel::inverseScaledValue( float value ) const
 template<class T>
 void AutomatableModel::roundAt( T& value, const T& where ) const
 {
-	lmms::roundAt(value, where, m_step);
+	mxm::roundAt(value, where, m_step);
 }
 
 
@@ -758,4 +758,4 @@ QString BoolModel::displayValue( const float val ) const
 }
 
 
-} // namespace lmms
+} // namespace mxm

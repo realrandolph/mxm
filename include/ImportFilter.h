@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,21 +23,21 @@
  *
  */
 
-#ifndef LMMS_IMPORT_FILTER_H
-#define LMMS_IMPORT_FILTER_H
+#ifndef MXM_IMPORT_FILTER_H
+#define MXM_IMPORT_FILTER_H
 
 #include <QFile>
 
 #include "Plugin.h"
 
-namespace lmms
+namespace mxm
 {
 
 
 class TrackContainer;
 
 
-class LMMS_EXPORT ImportFilter : public Plugin
+class MXM_EXPORT ImportFilter : public Plugin
 {
 public:
 	ImportFilter( const QString & _file_name,
@@ -112,6 +112,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_IMPORT_FILTER_H
+#endif // MXM_IMPORT_FILTER_H

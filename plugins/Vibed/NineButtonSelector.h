@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2007 Danny McRae <khjklujn/at/yahoo/com>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_GUI_NINE_BUTTON_SELECTOR_H
-#define LMMS_GUI_NINE_BUTTON_SELECTOR_H
+#ifndef MXM_GUI_NINE_BUTTON_SELECTOR_H
+#define MXM_GUI_NINE_BUTTON_SELECTOR_H
 
 #include <array>
 #include <QWidget>
 
 #include "AutomatableModelView.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -72,6 +72,6 @@ private:
 using NineButtonSelectorModel = IntModel;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_NINE_BUTTON_SELECTOR_H
+#endif // MXM_GUI_NINE_BUTTON_SELECTOR_H

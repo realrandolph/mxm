@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2013 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_MIDI_ALSA_SEQ_H
-#define LMMS_MIDI_ALSA_SEQ_H
+#ifndef MXM_MIDI_ALSA_SEQ_H
+#define MXM_MIDI_ALSA_SEQ_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 #include <alsa/asoundlib.h>
 
 #include <QMap>
@@ -41,7 +41,7 @@
 
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -116,14 +116,14 @@ public:
 
 
 private slots:
-	void changeQueueTempo( lmms::bpm_t _bpm );
+	void changeQueueTempo( mxm::bpm_t _bpm );
 	void updatePortList();
 
 
 private:
 	void run() override;
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	QMutex m_seqMutex;
 	snd_seq_t * m_seqHandle;
 	struct Ports
@@ -153,8 +153,8 @@ signals:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_ALSA
+#endif // MXM_HAVE_ALSA
 
-#endif // LMMS_MIDI_ALSA_SEQ_H
+#endif // MXM_MIDI_ALSA_SEQ_H

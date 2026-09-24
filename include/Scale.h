@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_SCALE_H
-#define LMMS_SCALE_H
+#ifndef MXM_SCALE_H
+#define MXM_SCALE_H
 
 #include <cstdint>
 #include <vector>
@@ -32,7 +32,7 @@
 
 #include "SerializingObject.h"
 
-namespace lmms
+namespace mxm
 {
 
 class Interval : public SerializingObject
@@ -87,6 +87,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SCALE_H
+#endif // MXM_SCALE_H

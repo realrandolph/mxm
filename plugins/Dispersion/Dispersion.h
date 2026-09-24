@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  */
 
 
-#ifndef LMMS_DISPERSION_H
-#define LMMS_DISPERSION_H
+#ifndef MXM_DISPERSION_H
+#define MXM_DISPERSION_H
 
 #include "DispersionControls.h"
 #include "Effect.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 constexpr inline int MAX_DISPERSION_FILTERS = 999;
@@ -73,6 +73,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DISPERSION_H
+#endif // MXM_DISPERSION_H

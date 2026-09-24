@@ -5,7 +5,7 @@
  * Based partially on Eq plugin code,
  * Copyright (c) 2014 David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 
 
 
-namespace lmms
+namespace mxm
 {
 
 template<class T>
@@ -165,7 +165,7 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif // SAPROCESSOR_H
 

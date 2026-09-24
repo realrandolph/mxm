@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 
 #include <QDomElement>
 
-namespace lmms {
+namespace mxm {
 
 void Timeline::setLoopBegin(TimePos begin)
 {
@@ -79,4 +79,4 @@ void Timeline::loadSettings(const QDomElement& element)
 	setStopBehaviour(static_cast<StopBehaviour>(element.attribute("stopbehaviour", "1").toInt()));
 }
 
-} // namespace lmms
+} // namespace mxm

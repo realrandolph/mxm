@@ -1,5 +1,5 @@
 /*
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -18,8 +18,8 @@
  *
  */
 
-#ifndef LMMS_STEP_RECORDER_H
-#define LMMS_STEP_RECORDER_H
+#ifndef MXM_STEP_RECORDER_H
+#define MXM_STEP_RECORDER_H
 
 #include <QElapsedTimer>
 #include <QTimer>
@@ -30,7 +30,7 @@
 class QKeyEvent;
 class QMouseEvent;
 
-namespace lmms
+namespace mxm
 {
 
 class MidiClip;
@@ -144,6 +144,6 @@ class StepRecorder : public QObject
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_STEP_RECORDER_H
+#endif // MXM_STEP_RECORDER_H

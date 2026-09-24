@@ -1,5 +1,5 @@
 /*
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 #include "PianoRoll.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -378,4 +378,4 @@ StepRecorder::StepNote* StepRecorder::findCurStepNote(const int key)
 	return nullptr;
 }
 
-} // namespace lmms
+} // namespace mxm

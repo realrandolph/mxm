@@ -1,9 +1,9 @@
 /*
- * SideBar.cpp - side-bar in LMMS' MainWindow
+ * SideBar.cpp - side-bar in MXM's MainWindow
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include "SideBar.h"
 #include "SideBarWidget.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -160,4 +160,4 @@ void SideBar::toggleButton( QAbstractButton * button )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

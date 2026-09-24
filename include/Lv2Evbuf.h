@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,20 +27,20 @@
  * Original version: 6f22ee0 from https://github.com/drobilla/jalv.git
  * Minor changes have been done, but no functional changes.
  * Considering this as an "external library", the identifiers do not need to
- * match the LMMS coding conventions.
+ * match the MXM coding conventions.
  */
 
-#ifndef LMMS_LV2_EVBUF_H
-#define LMMS_LV2_EVBUF_H
+#ifndef MXM_LV2_EVBUF_H
+#define MXM_LV2_EVBUF_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <cstdint>
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -157,8 +157,8 @@ lv2_evbuf_write(	LV2_Evbuf_Iterator* iter,
 					const uint8_t* data);
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2_EVBUF_H
+#endif // MXM_LV2_EVBUF_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Lost Robot <r94231@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -39,7 +39,7 @@
 #include "MainWindow.h"
 #include "PixmapButton.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -840,4 +840,4 @@ void CompressorControlDialog::resetCompressorView()
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

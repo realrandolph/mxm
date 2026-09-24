@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_NOTE_PLAY_HANDLE_H
-#define LMMS_NOTE_PLAY_HANDLE_H
+#ifndef MXM_NOTE_PLAY_HANDLE_H
+#define MXM_NOTE_PLAY_HANDLE_H
 
 #include <memory>
 
@@ -35,7 +35,7 @@
 
 class QReadWriteLock;
 
-namespace lmms
+namespace mxm
 {
 
 class InstrumentTrack;
@@ -44,7 +44,7 @@ class NotePlayHandle;
 using NotePlayHandleList = QList<NotePlayHandle*>;
 using ConstNotePlayHandleList = QList<const NotePlayHandle*>;
 
-class LMMS_EXPORT NotePlayHandle : public PlayHandle, public Note
+class MXM_EXPORT NotePlayHandle : public PlayHandle, public Note
 {
 public:
 	void * m_pluginData;
@@ -359,6 +359,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_NOTE_PLAY_HANDLE_H
+#endif // MXM_NOTE_PLAY_HANDLE_H

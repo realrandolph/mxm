@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Shane Ambler <develop/at/shaneware.biz>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "MidiJack.h"
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 
 #include <QMessageBox>
 
@@ -35,7 +35,7 @@
 #include "Engine.h"
 #include "MainWindow.h"
 
-namespace lmms
+namespace mxm
 {
 
 /* callback functions for jack */
@@ -168,10 +168,10 @@ jack_client_t* MidiJack::jackClient()
 
 QString MidiJack::probeDevice()
 {
-	QString jid = ConfigManager::inst()->value( "midijack", "lmms" );
+	QString jid = ConfigManager::inst()->value( "midijack", "mxm" );
 	if( jid.isEmpty() )
 	{
-		return "lmms";
+		return "mxm";
 	}
 	return jid;
 }
@@ -191,7 +191,7 @@ void MidiJack::JackMidiRead(jack_nframes_t nframes)
 		{
 			while((in_event.time == i) && (event_index < event_count))
 			{
-				// lmms is setup to parse bytes coming from a device
+				// mxm is setup to parse bytes coming from a device
 				// parse it byte by byte as it expects
 				for (unsigned int b = 0; b < in_event.size; b++)
 					parseData( *(in_event.buffer + b) );
@@ -230,6 +230,6 @@ void MidiJack::run()
 	}
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_JACK
+#endif // MXM_HAVE_JACK

@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2024- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,18 +23,18 @@
  *
  */
 
-#ifndef LMMS_SAMPLEFRAME_H
-#define LMMS_SAMPLEFRAME_H
+#ifndef MXM_SAMPLEFRAME_H
+#define MXM_SAMPLEFRAME_H
 
-#include "LmmsTypes.h"
-#include "lmms_constants.h"
+#include "MxmTypes.h"
+#include "mxm_constants.h"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 
 
-namespace lmms
+namespace mxm
 {
 
 class SampleFrame
@@ -227,6 +227,6 @@ inline void copyFromSampleFrames(float* target, const SampleFrame* source, size_
 	}
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SAMPLEFRAME_H
+#endif // MXM_SAMPLEFRAME_H

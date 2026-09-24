@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025-2026 Keratin
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 #include "OscilloscopeControlDialog.h"
 #include "OscilloscopeGraph.h"
 
-namespace lmms
+namespace mxm
 {
 
 OscilloscopeControls::OscilloscopeControls(Oscilloscope* effect) :
@@ -68,4 +68,4 @@ gui::EffectControlDialog* OscilloscopeControls::createView()
 }
 
 
-} // namespace lmms
+} // namespace mxm

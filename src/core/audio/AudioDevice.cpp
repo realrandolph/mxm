@@ -1,9 +1,9 @@
 /*
- * AudioDevice.cpp - base-class for audio-devices used by LMMS audio engine
+ * AudioDevice.cpp - base-class for audio-devices used by MXM audio engine
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 #include "AudioDevice.h"
 #include "AudioEngine.h"
 
-namespace lmms
+namespace mxm
 {
 
 AudioDevice::AudioDevice(const ch_cnt_t _channels, AudioEngine* _audioEngine)
@@ -135,4 +135,4 @@ void AudioDevice::clearS16Buffer( int_sample_t * _outbuf, const f_cnt_t _frames 
 	memset( _outbuf, 0,  _frames * channels() * BYTES_PER_INT_SAMPLE );
 }
 
-} // namespace lmms
+} // namespace mxm

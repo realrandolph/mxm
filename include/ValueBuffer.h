@@ -4,7 +4,7 @@
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,18 +23,18 @@
  *
  */
 
-#ifndef LMMS_VALUE_BUFFER_H
-#define LMMS_VALUE_BUFFER_H
+#ifndef MXM_VALUE_BUFFER_H
+#define MXM_VALUE_BUFFER_H
 
 #include <vector>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
-class LMMS_EXPORT ValueBuffer : public std::vector<float>
+class MXM_EXPORT ValueBuffer : public std::vector<float>
 {
 public:
 	ValueBuffer() = default;
@@ -53,6 +53,6 @@ public:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_VALUE_BUFFER_H
+#endif // MXM_VALUE_BUFFER_H

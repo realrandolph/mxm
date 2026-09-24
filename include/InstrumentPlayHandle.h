@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,19 +22,19 @@
  *
  */
 
-#ifndef LMMS_INSTRUMENT_PLAY_HANDLE_H
-#define LMMS_INSTRUMENT_PLAY_HANDLE_H
+#ifndef MXM_INSTRUMENT_PLAY_HANDLE_H
+#define MXM_INSTRUMENT_PLAY_HANDLE_H
 
 #include "PlayHandle.h"
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 class Instrument;
 class InstrumentTrack;
 
-class LMMS_EXPORT InstrumentPlayHandle : public PlayHandle
+class MXM_EXPORT InstrumentPlayHandle : public PlayHandle
 {
 public:
 	InstrumentPlayHandle(Instrument * instrument, InstrumentTrack* instrumentTrack);
@@ -54,6 +54,6 @@ private:
 	Instrument* m_instrument;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INSTRUMENT_PLAY_HANDLE_H
+#endif // MXM_INSTRUMENT_PLAY_HANDLE_H

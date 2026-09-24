@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Csaba Hruska <csaba.hruska/at/gmail.com>
  * Copyright (c) 2010 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,9 +25,9 @@
 
 #include <iostream>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_PORTAUDIO
+#ifdef MXM_HAVE_PORTAUDIO
 
 #include "AudioEngine.h"
 #include "AudioPortAudio.h"
@@ -92,7 +92,7 @@ int maxChannels(const PaDeviceInfo* info, Direction direction)
 
 } // namespace
 
-namespace lmms {
+namespace mxm {
 AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	: AudioDevice(DEFAULT_CHANNELS, engine)
 {
@@ -204,9 +204,9 @@ int AudioPortAudio::processCallback(const void*, void* output, unsigned long fra
 	device->audioEngine()->renderNextBuffer({outputBuffer, channels, frameCount});
 	return paContinue;
 }
-} // namespace lmms
+} // namespace mxm
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 class AudioPortAudioSetupWidget::DeviceSelectorWidget : public QGroupBox
 {
@@ -229,7 +229,7 @@ public:
 
 	void refreshFromConfig(PaHostApiIndex backendIndex)
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		m_deviceComboBox->clear();
 
@@ -317,6 +317,6 @@ void AudioPortAudioSetupWidget::saveSettings()
 	m_inputDevice->saveToConfig();
 	m_outputDevice->saveToConfig();
 }
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_PORTAUDIO
+#endif // MXM_HAVE_PORTAUDIO
