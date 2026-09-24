@@ -224,12 +224,12 @@ IF(MXM_BUILD_OPENBSD)
 	# appear as an option when choosing an audio backend in settings for
 	# some reason. This might be fixable, but the OpenBSD ports
 	# maintainers have also explicitly disabled SDL since 2010-10-28.
-	# https://cvsweb.openbsd.org/checkout/ports/audio/mxm/Makefile?rev=1.1
+	# https://cvsweb.openbsd.org/checkout/ports/audio/lmms/Makefile?rev=1.1
 	SET(WANT_SDL OFF)
 	SET(STATUS_SDL "<not supported on this platform>")
 	# “explicitly disable pulseaudio in these ports so they won't pick
 	# it up when it becomes available.”
-	# https://cvsweb.openbsd.org/checkout/ports/audio/mxm/Makefile?rev=1.5
+	# https://cvsweb.openbsd.org/checkout/ports/audio/lmms/Makefile?rev=1.5
 	SET(WANT_PULSEAUDIO OFF)
 	SET(STATUS_PULSEAUDIO "<not supported on this platform>")
 	# OpenBSD does not and never will have WINE, which is necessary for
