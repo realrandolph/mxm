@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019 Martin Pavelek <he29/dot/HS/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,20 +27,20 @@
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
 extern "C" {
 	Plugin::Descriptor PLUGIN_EXPORT vectorscope_plugin_descriptor =
 	{
-		LMMS_STRINGIFY(PLUGIN_NAME),
+		MXM_STRINGIFY(PLUGIN_NAME),
 		"Vectorscope",
 		QT_TRANSLATE_NOOP("PluginBrowser", "A stereo field visualizer."),
 		"Martin Pavelek <he29/dot/HS/at/gmail/dot/com>",
 		0x0100,
 		Plugin::Type::Effect,
-		new PixmapLoader("lmms-plugin-logo"),
+		new PixmapLoader("mxm-plugin-logo"),
 		nullptr,
 		nullptr,
 	};
@@ -50,7 +50,7 @@ extern "C" {
 Vectorscope::Vectorscope(Model *parent, const Plugin::Descriptor::SubPluginFeatures::Key *key) :
 	Effect(&vectorscope_plugin_descriptor, parent, key),
 	m_controls(this),
-	// Buffer is sized to cover 4* the current maximum LMMS audio buffer size,
+	// Buffer is sized to cover 4* the current maximum MXM audio buffer size,
 	// so that it has some reserve space in case GUI thresd is busy.
 	m_inputBuffer(4 * m_maxBufferSize)
 {
@@ -74,11 +74,11 @@ Effect::ProcessStatus Vectorscope::processImpl(SampleFrame* buf, const f_cnt_t f
 
 extern "C" {
 	// needed for getting plugin out of shared lib
-	PLUGIN_EXPORT Plugin *lmms_plugin_main(Model *parent, void *data)
+	PLUGIN_EXPORT Plugin *mxm_plugin_main(Model *parent, void *data)
 	{
 		return new Vectorscope(parent, static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>(data));
 	}
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "Song.h"
 #include "embed.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -94,8 +94,8 @@ void Oscilloscope::setActive( bool _active )
 					SIGNAL(periodicUpdate()),
 					this, SLOT(update()));
 		connect( Engine::audioEngine(),
-			SIGNAL(nextAudioBuffer(const lmms::SampleFrame*)),
-			this, SLOT(updateAudioBuffer(const lmms::SampleFrame*)));
+			SIGNAL(nextAudioBuffer(const mxm::SampleFrame*)),
+			this, SLOT(updateAudioBuffer(const mxm::SampleFrame*)));
 	}
 	else
 	{
@@ -103,8 +103,8 @@ void Oscilloscope::setActive( bool _active )
 					SIGNAL(periodicUpdate()),
 					this, SLOT(update()));
 		disconnect( Engine::audioEngine(),
-			SIGNAL(nextAudioBuffer(const lmms::SampleFrame*)),
-			this, SLOT(updateAudioBuffer(const lmms::SampleFrame*)));
+			SIGNAL(nextAudioBuffer(const mxm::SampleFrame*)),
+			this, SLOT(updateAudioBuffer(const mxm::SampleFrame*)));
 		// we have to update (remove last waves),
 		// because timer doesn't do that anymore
 		update();
@@ -223,4 +223,4 @@ bool Oscilloscope::clips(float level) const
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

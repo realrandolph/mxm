@@ -15,7 +15,7 @@ endif()
 FILE(WRITE ladspa/config.h "")
 
 # Precompiler PIC Macro
-IF(LMMS_BUILD_WIN32 OR LMMS_BUILD_CYGWIN)
+IF(MXM_BUILD_WIN32 OR MXM_BUILD_CYGWIN)
 	SET(PIC_FLAGS "")
 ELSE()
 	SET(PIC_FLAGS -fPIC -DPIC)
@@ -62,7 +62,7 @@ FOREACH(_item ${XML_SOURCES})
 		TARGET_LINK_LIBRARIES("${_plugin}" m)
 	ENDIF()
 
-	if(LMMS_BUILD_WIN32)
+	if(MXM_BUILD_WIN32)
 		add_custom_command(
 			TARGET "${_plugin}"
 			POST_BUILD
@@ -70,7 +70,7 @@ FOREACH(_item ${XML_SOURCES})
 			VERBATIM
 			COMMAND_EXPAND_LISTS
 		)
-	endif(LMMS_BUILD_WIN32)
+	endif(MXM_BUILD_WIN32)
 
 	SET_TARGET_PROPERTIES("${_plugin}" PROPERTIES PREFIX "")
 	target_compile_options("${_plugin}" PRIVATE "${COMPILE_FLAGS}")

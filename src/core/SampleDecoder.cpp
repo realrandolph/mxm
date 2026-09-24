@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,16 +29,16 @@
 #include <memory>
 #include <sndfile.h>
 
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 #include <vorbis/vorbisfile.h>
 #endif
 
 #include "AudioEngine.h"
 #include "DrumSynth.h"
 #include "Engine.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms {
+namespace mxm {
 
 namespace {
 
@@ -46,12 +46,12 @@ using Decoder = std::optional<SampleDecoder::Result> (*)(const QString&);
 
 auto decodeSampleSF(const QString& audioFile) -> std::optional<SampleDecoder::Result>;
 auto decodeSampleDS(const QString& audioFile) -> std::optional<SampleDecoder::Result>;
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDecoder::Result>;
 #endif
 
 static constexpr std::array<Decoder, 3> decoders = {&decodeSampleSF,
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 	&decodeSampleOggVorbis,
 #endif
 	&decodeSampleDS};
@@ -112,7 +112,7 @@ auto decodeSampleDS(const QString& audioFile) -> std::optional<SampleDecoder::Re
 	return SampleDecoder::Result{std::move(result), static_cast<int>(engineRate)};
 }
 
-#ifdef LMMS_HAVE_OGGVORBIS
+#ifdef MXM_HAVE_OGGVORBIS
 auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDecoder::Result>
 {
 	static auto s_read = [](void* buffer, size_t size, size_t count, void* stream) -> size_t {
@@ -182,7 +182,7 @@ auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDeco
 	ov_clear(&vorbisFile);
 	return SampleDecoder::Result{std::move(result), static_cast<int>(sampleRate)};
 }
-#endif // LMMS_HAVE_OGGVORBIS
+#endif // MXM_HAVE_OGGVORBIS
 } // namespace
 
 auto SampleDecoder::supportedAudioTypes() -> const std::vector<AudioType>&
@@ -232,4 +232,4 @@ auto SampleDecoder::decode(const QString& audioFile) -> std::optional<Result>
 	return result;
 }
 
-} // namespace lmms
+} // namespace mxm

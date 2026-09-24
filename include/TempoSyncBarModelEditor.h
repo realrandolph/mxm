@@ -5,7 +5,7 @@
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2023 Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H
-#define LMMS_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H
+#ifndef MXM_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H
+#define MXM_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H
 
 #include <QPixmap>
 #include <QPointer>
@@ -33,12 +33,12 @@
 #include "BarModelEditor.h"
 #include "TempoSyncKnobModel.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class MeterDialog;
 
-class LMMS_EXPORT TempoSyncBarModelEditor : public BarModelEditor
+class MXM_EXPORT TempoSyncBarModelEditor : public BarModelEditor
 {
 	Q_OBJECT
 public:
@@ -85,6 +85,6 @@ private:
 	QPointer<MeterDialog> m_custom;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H
+#endif // MXM_GUI_TEMPO_SYNC_BAR_MODEL_EDITOR_H

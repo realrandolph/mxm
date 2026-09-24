@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_CLIP_H
-#define LMMS_CLIP_H
+#ifndef MXM_CLIP_H
+#define MXM_CLIP_H
 
 #include <optional>
 
@@ -32,7 +32,7 @@
 #include "AutomatableModel.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class Track;
@@ -46,7 +46,7 @@ class TrackView;
 } // namespace gui
 
 
-class LMMS_EXPORT Clip : public Model, public JournallingObject
+class MXM_EXPORT Clip : public Model, public JournallingObject
 {
 	Q_OBJECT
 	mapPropertyFromModel(bool,isMuted,setMuted,m_mutedModel);
@@ -190,6 +190,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_CLIP_H
+#endif // MXM_CLIP_H

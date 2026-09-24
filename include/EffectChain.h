@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_EFFECT_CHAIN_H
-#define LMMS_EFFECT_CHAIN_H
+#ifndef MXM_EFFECT_CHAIN_H
+#define MXM_EFFECT_CHAIN_H
 
 #include "Model.h"
 #include "SerializingObject.h"
 #include "AutomatableModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioBuffer;
@@ -44,7 +44,7 @@ class EffectRackView;
 } // namespace gui
 
 
-class LMMS_EXPORT EffectChain : public Model, public SerializingObject
+class MXM_EXPORT EffectChain : public Model, public SerializingObject
 {
 	Q_OBJECT
 public:
@@ -83,6 +83,6 @@ signals:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_EFFECT_CHAIN_H
+#endif // MXM_EFFECT_CHAIN_H

@@ -45,16 +45,16 @@ macro(ALSA_VERSION_STRING _result)
 endmacro(ALSA_VERSION_STRING _result)
 
 
-check_include_files(sys/soundcard.h LMMS_HAVE_SYS_SOUNDCARD_H)
-check_include_files(machine/soundcard.h LMMS_HAVE_MACHINE_SOUNDCARD_H)
+check_include_files(sys/soundcard.h MXM_HAVE_SYS_SOUNDCARD_H)
+check_include_files(machine/soundcard.h MXM_HAVE_MACHINE_SOUNDCARD_H)
 
-check_include_files(linux/awe_voice.h LMMS_HAVE_LINUX_AWE_VOICE_H)
-check_include_files(awe_voice.h LMMS_HAVE_AWE_VOICE_H)
-check_include_files(/usr/src/sys/i386/isa/sound/awe_voice.h LMMS_HAVE__USR_SRC_SYS_I386_ISA_SOUND_AWE_VOICE_H)
-check_include_files(/usr/src/sys/gnu/i386/isa/sound/awe_voice.h LMMS_HAVE__USR_SRC_SYS_GNU_I386_ISA_SOUND_AWE_VOICE_H)
+check_include_files(linux/awe_voice.h MXM_HAVE_LINUX_AWE_VOICE_H)
+check_include_files(awe_voice.h MXM_HAVE_AWE_VOICE_H)
+check_include_files(/usr/src/sys/i386/isa/sound/awe_voice.h MXM_HAVE__USR_SRC_SYS_I386_ISA_SOUND_AWE_VOICE_H)
+check_include_files(/usr/src/sys/gnu/i386/isa/sound/awe_voice.h MXM_HAVE__USR_SRC_SYS_GNU_I386_ISA_SOUND_AWE_VOICE_H)
 
-check_include_file_cxx(sys/asoundlib.h LMMS_HAVE_SYS_ASOUNDLIB_H)
-check_include_file_cxx(alsa/asoundlib.h LMMS_HAVE_ALSA_ASOUNDLIB_H)
+check_include_file_cxx(sys/asoundlib.h MXM_HAVE_SYS_ASOUNDLIB_H)
+check_include_file_cxx(alsa/asoundlib.h MXM_HAVE_ALSA_ASOUNDLIB_H)
 
 check_library_exists(asound snd_pcm_resume "${ASOUND_LIBRARY_DIR}" ASOUND_HAS_SND_PCM_RESUME)
 if(ASOUND_HAS_SND_PCM_RESUME)

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -46,7 +46,7 @@
 #include "ClipView.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 TrackView::TrackView(Track* track, TrackContainerView* tcv)
@@ -81,8 +81,8 @@ TrackView::TrackView(Track* track, TrackContainerView* tcv)
 
 	connect( m_track, SIGNAL(destroyedTrack()), this, SLOT(close()));
 	connect( m_track,
-		SIGNAL(clipAdded(lmms::Clip*)),
-			this, SLOT(createClipView(lmms::Clip*)),
+		SIGNAL(clipAdded(mxm::Clip*)),
+			this, SLOT(createClipView(mxm::Clip*)),
 			Qt::QueuedConnection );
 
 	connect( &m_track->m_mutedModel, SIGNAL(dataChanged()),
@@ -386,4 +386,4 @@ void TrackView::resizeToHeight(int h)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

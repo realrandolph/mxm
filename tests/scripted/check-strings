@@ -29,7 +29,7 @@ def error(where, my_str):
     print(f'Error: {where}: {my_str}')
 
 # if a string makes a classname, we need to check if that class is in the source
-# however, some of these strings name classes that are not from LMMS, so these can be ignored for such checks:
+# however, some of these strings name classes that are not from MXM, so these can be ignored for such checks:
 def is_our_class(classname: str) -> int:
     return classname[0] != 'Q'  # Qt classes
 
@@ -37,7 +37,7 @@ def is_our_class(classname: str) -> int:
 # prepare some variables
 
 if not Path('.gitmodules').is_file():
-    print('You need to call this script from the LMMS top directory')
+    print('You need to call this script from the MXM top directory')
     exit(1)
 
 result = subprocess.run(['git', 'ls-files', '*.[ch]', '*.[ch]pp', '*.ui', ':!tests/*'],
@@ -52,7 +52,7 @@ result = subprocess.run(['git',
 files.extend([Path(f'{carlapath}/{f}') for f in result.stdout.splitlines()])
 
 classes = set()
-class_pat = re.compile(r'^\s*class(?:\s+LMMS_EXPORT)?\s+([a-zA-Z_][a-zA-Z0-9_]*)', re.MULTILINE)
+class_pat = re.compile(r'^\s*class(?:\s+MXM_EXPORT)?\s+([a-zA-Z_][a-zA-Z0-9_]*)', re.MULTILINE)
 class_pat_ui = re.compile(r'<class>([a-zA-Z_][a-zA-Z0-9_]*)</class>')
 for cur_file in files:
     if cur_file.is_file():
@@ -85,7 +85,7 @@ for c in sorted(classes_found):
 caption('themes')
 
 
-GUI_NAMESPACE_PREFIX = "lmms--gui"
+GUI_NAMESPACE_PREFIX = "mxm--gui"
 
 
 def unscope_classname(stylesheet, cname):

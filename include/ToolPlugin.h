@@ -5,7 +5,7 @@
  * Copyright (c) 2006-2007 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  * Copyright (c) 2008-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,17 +24,17 @@
  *
  */
 
-#ifndef LMMS_TOOL_PLUGIN_H
-#define LMMS_TOOL_PLUGIN_H
+#ifndef MXM_TOOL_PLUGIN_H
+#define MXM_TOOL_PLUGIN_H
 
 #include "Plugin.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
-class LMMS_EXPORT ToolPlugin : public Plugin
+class MXM_EXPORT ToolPlugin : public Plugin
 {
 public:
 	ToolPlugin( const Descriptor * _descriptor, Model * _parent );
@@ -48,6 +48,6 @@ public:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TOOL_PLUGIN_H
+#endif // MXM_TOOL_PLUGIN_H

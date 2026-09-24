@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_MIDI_CLIP_H
-#define LMMS_MIDI_CLIP_H
+#ifndef MXM_MIDI_CLIP_H
+#define MXM_MIDI_CLIP_H
 
 #include "Clip.h"
 #include "Note.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -42,7 +42,7 @@ class MidiClipView;
 }
 
 
-class LMMS_EXPORT MidiClip : public Clip
+class MXM_EXPORT MidiClip : public Clip
 {
 	Q_OBJECT
 public:
@@ -161,10 +161,10 @@ private:
 
 
 signals:
-	void destroyedMidiClip( lmms::MidiClip* );
+	void destroyedMidiClip( mxm::MidiClip* );
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_CLIP_H
+#endif // MXM_MIDI_CLIP_H

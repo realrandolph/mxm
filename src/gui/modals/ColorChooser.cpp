@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2020 russiankumar <adityakumar4644/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 #include <ColorChooser.h>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -87,4 +87,4 @@ QVector<QColor> ColorChooser::nicePalette (int base)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

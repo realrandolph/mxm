@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,13 +23,13 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_PLAY_HANDLE_H
-#define LMMS_SAMPLE_PLAY_HANDLE_H
+#ifndef MXM_SAMPLE_PLAY_HANDLE_H
+#define MXM_SAMPLE_PLAY_HANDLE_H
 
 #include "Sample.h"
 #include "PlayHandle.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -38,7 +38,7 @@ class SampleClip;
 class Track;
 
 
-class LMMS_EXPORT SamplePlayHandle : public PlayHandle
+class MXM_EXPORT SamplePlayHandle : public PlayHandle
 {
 public:
 	SamplePlayHandle(Sample* sample, bool ownAudioBusHandle = true);
@@ -83,6 +83,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SAMPLE_PLAY_HANDLE_H
+#endif // MXM_SAMPLE_PLAY_HANDLE_H

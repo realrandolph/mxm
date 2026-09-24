@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_DUMMY_EFFECT_H
-#define LMMS_DUMMY_EFFECT_H
+#ifndef MXM_DUMMY_EFFECT_H
+#define MXM_DUMMY_EFFECT_H
 
 #include <QDomElement>
 
@@ -31,7 +31,7 @@
 #include "EffectControls.h"
 #include "EffectControlDialog.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -148,6 +148,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DUMMY_EFFECT_H
+#endif // MXM_DUMMY_EFFECT_H

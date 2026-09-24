@@ -33,7 +33,7 @@ include(ErrorFlags)
 # Import of windows.h breaks min()/max()
 add_definitions(-DNOMINMAX)
 
-ADD_SUBDIRECTORY("${LMMS_SOURCE_DIR}/src/common" common)
+ADD_SUBDIRECTORY("${MXM_SOURCE_DIR}/src/common" common)
 
 if(NOT IS_WIN)
 set(EXE_NAME NativeLinuxRemoteVstPlugin${BITNESS})
@@ -43,7 +43,7 @@ set(EXE_NAME RemoteVstPlugin${BITNESS})
 endif()
 add_executable(${EXE_NAME} WIN32
 	../RemoteVstPlugin.cpp
-	${LMMS_COMMON_SRCS}
+	${MXM_COMMON_SRCS}
 )
 if(IS_WIN)
 	target_link_libraries(${EXE_NAME} ole32)
@@ -54,14 +54,14 @@ if(NOT WIN32)
 	target_link_libraries(${EXE_NAME} pthread)
 endif()
 
-if(LMMS_HAVE_LIBRT)
+if(MXM_HAVE_LIBRT)
 	target_link_libraries(${EXE_NAME} rt)
 endif()
 
 target_include_directories(${EXE_NAME}
 	PRIVATE
-		"${LMMS_SOURCE_DIR}/include"
-		"${LMMS_BINARY_DIR}"
+		"${MXM_SOURCE_DIR}/include"
+		"${MXM_BINARY_DIR}"
 )
 
 target_compile_definitions(${EXE_NAME} PRIVATE BUILD_REMOTE_PLUGIN_CLIENT)
@@ -84,7 +84,7 @@ if(IS_MINGW)
 	SET(CMAKE_REQUIRED_FLAGS "-std=c++20")
 endif()
 
-if(LMMS_BUILD_WIN32)
+if(MXM_BUILD_WIN32)
 	if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
 		set(NOOP_COMMAND "${CMAKE_COMMAND}" "-E" "true")
 	else()

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_PITCH_H
-#define LMMS_PITCH_H
+#ifndef MXM_PITCH_H
+#define MXM_PITCH_H
 
 #include <cstdint>
 
-namespace lmms
+namespace mxm
 {
 
 using pitch_t = int16_t;
@@ -38,6 +38,6 @@ constexpr pitch_t MaxPitchDefault = CentsPerSemitone;
 constexpr pitch_t DefaultPitch = 0;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PITCH_H
+#endif // MXM_PITCH_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -32,7 +32,7 @@
 #include "plugin_export.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -41,10 +41,10 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT lv2effect_plugin_descriptor =
 {
-	LMMS_STRINGIFY(PLUGIN_NAME),
+	MXM_STRINGIFY(PLUGIN_NAME),
 	"LV2",
 	QT_TRANSLATE_NOOP("PluginBrowser",
-		"plugin for using arbitrary LV2-effects inside LMMS."),
+		"plugin for using arbitrary LV2-effects inside MXM."),
 	"Johannes Lorenz <jlsf2013$$$users.sourceforge.net, $$$=@>",
 	0x0100,
 	Plugin::Type::Effect,
@@ -101,7 +101,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin *lmms_plugin_main(Model *_parent, void *_data)
+PLUGIN_EXPORT Plugin *mxm_plugin_main(Model *_parent, void *_data)
 {
 	using KeyType = Plugin::Descriptor::SubPluginFeatures::Key;
 	try {
@@ -115,4 +115,4 @@ PLUGIN_EXPORT Plugin *lmms_plugin_main(Model *_parent, void *_data)
 }
 
 
-} // namespace lmms
+} // namespace mxm

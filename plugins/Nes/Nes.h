@@ -1,9 +1,9 @@
-/* Nes.h - A NES instrument plugin for LMMS
+/* Nes.h - A NES instrument plugin for MXM
  *                        
  * Copyright (c) 2014 Vesa Kivimäki
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -55,7 +55,7 @@
 	name->setToolTip(ttip);
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -367,6 +367,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

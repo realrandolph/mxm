@@ -1,9 +1,9 @@
 /*
- * Mixer.h - effect-mixer for LMMS
+ * Mixer.h - effect-mixer for MXM
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_MIXER_H
-#define LMMS_MIXER_H
+#ifndef MXM_MIXER_H
+#define MXM_MIXER_H
 
 #include "AudioBuffer.h"
 #include "EffectChain.h"
@@ -35,7 +35,7 @@
 #include <optional>
 #include <QColor>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -135,7 +135,7 @@ public:
 };
 
 
-class LMMS_EXPORT Mixer : public Model, public JournallingObject
+class MXM_EXPORT Mixer : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -225,6 +225,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIXER_H
+#endif // MXM_MIXER_H

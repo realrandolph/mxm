@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,24 +22,24 @@
  *
  */
 
-#ifndef LMMS_SERIALIZING_OBJECT_H
-#define LMMS_SERIALIZING_OBJECT_H
+#ifndef MXM_SERIALIZING_OBJECT_H
+#define MXM_SERIALIZING_OBJECT_H
 
 #include <QString>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 
 class QDomDocument;
 class QDomElement;
 
-namespace lmms
+namespace mxm
 {
 
 class SerializingObjectHook;
 
 
-class LMMS_EXPORT SerializingObject
+class MXM_EXPORT SerializingObject
 {
 public:
 	SerializingObject();
@@ -99,6 +99,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SERIALIZING_OBJECT_H
+#endif // MXM_SERIALIZING_OBJECT_H

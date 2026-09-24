@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -30,7 +30,7 @@
 #include "MixHelpers.h"
 #include "SharedMemory.h"
 
-using lmms::AudioBuffer;
+using mxm::AudioBuffer;
 
 class AudioBufferTest : public QObject
 {
@@ -61,7 +61,7 @@ private slots:
 	//! Verifies constructor with `SharedMemoryResource` allocates correct number of bytes
 	void Constructor_SharedMemoryResource()
 	{
-		lmms::SharedMemory<std::byte[]> sm;
+		mxm::SharedMemory<std::byte[]> sm;
 		sm.create(AudioBuffer::allocationSize(7, 3));
 		QCOMPARE(sm.resource()->availableBytes(), AudioBuffer::allocationSize(7, 3));
 
@@ -140,7 +140,7 @@ private slots:
 		auto ab = AudioBuffer{10, 0};
 
 		// Add groups until no more can be added
-		auto groupsLeft = static_cast<int>(lmms::MaxGroupsPerAudioBuffer);
+		auto groupsLeft = static_cast<int>(mxm::MaxGroupsPerAudioBuffer);
 		QVERIFY(groupsLeft >= 0);
 		while (groupsLeft > 0)
 		{
@@ -149,32 +149,32 @@ private slots:
 			--groupsLeft;
 		}
 		QCOMPARE(groupsLeft, 0);
-		QCOMPARE(ab.groupCount(), lmms::MaxGroupsPerAudioBuffer);
-		QCOMPARE(ab.totalChannels(), lmms::MaxGroupsPerAudioBuffer);
+		QCOMPARE(ab.groupCount(), mxm::MaxGroupsPerAudioBuffer);
+		QCOMPARE(ab.totalChannels(), mxm::MaxGroupsPerAudioBuffer);
 
 		// Next group should fail
 		auto group = ab.addGroup(1);
 		QCOMPARE(group, nullptr);
-		QCOMPARE(ab.groupCount(), lmms::MaxGroupsPerAudioBuffer);
-		QCOMPARE(ab.totalChannels(), lmms::MaxGroupsPerAudioBuffer);
+		QCOMPARE(ab.groupCount(), mxm::MaxGroupsPerAudioBuffer);
+		QCOMPARE(ab.totalChannels(), mxm::MaxGroupsPerAudioBuffer);
 	}
 
 	//! Verifies that groups cannot be added past the maximum total channel count for the track
 	void AddGroup_MaximumTotalChannels()
 	{
-		auto ab = AudioBuffer{10, lmms::MaxChannelsPerAudioBuffer - 1};
+		auto ab = AudioBuffer{10, mxm::MaxChannelsPerAudioBuffer - 1};
 
 		// Try adding a group with enough channels
 		// to push the total channels past the maximum for the track (should fail)
 		auto group = ab.addGroup(2);
 		QCOMPARE(group, nullptr);
-		QCOMPARE(ab.totalChannels(), lmms::MaxChannelsPerAudioBuffer - 1);
+		QCOMPARE(ab.totalChannels(), mxm::MaxChannelsPerAudioBuffer - 1);
 
 		// Ok, how about just enough to hit the maximum
 		// total channels for the track (should succeed)
 		group = ab.addGroup(1);
 		QVERIFY(group != nullptr);
-		QCOMPARE(ab.totalChannels(), lmms::MaxChannelsPerAudioBuffer);
+		QCOMPARE(ab.totalChannels(), mxm::MaxChannelsPerAudioBuffer);
 	}
 
 	//! Verifies that `addGroup` with a `SharedMemoryResource` allocates the amount of bytes
@@ -182,7 +182,7 @@ private slots:
 	void AddGroup_SharedMemoryResource()
 	{
 		// Create enough shared memory for 3 channels with 7 frames each
-		lmms::SharedMemory<std::byte[]> sm;
+		mxm::SharedMemory<std::byte[]> sm;
 		sm.create(AudioBuffer::allocationSize(7, 3));
 		QCOMPARE(sm.resource()->availableBytes(), AudioBuffer::allocationSize(7, 3));
 
@@ -213,7 +213,7 @@ private slots:
 		QCOMPARE(ab.group(0).channels(), 6);
 
 		// Split into group of 2 channels and group of 4 channels
-		ab.setGroups(2, [](lmms::group_cnt_t idx, lmms::AudioBuffer::ChannelGroup&) {
+		ab.setGroups(2, [](mxm::group_cnt_t idx, mxm::AudioBuffer::ChannelGroup&) {
 			switch (idx)
 			{
 				case 0: return 2; // 1st group has 2 channels
@@ -240,7 +240,7 @@ private slots:
 		const auto allocationSize = AudioBuffer::allocationSize(7, 5, true);
 
 		// Split the 5 channels into 2 groups
-		auto groupVisitor = [](lmms::ch_cnt_t idx, AudioBuffer::ChannelGroup&) {
+		auto groupVisitor = [](mxm::ch_cnt_t idx, AudioBuffer::ChannelGroup&) {
 			switch (idx)
 			{
 				case 0: return 2; // 1st group has 2 channels
@@ -250,7 +250,7 @@ private slots:
 		};
 
 		// Create server-side SharedMemory
-		lmms::SharedMemory<std::byte[]> smServer;
+		mxm::SharedMemory<std::byte[]> smServer;
 		smServer.create(allocationSize);
 		QCOMPARE(smServer.resource()->availableBytes(), allocationSize);
 
@@ -264,7 +264,7 @@ private slots:
 		QCOMPARE(abServer.hasInterleavedBuffer(), true);
 
 		// Connect to the server-side's SharedMemory
-		lmms::SharedMemory<std::byte[]> smClient;
+		mxm::SharedMemory<std::byte[]> smClient;
 		smClient.attach(smServer.key());
 		QCOMPARE(smClient.resource()->availableBytes(), allocationSize);
 

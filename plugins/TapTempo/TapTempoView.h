@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TAP_TEMPO_VIEW_H
-#define LMMS_GUI_TAP_TEMPO_VIEW_H
+#ifndef MXM_GUI_TAP_TEMPO_VIEW_H
+#define MXM_GUI_TAP_TEMPO_VIEW_H
 
 #include "ToolPluginView.h"
 
@@ -31,11 +31,11 @@ class QCheckBox;
 class QLabel;
 class QPushButton;
 
-namespace lmms {
+namespace mxm {
 class TapTempo;
 }
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 class TapTempoView : public ToolPluginView
 {
@@ -57,6 +57,6 @@ private:
 	QLabel* m_hzLabel;
 	TapTempo* m_plugin;
 };
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TAP_TEMPO_VIEW_H
+#endif // MXM_GUI_TAP_TEMPO_VIEW_H

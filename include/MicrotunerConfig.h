@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_MICROTUNER_CONFIG_H
-#define LMMS_GUI_MICROTUNER_CONFIG_H
+#ifndef MXM_GUI_MICROTUNER_CONFIG_H
+#define MXM_GUI_MICROTUNER_CONFIG_H
 
 #include <QWidget>
 
@@ -34,11 +34,11 @@
 class QLineEdit;
 class QPlainTextEdit;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
-class LMMS_EXPORT MicrotunerConfig : public QWidget, public SerializingObject
+class MXM_EXPORT MicrotunerConfig : public QWidget, public SerializingObject
 {
 	Q_OBJECT
 public:
@@ -120,6 +120,6 @@ private:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_MICROTUNER_CONFIG_H
+#endif // MXM_GUI_MICROTUNER_CONFIG_H

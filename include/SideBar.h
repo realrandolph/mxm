@@ -1,9 +1,9 @@
 /*
- * SideBar.h - side-bar in LMMS' MainWindow
+ * SideBar.h - side-bar in MXM's MainWindow
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_SIDE_BAR_H
-#define LMMS_GUI_SIDE_BAR_H
+#ifndef MXM_GUI_SIDE_BAR_H
+#define MXM_GUI_SIDE_BAR_H
 
 #include <QMap>
 #include <QButtonGroup>
@@ -31,7 +31,7 @@
 
 class QToolButton;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class SideBarWidget;
@@ -58,6 +58,6 @@ private:
 
 } ;
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_SIDE_BAR_H
+#endif // MXM_GUI_SIDE_BAR_H

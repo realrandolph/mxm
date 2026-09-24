@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_MIX_HELPERS_H
-#define LMMS_MIX_HELPERS_H
+#ifndef MXM_MIX_HELPERS_H
+#define MXM_MIX_HELPERS_H
 
 #include "AudioBufferView.h"
 
-namespace lmms
+namespace mxm
 {
 
 class ValueBuffer;
@@ -73,6 +73,6 @@ void multiplyAndAddMultipliedJoined( SampleFrame* dst, const sample_t* srcLeft, 
 } // namespace MixHelpers
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIX_HELPERS_H
+#endif // MXM_MIX_HELPERS_H

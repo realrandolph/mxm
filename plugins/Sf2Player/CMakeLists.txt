@@ -1,4 +1,4 @@
-if(LMMS_HAVE_FLUIDSYNTH)
+if(MXM_HAVE_FLUIDSYNTH)
 	SET(CMAKE_AUTOUIC ON)
 	include(BuildPlugin)
 	build_plugin(sf2player

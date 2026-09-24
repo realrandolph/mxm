@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 saker
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_METRONOME_H
-#define LMMS_METRONOME_H
+#ifndef MXM_METRONOME_H
+#define MXM_METRONOME_H
 
 #include <cstddef>
 
-namespace lmms {
+namespace mxm {
 class Metronome
 {
 public:
@@ -38,6 +38,6 @@ public:
 private:
 	bool m_active = false;
 };
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_METRONOME_H
+#endif // MXM_METRONOME_H

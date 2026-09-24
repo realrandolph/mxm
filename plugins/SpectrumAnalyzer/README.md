@@ -6,7 +6,7 @@ This plugin consists of three widgets and back-end code to provide them with req
 
 The top-level widget is `SaControlDialog`. It populates configuration widgets (created dynamically) and instantiates spectrum display widgets. Its main back-end class is `SaControls`, which holds all configuration values.
 
-`SaSpectrumView` and `SaWaterfallView` widgets show the result of spectrum analysis. Their main back-end class is `SaProcessor`, which performs FFT analysis on data received from the `Analyzer` class, which in turn handles the interface with LMMS.
+`SaSpectrumView` and `SaWaterfallView` widgets show the result of spectrum analysis. Their main back-end class is `SaProcessor`, which performs FFT analysis on data received from the `Analyzer` class, which in turn handles the interface with MXM.
 
 ## Threads
 

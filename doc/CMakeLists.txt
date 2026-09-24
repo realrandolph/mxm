@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(lmms)
+project(mxm)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/modules" ${CMAKE_MODULE_PATH})
 
 find_package(Doxygen REQUIRED)

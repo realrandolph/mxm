@@ -1,10 +1,10 @@
 /*
- * DataFile.h - class for reading and writing LMMS data files
+ * DataFile.h - class for reading and writing MXM data files
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2012-2013 Paul Giblock <p/at/pgiblock.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,24 +23,24 @@
  *
  */
 
-#ifndef LMMS_DATA_FILE_H
-#define LMMS_DATA_FILE_H
+#ifndef MXM_DATA_FILE_H
+#define MXM_DATA_FILE_H
 
 #include <map>
 #include <QDomDocument>
 #include <vector>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QTextStream;
 
-namespace lmms
+namespace mxm
 {
 
 class ProjectVersion;
 
 
-class LMMS_EXPORT DataFile : public QDomDocument
+class MXM_EXPORT DataFile : public QDomDocument
 {
 
 	using UpgradeMethod = void(DataFile::*)();
@@ -150,7 +150,7 @@ private:
 	void upgrade_bbTcoRename();
 	void upgrade_sampleAndHold();
 
-	//! Update MIDI CC indexes, so that they are counted from 0. Older releases of LMMS count the CCs from 1.
+	//! Update MIDI CC indexes, so that they are counted from 0. Older releases of MXM count the CCs from 1.
 	void upgrade_midiCCIndexing();
 
 	void upgrade_loopsRename();
@@ -181,6 +181,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DATA_FILE_H
+#endif // MXM_DATA_FILE_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_MIDI_EVENT_PROCESSOR_H
-#define LMMS_MIDI_EVENT_PROCESSOR_H
+#ifndef MXM_MIDI_EVENT_PROCESSOR_H
+#define MXM_MIDI_EVENT_PROCESSOR_H
 
 #include "MidiEvent.h"
 #include "TimePos.h"
 
-namespace lmms
+namespace mxm
 {
 
 // all classes being able to process MIDI-events should inherit from this
@@ -45,6 +45,6 @@ public:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_EVENT_PROCESSOR_H
+#endif // MXM_MIDI_EVENT_PROCESSOR_H

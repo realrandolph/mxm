@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -42,7 +42,7 @@
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -51,7 +51,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT tripleoscillator_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"TripleOscillator",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"Three powerful oscillators you can modulate "
@@ -739,7 +739,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* model, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model* model, void * )
 {
 	return new TripleOscillator( static_cast<InstrumentTrack *>( model ) );
 }
@@ -748,4 +748,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* model, void * )
 
 
 
-} // namespace lmms
+} // namespace mxm

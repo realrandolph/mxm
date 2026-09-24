@@ -5,7 +5,7 @@
  * Copyright (c) 2023 Michael Gregorius
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include <QPainter>
 #include <QTimerEvent>
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "DeprecationHelper.h"
 #include "CaptionMenu.h"
 #include "ControllerConnection.h"
@@ -44,7 +44,7 @@
 #include "StringPairDrag.h"
 
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 namespace {
 
@@ -570,4 +570,4 @@ void FloatModelEditorBase::doConnections()
 	}
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

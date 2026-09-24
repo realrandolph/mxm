@@ -4,7 +4,7 @@
  * Copyright (c) 2007 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  * Copyright (c) 2015 Tres Finocchiaro <tres.finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_PROJECT_VERSION_H
-#define LMMS_PROJECT_VERSION_H
+#ifndef MXM_PROJECT_VERSION_H
+#define MXM_PROJECT_VERSION_H
 
 #include <QString>
 #include <QStringList>
 
 #include <limits>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -83,6 +83,6 @@ inline bool operator==(const ProjectVersion & v1, const ProjectVersion & v2) { r
 inline bool operator!=(const ProjectVersion & v1, const ProjectVersion & v2) { return ProjectVersion::compare(v1, v2) != 0; }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PROJECT_VERSION_H
+#endif // MXM_PROJECT_VERSION_H

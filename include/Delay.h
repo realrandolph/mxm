@@ -4,7 +4,7 @@
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_DELAY_H
-#define LMMS_DELAY_H
+#ifndef MXM_DELAY_H
+#define MXM_DELAY_H
 
 #include <cmath>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 // brief usage 
@@ -361,6 +361,6 @@ using StereoCombFeedfwd = CombFeedfwd<2>;
 using StereoCombFeedbackDualtap = CombFeedbackDualtap<2>;
 using StereoAllpassDelay = AllpassDelay<2>;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DELAY_H
+#endif // MXM_DELAY_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2015 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,13 +27,13 @@
 
 #include "AudioAlsaSetupWidget.h"
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 
 #include "ConfigManager.h"
 #include "LcdSpinBox.h"
-#include "lmms_constants.h"
+#include "mxm_constants.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 AudioAlsaSetupWidget::AudioAlsaSetupWidget( QWidget * _parent ) :
@@ -116,6 +116,6 @@ void AudioAlsaSetupWidget::onCurrentIndexChanged(int index)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_ALSA
+#endif // MXM_HAVE_ALSA

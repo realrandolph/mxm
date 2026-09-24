@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 
 #include <QMessageBox>
 
-namespace lmms
+namespace mxm
 {
 
 LOMMControls::LOMMControls(LOMMEffect* effect) :
@@ -99,7 +99,7 @@ void LOMMControls::resetAllParameters()
 	int choice = QMessageBox::question(m_view, "Clear Plugin Settings", "Are you sure you want to clear all parameters?\n(This wipes LOMM to a clean slate, not the default preset.)", QMessageBox::Yes | QMessageBox::No);
 	if (choice != QMessageBox::Yes) { return; }
 	
-	// give the user a chance to beg LMMS for forgiveness
+	// give the user a chance to beg MXM for forgiveness
 	addJournalCheckPoint();
 	
 	// This plugin's normal default values are fairly close to what they'd want in most applications.
@@ -271,6 +271,6 @@ void LOMMControls::saveSettings(QDomDocument& doc, QDomElement& parent)
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
 

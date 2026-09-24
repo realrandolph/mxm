@@ -1,6 +1,6 @@
 INCLUDE(BuildPlugin)
 
-if(NOT LMMS_HAVE_SID)
+if(NOT MXM_HAVE_SID)
 	return()
 endif()
 

@@ -5,7 +5,7 @@
  * Based partially on Eq plugin code,
  * Copyright (c) 2014-2017, David French <dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -39,13 +39,13 @@
 #include "MainWindow.h"
 #include "SaControls.h"
 #include "SaProcessor.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #ifdef SA_DEBUG
 	#include <chrono>
 #endif
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -810,7 +810,7 @@ std::vector<std::pair<float, std::string>> SaSpectrumView::makeLinearAmpTics(int
 }
 
 
-// Periodic update is called by LMMS.
+// Periodic update is called by MXM.
 void SaSpectrumView::periodicUpdate()
 {
 	// check if the widget is visible; if it is not, processing can be paused
@@ -842,4 +842,4 @@ void SaSpectrumView::resizeEvent(QResizeEvent *event)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

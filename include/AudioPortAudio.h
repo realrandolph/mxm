@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008 Csaba Hruska <csaba.hruska/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_AUDIO_PORTAUDIO_H
-#define LMMS_AUDIO_PORTAUDIO_H
+#ifndef MXM_AUDIO_PORTAUDIO_H
+#define MXM_AUDIO_PORTAUDIO_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_PORTAUDIO
+#ifdef MXM_HAVE_PORTAUDIO
 
 #include <QComboBox>
 #include <QFormLayout>
@@ -38,7 +38,7 @@
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
 
-namespace lmms {
+namespace mxm {
 
 namespace detail {
 class PortAudioInitializationGuard
@@ -88,9 +88,9 @@ private:
 	detail::PortAudioInitializationGuard m_initGuard;
 	PaStream* m_paStream = nullptr;
 };
-} // namespace lmms
+} // namespace mxm
 
-namespace lmms::gui {
+namespace mxm::gui {
 class AudioPortAudioSetupWidget : public AudioDeviceSetupWidget
 {
 public:
@@ -105,8 +105,8 @@ private:
 	DeviceSelectorWidget* m_inputDevice = nullptr;
 	DeviceSelectorWidget* m_outputDevice = nullptr;
 };
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_PORTAUDIO
+#endif // MXM_HAVE_PORTAUDIO
 
-#endif // LMMS_AUDIO_PORTAUDIO_H
+#endif // MXM_AUDIO_PORTAUDIO_H

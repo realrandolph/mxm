@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,9 +36,9 @@
 #include "MainWindow.h"
 #include "PathUtil.h"
 #include "ProjectVersion.h"
-#include "lmmsversion.h"
+#include "mxmversion.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -78,16 +78,16 @@ ConfigManager::ConfigManager() :
 	m_sf2Dir = m_workingDir + SF2_PATH;
 	m_gigDir = m_workingDir + GIG_PATH;
 	m_themeDir = defaultThemeDir();
-	if (std::getenv("LMMS_DATA_DIR"))
+	if (std::getenv("MXM_DATA_DIR"))
 	{
-		QDir::addSearchPath("data", QString::fromLocal8Bit(std::getenv("LMMS_DATA_DIR")));
+		QDir::addSearchPath("data", QString::fromLocal8Bit(std::getenv("MXM_DATA_DIR")));
 	}
 	initDevelopmentWorkingDir();
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	QDir::addSearchPath("data", qApp->applicationDirPath() + "/data/");
 #else
-	QDir::addSearchPath("data", qApp->applicationDirPath().section('/', 0, -2) + "/share/lmms/");
+	QDir::addSearchPath("data", qApp->applicationDirPath().section('/', 0, -2) + "/share/mxm/");
 #endif
 
 }
@@ -157,7 +157,7 @@ void ConfigManager::upgrade_1_2_2()
 void ConfigManager::upgrade()
 {
 	// Skip the upgrade if versions match
-	if (m_version == LMMS_VERSION)
+	if (m_version == MXM_VERSION)
 	{
 		return;
 	}
@@ -174,24 +174,24 @@ void ConfigManager::upgrade()
 	ProjectVersion createdWith = m_version;
 	
 	// Don't use old themes as they break the UI (i.e. 0.4 != 1.0, etc)
-	if (createdWith.setCompareType(ProjectVersion::CompareType::Minor) != LMMS_VERSION)
+	if (createdWith.setCompareType(ProjectVersion::CompareType::Minor) != MXM_VERSION)
 	{
 		m_themeDir = defaultThemeDir();
 	}
 
 	// Bump the version, now that we are upgraded
-	m_version = LMMS_VERSION;
+	m_version = MXM_VERSION;
 	m_configVersion = UPGRADE_METHODS.size();
 }
 
 QString ConfigManager::defaultVersion() const
 {
-	return LMMS_VERSION;
+	return MXM_VERSION;
 }
 
 bool ConfigManager::enableBlockedPlugins()
 {
-	const char* envVar = getenv("LMMS_ENABLE_BLOCKED_PLUGINS");
+	const char* envVar = getenv("MXM_ENABLE_BLOCKED_PLUGINS");
 	return (envVar && *envVar);
 }
 
@@ -200,10 +200,10 @@ QStringList ConfigManager::availableVstEmbedMethods()
 	QStringList methods;
 	methods.append("none");
 	methods.append("qt");
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	methods.append("win32");
 #endif
-#if defined(LMMS_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
+#if defined(MXM_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
 	if (static_cast<QGuiApplication*>(QApplication::instance())->
 		platformName() == "xcb")
 	{
@@ -253,7 +253,7 @@ void ConfigManager::setLADSPADir(const QString & ladspaDir)
 
 void ConfigManager::setSTKDir(const QString & stkDir)
 {
-#ifdef LMMS_HAVE_STK
+#ifdef MXM_HAVE_STK
 	m_stkDir = ensureTrailingSlash(stkDir);
 #endif
 }
@@ -271,7 +271,7 @@ void ConfigManager::setSF2Dir(const QString & sf2Dir)
 
 void ConfigManager::setSF2File(const QString & sf2File)
 {
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	m_sf2File = sf2File;
 #endif
 }
@@ -420,24 +420,24 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 	// Allow configuration file override through --config commandline option
 	if (!configFile.isEmpty())
 	{
-		m_lmmsRcFile = configFile;
+		m_mxmRcFile = configFile;
 	}
 
-	QFile cfg_file(m_lmmsRcFile);
+	QFile cfg_file(m_mxmRcFile);
 	QDomDocument dom_tree;
 
 	if(cfg_file.open(QIODevice::ReadOnly))
 	{
 		QString errorString;
 		int errorLine, errorCol;
-		if (lmms::setContent(dom_tree, &cfg_file, false, &errorString, &errorLine, &errorCol))
+		if (mxm::setContent(dom_tree, &cfg_file, false, &errorString, &errorLine, &errorCol))
 		{
 			// get the head information from the DOM
 			QDomElement root = dom_tree.documentElement();
 
 			QDomNode node = root.firstChild();
 
-			// Cache LMMS version
+			// Cache MXM version
 			if (!root.attribute("version").isNull()) {
 				m_version = root.attribute("version");
 			}
@@ -507,7 +507,7 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 			if(value("paths", "theme") != "")
 			{
 				m_themeDir = value("paths", "theme");
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 				// Detect a QDir/QFile hang on Windows
 				// see issue #3417 on github
 				bool badPath = (m_themeDir == "/" || m_themeDir == "\\");
@@ -528,10 +528,10 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 			setSF2Dir(value("paths", "sf2dir") == "" ? sf2Dir() : value("paths", "sf2dir"));
 			setVSTDir(value("paths", "vstdir"));
 			setLADSPADir(value("paths", "ladspadir"));
-		#ifdef LMMS_HAVE_STK
+		#ifdef MXM_HAVE_STK
 			setSTKDir(value("paths", "stkdir"));
 		#endif
-		#ifdef LMMS_HAVE_FLUIDSYNTH
+		#ifdef MXM_HAVE_FLUIDSYNTH
 			setSF2File(value("paths", "defaultsf2"));
 		#endif
 			setBackgroundPicFile(value("paths", "backgroundtheme"));
@@ -552,7 +552,7 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 			m_vstDir == ensureTrailingSlash( QDir::homePath() ) ||
 			!QDir( m_vstDir ).exists() )
 	{
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 		QString programFiles = QString::fromLocal8Bit(getenv("ProgramFiles"));
 		m_vstDir =  programFiles + "/VstPlugins/";
 #else
@@ -565,11 +565,11 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 		m_ladspaDir = userLadspaDir();
 	}
 
-#ifdef LMMS_HAVE_STK
+#ifdef MXM_HAVE_STK
 	if(m_stkDir.isEmpty() || m_stkDir == QDir::separator() || m_stkDir == "/" ||
 			!QDir(m_stkDir).exists())
 	{
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 		m_stkDir = m_dataDir + "stk/rawwaves/";
 #else
 		// Look for bundled raw waves first
@@ -585,13 +585,13 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 		}
 #endif
 	}
-#endif // LMMS_HAVE_STK
+#endif // MXM_HAVE_STK
 
 	upgrade();
 
 	QStringList searchPaths;
-	if (std::getenv("LMMS_THEME_PATH"))
-		searchPaths << std::getenv("LMMS_THEME_PATH");
+	if (std::getenv("MXM_THEME_PATH"))
+		searchPaths << std::getenv("MXM_THEME_PATH");
 	searchPaths << themeDir() << defaultThemeDir();
 	QDir::setSearchPaths("resources", searchPaths);
 
@@ -623,20 +623,20 @@ void ConfigManager::saveConfigFile()
 	setValue("paths", "gigdir", m_gigDir);
 	setValue("paths", "sf2dir", m_sf2Dir);
 	setValue("paths", "ladspadir", m_ladspaDir);
-#ifdef LMMS_HAVE_STK
+#ifdef MXM_HAVE_STK
 	setValue("paths", "stkdir", m_stkDir);
 #endif
-#ifdef LMMS_HAVE_FLUIDSYNTH
+#ifdef MXM_HAVE_FLUIDSYNTH
 	setValue("paths", "defaultsf2", m_sf2File);
 #endif
 	setValue("paths", "backgroundtheme", m_backgroundPicFile);
 
-	QDomDocument doc("lmms-config-file");
+	QDomDocument doc("mxm-config-file");
 
-	QDomElement lmms_config = doc.createElement("lmms");
-	lmms_config.setAttribute("version", m_version);
-	lmms_config.setAttribute("configversion", m_configVersion);
-	doc.appendChild(lmms_config);
+	QDomElement mxm_config = doc.createElement("mxm");
+	mxm_config.setAttribute("version", m_version);
+	mxm_config.setAttribute("configversion", m_configVersion);
+	doc.appendChild(mxm_config);
 
 	for (auto it = m_settings.begin(); it != m_settings.end(); ++it)
 	{
@@ -645,7 +645,7 @@ void ConfigManager::saveConfigFile()
 		{
 			n.setAttribute(first, second);
 		}
-		lmms_config.appendChild(n);
+		mxm_config.appendChild(n);
 	}
 
 	QDomElement recent_files = doc.createElement("recentfiles");
@@ -656,7 +656,7 @@ void ConfigManager::saveConfigFile()
 		n.setAttribute("path", PathUtil::toShortestRelative(recentlyOpenedProject));
 		recent_files.appendChild(n);
 	}
-	lmms_config.appendChild(recent_files);
+	mxm_config.appendChild(recent_files);
 
 	QDomElement favorite_items = doc.createElement("favoriteitems");
 
@@ -667,11 +667,11 @@ void ConfigManager::saveConfigFile()
 		favorite_items.appendChild(n);
 	}
 
-	lmms_config.appendChild(favorite_items);
+	mxm_config.appendChild(favorite_items);
 
 	QString xml = "<?xml version=\"1.0\"?>\n" + doc.toString(2);
 
-	QFile outfile(m_lmmsRcFile);
+	QFile outfile(m_mxmRcFile);
 	if(!outfile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		using gui::MainWindow;
@@ -684,7 +684,7 @@ void ConfigManager::saveConfigFile()
 					"permission to the file and "
 					"the directory containing the "
 					"file and try again!"
-						).arg(m_lmmsRcFile);
+						).arg(m_mxmRcFile);
 		if (gui::getGUI() != nullptr)
 		{
 			QMessageBox::critical(nullptr, title, message,
@@ -701,22 +701,22 @@ void ConfigManager::saveConfigFile()
 void ConfigManager::initPortableWorkingDir()
 {
 	QString applicationPath = qApp->applicationDirPath();
-	m_workingDir = applicationPath + "/lmms-workspace/";
-	m_lmmsRcFile = applicationPath + "/.lmmsrc.xml";
+	m_workingDir = applicationPath + "/mxm-workspace/";
+	m_mxmRcFile = applicationPath + "/.mxmrc.xml";
 }
 
 void ConfigManager::initInstalledWorkingDir()
 {
-	m_workingDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/lmms/";
-	m_lmmsRcFile = QDir::home().absolutePath() +"/.lmmsrc.xml";
+	m_workingDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/mxm/";
+	m_mxmRcFile = QDir::home().absolutePath() +"/.mxmrc.xml";
 	// Detect < 1.2.0 working directory as a courtesy
-	if ( QFileInfo( QDir::home().absolutePath() + "/lmms/projects/" ).exists() )
-		m_workingDir = QDir::home().absolutePath() + "/lmms/";
+	if ( QFileInfo( QDir::home().absolutePath() + "/mxm/projects/" ).exists() )
+		m_workingDir = QDir::home().absolutePath() + "/mxm/";
 }
 
 void ConfigManager::initDevelopmentWorkingDir()
 {
-	// If we're in development (lmms is not installed) let's get the source and
+	// If we're in development (mxm is not installed) let's get the source and
 	// binary directories by reading the CMake Cache
 	QDir appPath = qApp->applicationDirPath();
 	// If in tests, get parent directory
@@ -728,21 +728,21 @@ void ConfigManager::initDevelopmentWorkingDir()
 		cmakeCache.open(QFile::ReadOnly);
 		QTextStream stream(&cmakeCache);
 
-		// Find the lines containing something like lmms_SOURCE_DIR:static=<dir>
-		// and lmms_BINARY_DIR:static=<dir>
+		// Find the lines containing something like mxm_SOURCE_DIR:static=<dir>
+		// and mxm_BINARY_DIR:static=<dir>
 		int done = 0;
 		while(! stream.atEnd())
 		{
 			QString line = stream.readLine();
 
-			if (line.startsWith("lmms_SOURCE_DIR:")) {
+			if (line.startsWith("mxm_SOURCE_DIR:")) {
 				QString srcDir = line.section('=', -1).trimmed();
 				QDir::addSearchPath("data", srcDir + "/data/");
 				done++;
 			}
-			if (line.startsWith("lmms_BINARY_DIR:")) {
-				m_lmmsRcFile = line.section('=', -1).trimmed() +  QDir::separator() +
-							   ".lmmsrc.xml";
+			if (line.startsWith("mxm_BINARY_DIR:")) {
+				m_mxmRcFile = line.section('=', -1).trimmed() +  QDir::separator() +
+							   ".mxmrc.xml";
 				done++;
 			}
 			if (done == 2)
@@ -755,7 +755,7 @@ void ConfigManager::initDevelopmentWorkingDir()
 	}
 }
 
-// If configversion is not present, we will convert the LMMS version to the appropriate
+// If configversion is not present, we will convert the MXM version to the appropriate
 // configuration file version for backwards compatibility.
 unsigned int ConfigManager::legacyConfigVersion()
 {
@@ -778,4 +778,4 @@ unsigned int ConfigManager::legacyConfigVersion()
 }
 
 
-} // namespace lmms
+} // namespace mxm

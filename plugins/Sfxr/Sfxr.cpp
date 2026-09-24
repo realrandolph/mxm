@@ -1,11 +1,11 @@
 /*
- * Sfxr.cpp - port of sfxr to LMMS
+ * Sfxr.cpp - port of sfxr to MXM
  * Originally written by Tomas Pettersson. For the original license,
  * please read readme.txt in this directory
  *
  * Copyright (c) 2014 Wong Cho Ching
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,11 +37,11 @@
 #include "NotePlayHandle.h"
 #include "PixmapButton.h"
 #include "MidiEvent.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -50,10 +50,10 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT sfxr_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"sfxr",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
-				"LMMS port of sfxr" ),
+				"MXM port of sfxr" ),
 	"Wong Cho Ching",
 	0x0100,
 	Plugin::Type::Instrument,
@@ -1053,7 +1053,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* m, void* )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model* m, void* )
 {
 	return new SfxrInstrument( static_cast<InstrumentTrack *>( m ) );
 }
@@ -1062,4 +1062,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model* m, void* )
 }
 
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_PLUGIN_H
-#define LMMS_PLUGIN_H
+#ifndef MXM_PLUGIN_H
+#define MXM_PLUGIN_H
 
 #include <QStringList>
 #include <QMap>
@@ -34,7 +34,7 @@
 
 class QWidget;
 
-namespace lmms
+namespace mxm
 {
 
 class AutomatableModel;
@@ -68,7 +68,7 @@ class PluginView;
 	are a bit like values to the sub plugins' keys (in terms of a key-value-
 	map).
 */
-class LMMS_EXPORT Plugin : public Model, public JournallingObject
+class MXM_EXPORT Plugin : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -115,7 +115,7 @@ public:
 			returning some values (or modifying objects of other
 			classes).
 		 */
-		class LMMS_EXPORT SubPluginFeatures
+		class MXM_EXPORT SubPluginFeatures
 		{
 		public:
 			/**
@@ -315,6 +315,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PLUGIN_H
+#endif // MXM_PLUGIN_H

@@ -1,9 +1,9 @@
 /*
- * LocklessRingBuffer.h - LMMS wrapper for a lockless ringbuffer library
+ * LocklessRingBuffer.h - MXM wrapper for a lockless ringbuffer library
  *
  * Copyright (c) 2019 Martin Pavelek <he29/dot/HS/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_LOCKLESS_RING_BUFFER_H
-#define LMMS_LOCKLESS_RING_BUFFER_H
+#ifndef MXM_LOCKLESS_RING_BUFFER_H
+#define MXM_LOCKLESS_RING_BUFFER_H
 
 #include <QMutex>
 #include <QWaitCondition>
 
 #include <ringbuffer/ringbuffer.h>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 //! A convenience layer for a realtime-safe and thread-safe multi-reader ringbuffer
@@ -88,6 +88,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LOCKLESS_RING_BUFFER_H
+#endif // MXM_LOCKLESS_RING_BUFFER_H

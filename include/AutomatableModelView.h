@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_GUI_AUTOMATABLE_MODEL_VIEW_H
-#define LMMS_GUI_AUTOMATABLE_MODEL_VIEW_H
+#ifndef MXM_GUI_AUTOMATABLE_MODEL_VIEW_H
+#define MXM_GUI_AUTOMATABLE_MODEL_VIEW_H
 
 #include "ModelView.h"
 #include "AutomatableModel.h"
@@ -32,10 +32,10 @@
 class QMenu;
 class QMouseEvent;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT AutomatableModelView : public ModelView
+class MXM_EXPORT AutomatableModelView : public ModelView
 {
 public:
 	AutomatableModelView( Model* model, QWidget* _this );
@@ -111,7 +111,7 @@ protected:
 
 
 
-template <typename ModelType> class LMMS_EXPORT TypedModelView : public AutomatableModelView
+template <typename ModelType> class MXM_EXPORT TypedModelView : public AutomatableModelView
 {
 public:
 	TypedModelView( Model* model, QWidget* _this) :
@@ -132,6 +132,6 @@ using FloatModelView = TypedModelView<FloatModel>;
 using IntModelView = TypedModelView<IntModel>;
 using BoolModelView = TypedModelView<BoolModel>;
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_AUTOMATABLE_MODEL_VIEW_H
+#endif // MXM_GUI_AUTOMATABLE_MODEL_VIEW_H

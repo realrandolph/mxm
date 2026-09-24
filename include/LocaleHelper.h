@@ -6,7 +6,7 @@
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2018 Hyunjin Song <tteu.ingog/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,18 +25,18 @@
  *
  */
 
-// NOTE: The LMMS/zynaddsubfx repo contains a copy of this header.
+// NOTE: The MXM/zynaddsubfx repo contains a copy of this header.
 //       If you modify this file, consider modifying it there as well.
 
-#ifndef LMMS_LOCALEHELPER_H
-#define LMMS_LOCALEHELPER_H
+#ifndef MXM_LOCALEHELPER_H
+#define MXM_LOCALEHELPER_H
 
 #include <QLocale>
 
 #include <limits>
 #include <cmath>
 
-namespace lmms::LocaleHelper
+namespace mxm::LocaleHelper
 {
 
 inline double toDouble(const QString& str, bool* ok = nullptr)
@@ -67,6 +67,6 @@ inline float toFloat(const QString& str, bool* ok = nullptr)
 }
 
 
-} // namespace lmms::LocaleHelper
+} // namespace mxm::LocaleHelper
 
-#endif // LMMS_LOCALEHELPER_H
+#endif // MXM_LOCALEHELPER_H

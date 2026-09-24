@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_AUDIO_JACK_H
-#define LMMS_AUDIO_JACK_H
+#ifndef MXM_AUDIO_JACK_H
+#define MXM_AUDIO_JACK_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_JACK
-#ifndef LMMS_HAVE_WEAKJACK
+#ifdef MXM_HAVE_JACK
+#ifndef MXM_HAVE_WEAKJACK
 #include <jack/jack.h>
 #else
 #include <weak_libjack.h>
@@ -50,7 +50,7 @@ class QLineEdit;
 class QMenu;
 class QToolButton;
 
-namespace lmms
+namespace mxm
 {
 
 class MidiJack;
@@ -85,7 +85,7 @@ public:
 		std::vector<std::string> getAudioPortNames(JackPortFlags portFlags) const;
 		std::vector<std::string> getAudioInputNames() const;
 		std::vector<std::string> getAudioOutputNames() const;
-		static QMenu* buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredLMMSClientName);
+		static QMenu* buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredMXMClientName);
 
 	private:
 		QLineEdit* m_clientName;
@@ -106,7 +106,7 @@ private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 
-	void attemptToConnect(size_t index, const char *lmms_port_type, const char *source_port, const char *destination_port);
+	void attemptToConnect(size_t index, const char *mxm_port_type, const char *source_port, const char *destination_port);
 	void attemptToReconnectOutput(size_t outputIndex, const QString& targetPort);
 	void attemptToReconnectInput(size_t inputIndex, const QString& sourcePort);
 
@@ -143,8 +143,8 @@ signals:
 	void zombified();
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_JACK
+#endif // MXM_HAVE_JACK
 
-#endif // LMMS_AUDIO_JACK_H
+#endif // MXM_AUDIO_JACK_H

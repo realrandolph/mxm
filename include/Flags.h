@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_FLAGS_H
-#define LMMS_FLAGS_H
+#ifndef MXM_FLAGS_H
+#define MXM_FLAGS_H
 
 #include <type_traits>
 
-namespace lmms {
+namespace mxm {
 
 template<typename T>
 class Flags
 {
-	static_assert(std::is_enum_v<T>, "lmms::Flags can only be used with enum types");
+	static_assert(std::is_enum_v<T>, "mxm::Flags can only be used with enum types");
 
 public:
 	using EnumType = T;
@@ -74,9 +74,9 @@ private:
 	UnderlyingType m_value = 0;
 };
 
-#define LMMS_DECLARE_OPERATORS_FOR_FLAGS(type) \
-constexpr inline auto operator|(type l, type r) -> ::lmms::Flags<type> { return ::lmms::Flags{l} | ::lmms::Flags{r}; }
+#define MXM_DECLARE_OPERATORS_FOR_FLAGS(type) \
+constexpr inline auto operator|(type l, type r) -> ::mxm::Flags<type> { return ::mxm::Flags{l} | ::mxm::Flags{r}; }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FLAGS_H
+#endif // MXM_FLAGS_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,13 +23,13 @@
  */
 
 
-#include "lmmsversion.h"
+#include "mxmversion.h"
 #include "AboutDialog.h"
 #include "embed.h"
 #include "versioninfo.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 AboutDialog::AboutDialog(QWidget* parent) :
@@ -42,17 +42,17 @@ AboutDialog::AboutDialog(QWidget* parent) :
 	iconLabel->setPixmap( embed::getIconPixmap( "icon", 64, 64 ) );
 
 	versionLabel->setText( versionLabel->text().
-					arg( LMMS_VERSION ).
-					arg( LMMS_BUILDCONF_PLATFORM ).
-					arg( LMMS_BUILDCONF_MACHINE ).
+					arg( MXM_VERSION ).
+					arg( MXM_BUILDCONF_PLATFORM ).
+					arg( MXM_BUILDCONF_MACHINE ).
 					arg( QT_VERSION_STR ).
-					arg( LMMS_BUILDCONF_COMPILER_VERSION ) );
+					arg( MXM_BUILDCONF_COMPILER_VERSION ) );
 	versionLabel->setTextInteractionFlags(
 					versionLabel->textInteractionFlags() |
 					Qt::TextSelectableByMouse );
 
 	copyrightLabel->setText( copyrightLabel->text().
-					arg( LMMS_PROJECT_COPYRIGHT ) );
+					arg( MXM_PROJECT_COPYRIGHT ) );
 
 	authorLabel->setPlainText( embed::getText( "AUTHORS" ) );
 
@@ -61,4 +61,4 @@ AboutDialog::AboutDialog(QWidget* parent) :
 	involvedLabel->setPlainText( embed::getText( "CONTRIBUTORS" ) );
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

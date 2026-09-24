@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025-2026 Keratin
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -32,7 +32,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 OscilloscopeControlDialog::OscilloscopeControlDialog(OscilloscopeControls* controls) :
@@ -81,4 +81,4 @@ OscilloscopeControlDialog::OscilloscopeControlDialog(OscilloscopeControls* contr
 
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,16 +22,16 @@
  *
  */
 
-#ifndef LMMS_MIDIEVENTTOBYTESEQ_H
-#define LMMS_MIDIEVENTTOBYTESEQ_H
+#ifndef MXM_MIDIEVENTTOBYTESEQ_H
+#define MXM_MIDIEVENTTOBYTESEQ_H
 
 #include <cstddef>
 #include <cstdint>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 //! @brief Write MIDI event into byte sequence.
@@ -43,8 +43,8 @@ namespace lmms
 //! size.
 //! @param bufsize Available size of the target buffer.
 //! @return Used size of the target buffer, or 0 if the MidiEvent could not be converted.
-std::size_t LMMS_EXPORT writeToByteSeq(const class MidiEvent& ev, uint8_t* data, std::size_t bufsize);
+std::size_t MXM_EXPORT writeToByteSeq(const class MidiEvent& ev, uint8_t* data, std::size_t bufsize);
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDIEVENTTOBYTESEQ_H
+#endif // MXM_MIDIEVENTTOBYTESEQ_H

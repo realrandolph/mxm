@@ -1,10 +1,10 @@
 /*
- * VstSyncController.cpp - manage synchronization between LMMS and VST plugins
+ * VstSyncController.cpp - manage synchronization between MXM and VST plugins
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2013 Mike Choi <rdavidian71/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 #include "Engine.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -160,4 +160,4 @@ void VstSyncController::updateSampleRate()
 }
 
 
-} // namespace lmms
+} // namespace mxm

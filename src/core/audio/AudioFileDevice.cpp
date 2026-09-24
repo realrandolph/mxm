@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include "ExportProjectDialog.h"
 #include "GuiApplication.h"
 
-namespace lmms
+namespace mxm
 {
 
 AudioFileDevice::AudioFileDevice( OutputSettings const & outputSettings,
@@ -91,4 +91,4 @@ int AudioFileDevice::writeData( const void* data, int len )
 	return -1;
 }
 
-} // namespace lmms
+} // namespace mxm

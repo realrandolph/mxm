@@ -1,9 +1,9 @@
 /*
- * Engine.h - engine-system of LMMS
+ * Engine.h - engine-system of MXM
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_ENGINE_H
-#define LMMS_ENGINE_H
+#ifndef MXM_ENGINE_H
+#define MXM_ENGINE_H
 
 #include <QString>
 #include <QObject>
 
-#include "lmmsconfig.h"
-#include "lmms_export.h"
-#include "LmmsTypes.h"
+#include "mxmconfig.h"
+#include "mxm_export.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioEngine;
@@ -40,7 +40,7 @@ class Mixer;
 class PatternStore;
 class ProjectJournal;
 class Song;
-class Ladspa2LMMS;
+class Ladspa2MXM;
 
 namespace gui
 {
@@ -48,7 +48,7 @@ class GuiApplication;
 }
 
 
-class LMMS_EXPORT Engine : public QObject
+class MXM_EXPORT Engine : public QObject
 {
 	Q_OBJECT
 public:
@@ -81,14 +81,14 @@ public:
 		return s_projectJournal;
 	}
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 	static class Lv2Manager * getLv2Manager()
 	{
 		return s_lv2Manager;
 	}
 #endif
 
-	static Ladspa2LMMS * getLADSPAManager()
+	static Ladspa2MXM * getLADSPAManager()
 	{
 		return s_ladspaManager;
 	}
@@ -138,10 +138,10 @@ private:
 	static PatternStore * s_patternStore;
 	static ProjectJournal * s_projectJournal;
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 	static class Lv2Manager* s_lv2Manager;
 #endif
-	static Ladspa2LMMS* s_ladspaManager;
+	static Ladspa2MXM* s_ladspaManager;
 	static void* s_dndPluginKey;
 
 	// even though most methods are static, an instance is needed for Qt slots/signals
@@ -151,6 +151,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_ENGINE_H
+#endif // MXM_ENGINE_H

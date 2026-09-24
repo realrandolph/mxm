@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2014 grejppi <grejppi/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_KICKER_H
-#define LMMS_KICKER_H
+#ifndef MXM_KICKER_H
+#define MXM_KICKER_H
 
 #include "AutomatableModel.h"
 #include "Instrument.h"
@@ -32,7 +32,7 @@
 #include "TempoSyncKnobModel.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 #define KICKER_PRESET_VERSION 1
@@ -127,6 +127,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_KICKER_H
+#endif // MXM_KICKER_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,20 +27,20 @@
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 extern "C"
 {
 Plugin::Descriptor PLUGIN_EXPORT slewdistortion_plugin_descriptor =
 {
-	LMMS_STRINGIFY(PLUGIN_NAME),
+	MXM_STRINGIFY(PLUGIN_NAME),
 	"Slew Distortion",
 	QT_TRANSLATE_NOOP("PluginBrowser", "A 2-band distortion and slew rate limiter plugin."),
 	"Lost Robot <r94231/at/gmail/dot/com>",
 	0x0100,
 	Plugin::Type::Effect,
-	new PixmapLoader("lmms-plugin-logo"),
+	new PixmapLoader("mxm-plugin-logo"),
 	nullptr,
 	nullptr,
 };
@@ -716,10 +716,10 @@ void SlewDistortion::changeSampleRate()
 extern "C"
 {
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin* lmms_plugin_main(Model* parent, void* data)
+PLUGIN_EXPORT Plugin* mxm_plugin_main(Model* parent, void* data)
 {
 	return new SlewDistortion(parent, static_cast<const Plugin::Descriptor::SubPluginFeatures::Key*>(data));
 }
 }
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,9 +23,9 @@
  */
 
 #include "AudioSdl.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-#ifdef LMMS_HAVE_SDL
+#ifdef MXM_HAVE_SDL
 
 #include <QFormLayout>
 #include <QComboBox>
@@ -34,7 +34,7 @@
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 
-namespace lmms
+namespace mxm
 {
 
 constexpr auto SectionSDL = "audiosdl";
@@ -278,7 +278,7 @@ void AudioSdl::setupWidget::populateInputDeviceComboBox()
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_SDL
+#endif // MXM_HAVE_SDL
 

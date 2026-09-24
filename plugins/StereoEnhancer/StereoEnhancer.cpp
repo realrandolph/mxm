@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -37,14 +37,14 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT stereoenhancer_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"StereoEnhancer Effect",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"Plugin for enhancing stereo separation of a stereo input file" ),
 	"Lou Herard <lherard/at/gmail.com>",
 	0x0100,
 	Plugin::Type::Effect,
-	new PixmapLoader("lmms-plugin-logo"),
+	new PixmapLoader("mxm-plugin-logo"),
 	nullptr,
 	nullptr,
 } ;
@@ -156,7 +156,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * _parent, void * _data )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model * _parent, void * _data )
 {
 	return( new StereoEnhancerEffect( _parent,
 		static_cast<const Plugin::Descriptor::SubPluginFeatures::Key *>(
@@ -166,4 +166,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model * _parent, void * _data )
 }
 
 
-} // namespace lmms
+} // namespace mxm

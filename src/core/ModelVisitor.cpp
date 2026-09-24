@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2019 Johannes Lorenz <j.git$$$lorenz-ho.me, $$$=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 #include "ComboBoxModel.h"
 #include "TempoSyncKnobModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -44,4 +44,4 @@ void ConstModelVisitor::visit(const FloatModel &m) { up(m); }
 void ConstModelVisitor::visit(const ComboBoxModel &m) { up<IntModel>(m); }
 void ConstModelVisitor::visit(const TempoSyncKnobModel &m) { up<FloatModel>(m); }
 
-} // namespace lmms
+} // namespace mxm

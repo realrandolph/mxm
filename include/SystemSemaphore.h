@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,13 +21,13 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef LMMS_SYSTEM_SEMAPHORE_H
-#define LMMS_SYSTEM_SEMAPHORE_H
+#ifndef MXM_SYSTEM_SEMAPHORE_H
+#define MXM_SYSTEM_SEMAPHORE_H
 
 #include <memory>
 #include <string>
 
-namespace lmms {
+namespace mxm {
 
 namespace detail {
 
@@ -56,6 +56,6 @@ private:
 	std::unique_ptr<detail::SystemSemaphoreImpl> m_impl;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SYSTEM_SEMAPHORE_H
+#endif // MXM_SYSTEM_SEMAPHORE_H

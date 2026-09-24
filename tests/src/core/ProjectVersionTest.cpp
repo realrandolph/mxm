@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -32,7 +32,7 @@ class ProjectVersionTest : public QObject
 private slots:
 	void ProjectVersionComparisonTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		QVERIFY(ProjectVersion("1.1.0", ProjectVersion::CompareType::Minor) > "1.0.3");
 		QVERIFY(ProjectVersion("1.1.0", ProjectVersion::CompareType::Major) < "2.1.0");

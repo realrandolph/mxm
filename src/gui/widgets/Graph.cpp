@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2007 Andreas Brandmaier <andy/at/brandmaier/dot/de>
  *               2008 Paul Giblock            <drfaygo/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "StringPairDrag.h"
 #include "Oscillator.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -740,4 +740,4 @@ void graphModel::drawSampleAt(int x, float val)
 }
 
 
-} // namespace lmms
+} // namespace mxm

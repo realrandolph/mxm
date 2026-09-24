@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016 Javier Serrano Polo <javier@jasp.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_GUI_ROW_TABLE_VIEW_H
-#define LMMS_GUI_ROW_TABLE_VIEW_H
+#ifndef MXM_GUI_ROW_TABLE_VIEW_H
+#define MXM_GUI_ROW_TABLE_VIEW_H
 
 #include <QTableView>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -54,6 +54,6 @@ private:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_ROW_TABLE_VIEW_H
+#endif // MXM_GUI_ROW_TABLE_VIEW_H

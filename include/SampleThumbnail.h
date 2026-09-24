@@ -4,7 +4,7 @@
  * Copyright (c) 2024 Khoi Dau <casboi86@gmail.com>
  * Copyright (c) 2024 Sotonye Atemie <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,24 +23,24 @@
  *
  */
 
-#ifndef LMMS_SAMPLE_THUMBNAIL_H
-#define LMMS_SAMPLE_THUMBNAIL_H
+#ifndef MXM_SAMPLE_THUMBNAIL_H
+#define MXM_SAMPLE_THUMBNAIL_H
 
 #include <QDateTime>
 #include <QRect>
 #include <memory>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "SampleBuffer.h"
 #include "SampleFrame.h"
 
 class QPainter;
 
-namespace lmms {
+namespace mxm {
 class Sample;
 }
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 /**
    Allows for visualizing sample data.
@@ -53,7 +53,7 @@ namespace lmms::gui {
    the visualization however (i.e., we are not reading from original sample data when drawing), this provides a
    significant performance boost that wouldn't be possible otherwise.
  */
-class LMMS_EXPORT SampleThumbnail
+class MXM_EXPORT SampleThumbnail
 {
 public:
 	struct VisualizeParameters
@@ -142,6 +142,6 @@ private:
 	inline static std::unordered_map<SampleThumbnailEntry, std::shared_ptr<ThumbnailCache>, Hash> s_sampleThumbnailCacheMap;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_SAMPLE_THUMBNAIL_H
+#endif // MXM_SAMPLE_THUMBNAIL_H

@@ -4,7 +4,7 @@
  * Copyright (c) 1998-2000 Paul Kellett (mda-vst.com)
  * Copyright (c) 2007 Paul Giblock <drfaygo/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,14 +31,14 @@
 #include <cstring>
 #include <sstream>
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #ifdef _MSC_VER
-// not #if LMMS_BUILD_WIN32 because we have strncasecmp in mingw
+// not #if MXM_BUILD_WIN32 because we have strncasecmp in mingw
 #define strcasecmp _stricmp
 #endif // _MSC_VER
 
-namespace lmms {
+namespace mxm {
 
 using namespace std;
 
@@ -930,4 +930,4 @@ int DrumSynth::GetDSFileSamples(QString dsfile, int16_t*& wave, int channels, sa
 	return Length;
 }
 
-} // namespace lmms
+} // namespace mxm

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2014 Vesa Kivimäki <contact/dot/diizy/at/nbl/dot/fi>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,20 +23,20 @@
  *
  */
 
-#ifndef LMMS_BANDLIMITEDWAVE_H
-#define LMMS_BANDLIMITEDWAVE_H
+#ifndef MXM_BANDLIMITEDWAVE_H
+#define MXM_BANDLIMITEDWAVE_H
 
 class QDataStream;
 class QString;
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "interpolation.h"
-#include "LmmsTypes.h"
-#include "lmms_math.h"
+#include "MxmTypes.h"
+#include "mxm_math.h"
 #include "Engine.h"
 #include "AudioEngine.h"
 
-namespace lmms
+namespace mxm
 {
 
 constexpr int MAXLEN = 11;
@@ -86,7 +86,7 @@ QDataStream& operator>> ( QDataStream &in, WaveMipMap &waveMipMap );
 
 
 
-class LMMS_EXPORT BandLimitedWave
+class MXM_EXPORT BandLimitedWave
 {
 public:
 	enum class Waveform
@@ -174,6 +174,6 @@ public:
 	static QString s_wavetableDir;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_BANDLIMITEDWAVE_H
+#endif // MXM_BANDLIMITEDWAVE_H

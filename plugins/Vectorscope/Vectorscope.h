@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2019 Martin Pavelek <he29/dot/HS/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,11 +28,11 @@
 #include "LocklessRingBuffer.h"
 #include "VecControls.h"
 
-namespace lmms
+namespace mxm
 {
 
 
-//! Top level class; handles LMMS interface and accumulates data for processing.
+//! Top level class; handles MXM interface and accumulates data for processing.
 class Vectorscope : public Effect
 {
 public:
@@ -47,13 +47,13 @@ public:
 private:
 	VecControls m_controls;
 
-	// Maximum LMMS buffer size (hard coded, the actual constant is hard to get)
+	// Maximum MXM buffer size (hard coded, the actual constant is hard to get)
 	const unsigned int m_maxBufferSize = 4096;
 	LocklessRingBuffer<SampleFrame> m_inputBuffer;
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif // VECTORSCOPE_H
 

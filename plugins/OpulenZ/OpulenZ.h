@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2013 Raine M. Ekman <raine/at/iki/fi>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 class Copl;
 
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -50,7 +50,7 @@ class AutomatableButtonGroup;
 #define OPL2_NO_VOICE 255
 #define OPL2_VOICES 9
 
-// The "normal" range for LMMS pitchbends
+// The "normal" range for MXM pitchbends
 #define DEFAULT_BEND_CENTS 100
 
 class OpulenzInstrument : public Instrument
@@ -213,6 +213,6 @@ public:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

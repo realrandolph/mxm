@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2015 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_PLUGIN_FACTORY_H
-#define LMMS_PLUGIN_FACTORY_H
+#ifndef MXM_PLUGIN_FACTORY_H
+#define MXM_PLUGIN_FACTORY_H
 
 #include <memory>
 #include <string>
@@ -33,15 +33,15 @@
 #include <QList>
 #include <QString>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "Plugin.h"
 
 class QLibrary;  // IWYU pragma: keep
 
-namespace lmms
+namespace mxm
 {
 
-class LMMS_EXPORT PluginFactory
+class MXM_EXPORT PluginFactory
 {
 public:
 	struct PluginInfo
@@ -109,9 +109,9 @@ private:
 };
 
 //Short-hand function
-LMMS_EXPORT PluginFactory* getPluginFactory();
+MXM_EXPORT PluginFactory* getPluginFactory();
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PLUGIN_FACTORY_H
+#endif // MXM_PLUGIN_FACTORY_H

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2025 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_AUDIO_BUFFER_VIEW_H
-#define LMMS_AUDIO_BUFFER_VIEW_H
+#ifndef MXM_AUDIO_BUFFER_VIEW_H
+#define MXM_AUDIO_BUFFER_VIEW_H
 
 #include <cassert>
 #include <concepts>
@@ -32,10 +32,10 @@
 #include <span>
 #include <type_traits>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "SampleFrame.h"
 
-namespace lmms
+namespace mxm
 {
 
 //! Use when the number of channels is not known at compile time
@@ -621,6 +621,6 @@ constexpr void toPlanar(InterleavedBufferView<T, inputs> src,
 	}
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_BUFFER_VIEW_H
+#endif // MXM_AUDIO_BUFFER_VIEW_H

@@ -1,9 +1,9 @@
 /*
- * MainWindow.h - declaration of class MainWindow, the main window of LMMS
+ * MainWindow.h - declaration of class MainWindow, the main window of MXM
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_MAIN_WINDOW_H
-#define LMMS_GUI_MAIN_WINDOW_H
+#ifndef MXM_GUI_MAIN_WINDOW_H
+#define MXM_GUI_MAIN_WINDOW_H
 
 #include <QBasicTimer>
 #include <QTimer>
@@ -37,7 +37,7 @@ class QAction;
 class QDomElement;
 class QGridLayout;
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -66,7 +66,7 @@ public:
 	void addSpacingToToolBar( int _size );
 
 	// wrap the widget with a window decoration and add it to the workspace
-	LMMS_EXPORT SubWindow* addWindowedWidget(QWidget *w, Qt::WindowFlags windowFlags = QFlag(0));
+	MXM_EXPORT SubWindow* addWindowedWidget(QWidget *w, Qt::WindowFlags windowFlags = QFlag(0));
 
 
 	void refocus();
@@ -100,7 +100,7 @@ public:
 					value( "ui", "saveinterval" ).toInt()
 						* 60 * 1000 )
 	{
-		if( msec < m_autoSaveShortTime ) // No 'saveinterval' in .lmmsrc.xml
+		if( msec < m_autoSaveShortTime ) // No 'saveinterval' in .mxmrc.xml
 		{
 			msec = DEFAULT_AUTO_SAVE_INTERVAL;
 		}
@@ -154,7 +154,7 @@ public slots:
 	bool saveProjectAsNewVersion();
 	void saveProjectAsDefaultTemplate();
 	void showSettingsDialog();
-	void aboutLMMS();
+	void aboutMXM();
 	void help();
 	void toggleAutomationEditorWin();
 	void togglePatternEditorWin(bool forceShow = false);
@@ -270,6 +270,6 @@ signals:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_MAIN_WINDOW_H
+#endif // MXM_GUI_MAIN_WINDOW_H

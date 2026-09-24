@@ -7,7 +7,7 @@
  * Copyright (c) 2008 Paul Giblock <pgllama/at/gmail.com>
  * Copyright (c) 2010 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef LMMS_CONTROLLER_CONNECTION_H
-#define LMMS_CONTROLLER_CONNECTION_H
+#ifndef MXM_CONTROLLER_CONNECTION_H
+#define MXM_CONTROLLER_CONNECTION_H
 
 #include <QObject>
 
@@ -37,7 +37,7 @@
 
 #include <vector>
 
-namespace lmms
+namespace mxm
 {
 
 class ControllerConnection;
@@ -49,7 +49,7 @@ class ControllerConnectionDialog;
 
 using ControllerConnectionVector = std::vector<ControllerConnection*>;
 
-class LMMS_EXPORT ControllerConnection : public QObject, public JournallingObject
+class MXM_EXPORT ControllerConnection : public QObject, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -126,6 +126,6 @@ signals:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_CONTROLLER_CONNECTION_H
+#endif // MXM_CONTROLLER_CONNECTION_H

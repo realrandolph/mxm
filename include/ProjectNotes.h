@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2007 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_PROJECT_NOTES_H
-#define LMMS_GUI_PROJECT_NOTES_H
+#ifndef MXM_GUI_PROJECT_NOTES_H
+#define MXM_GUI_PROJECT_NOTES_H
 
 #include <QMainWindow>
 
@@ -34,11 +34,11 @@ class QComboBox;
 class QTextCharFormat;
 class QTextEdit;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
-class LMMS_EXPORT ProjectNotes : public QMainWindow, public SerializingObject
+class MXM_EXPORT ProjectNotes : public QMainWindow, public SerializingObject
 {
 	Q_OBJECT
 public:
@@ -90,6 +90,6 @@ private:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_PROJECT_NOTES_H
+#endif // MXM_GUI_PROJECT_NOTES_H

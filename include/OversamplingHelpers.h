@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_OVERSAMPLING_HELPERS_H
-#define LMMS_OVERSAMPLING_HELPERS_H
+#ifndef MXM_OVERSAMPLING_HELPERS_H
+#define MXM_OVERSAMPLING_HELPERS_H
 
 #include <algorithm>
 #include <array>
@@ -42,7 +42,7 @@
 inline constexpr float HIIR_DEFAULT_PASSBAND = 19600;
 inline constexpr int HIIR_DEFAULT_MAX_COEFS = 8;
 
-namespace lmms
+namespace mxm
 {
 
 template<int MaxStages, int MaxCoefs = 8>
@@ -243,7 +243,7 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_OVERSAMPLING_HELPERS_H
+#endif // MXM_OVERSAMPLING_HELPERS_H
 

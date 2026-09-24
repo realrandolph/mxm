@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_EXPORT_FILTER_H
-#define LMMS_EXPORT_FILTER_H
+#ifndef MXM_EXPORT_FILTER_H
+#define MXM_EXPORT_FILTER_H
 
 #include <filesystem>
 
@@ -32,11 +32,11 @@
 #include "Plugin.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
-class LMMS_EXPORT ExportFilter : public Plugin
+class MXM_EXPORT ExportFilter : public Plugin
 {
 public:
 	ExportFilter( const Descriptor * _descriptor ) : Plugin( _descriptor, nullptr ) {}
@@ -74,6 +74,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_EXPORT_FILTER_H
+#endif // MXM_EXPORT_FILTER_H

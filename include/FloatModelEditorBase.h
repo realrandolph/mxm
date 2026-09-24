@@ -5,7 +5,7 @@
  * Copyright (c) 2023 Michael Gregorius
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef LMMS_GUI_FLOAT_MODEL_EDITOR_BASE_H
-#define LMMS_GUI_FLOAT_MODEL_EDITOR_BASE_H
+#ifndef MXM_GUI_FLOAT_MODEL_EDITOR_BASE_H
+#define MXM_GUI_FLOAT_MODEL_EDITOR_BASE_H
 
 #include <QPoint>
 #include <QWidget>
@@ -33,12 +33,12 @@
 
 #include "AutomatableModelView.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class SimpleTextFloat;
 
-class LMMS_EXPORT FloatModelEditorBase : public QWidget, public FloatModelView
+class MXM_EXPORT FloatModelEditorBase : public QWidget, public FloatModelView
 {
 	Q_OBJECT
 
@@ -227,6 +227,6 @@ private:
 	static SimpleTextFloat* s_textFloat;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_FLOAT_MODEL_EDITOR_BASE_H
+#endif // MXM_GUI_FLOAT_MODEL_EDITOR_BASE_H

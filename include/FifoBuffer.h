@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2007 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_FIFO_BUFFER_H
-#define LMMS_FIFO_BUFFER_H
+#ifndef MXM_FIFO_BUFFER_H
+#define MXM_FIFO_BUFFER_H
 
 #include <QSemaphore>
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -92,6 +92,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FIFO_BUFFER_H
+#endif // MXM_FIFO_BUFFER_H

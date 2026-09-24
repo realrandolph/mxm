@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "AudioJack.h"
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 
 #include <QFormLayout>
 #include <QLabel>
@@ -42,7 +42,7 @@
 
 #include <cstdio>
 
-namespace lmms {
+namespace mxm {
 namespace {
 
 const auto audioJackClass = QString{"audiojack"};
@@ -139,8 +139,8 @@ void AudioJack::restartAfterZombified()
 		m_active = false;
 		startProcessing();
 		QMessageBox::information(gui::getGUI()->mainWindow(), tr("JACK client restarted"),
-			tr(	"LMMS was kicked by JACK for some reason. "
-				"Therefore the JACK backend of LMMS has been "
+			tr(	"MXM was kicked by JACK for some reason. "
+				"Therefore the JACK backend of MXM has been "
 				"restarted. You will have to make manual "
 				"connections again."));
 	}
@@ -149,9 +149,9 @@ void AudioJack::restartAfterZombified()
 		QMessageBox::information(gui::getGUI()->mainWindow(), tr("JACK server down"),
 			tr(	"The JACK server seems to have been shutdown "
 				"and starting a new instance failed. "
-				"Therefore LMMS is unable to proceed. "
+				"Therefore MXM is unable to proceed. "
 				"You should save your project and restart "
-				"JACK and LMMS."));
+				"JACK and MXM."));
 	}
 }
 
@@ -171,7 +171,7 @@ AudioJack* AudioJack::addMidiClient(MidiJack* midiClient)
 bool AudioJack::initJackClient()
 {
 	QString clientName = ConfigManager::inst()->value(audioJackClass, clientNameKey);
-	if (clientName.isEmpty()) { clientName = "lmms"; }
+	if (clientName.isEmpty()) { clientName = "mxm"; }
 
 	// Will attempt to start the JACK server
 	jack_status_t status;
@@ -235,9 +235,9 @@ void AudioJack::resizeInputBuffer(jack_nframes_t nframes)
 	m_inputFrameBuffer.resize(nframes);
 }
 
-void AudioJack::attemptToConnect(size_t index, const char *lmms_port_type, const char *source_port, const char *destination_port)
+void AudioJack::attemptToConnect(size_t index, const char *mxm_port_type, const char *source_port, const char *destination_port)
 {
-	std::printf("Attempting to reconnect %s port %u: %s -> %s", lmms_port_type, static_cast<unsigned int>(index), source_port, destination_port);
+	std::printf("Attempting to reconnect %s port %u: %s -> %s", mxm_port_type, static_cast<unsigned int>(index), source_port, destination_port);
 	if (!jack_connect(m_client, source_port, destination_port))
 	{
 		std::printf(" - Success!\n");
@@ -293,7 +293,7 @@ void AudioJack::startProcessingImpl()
 
 	m_active = true;
 
-	// try to sync JACK's and LMMS's buffer-size
+	// try to sync JACK's and MXM'ss buffer-size
 	//	jack_set_buffer_size( m_client, audioEngine()->framesPerPeriod() );
 
 	const auto cm = ConfigManager::inst();
@@ -361,7 +361,7 @@ void AudioJack::renamePort(AudioBusHandle* port)
 		const QString name[2] = {port->name() + " L", port->name() + " R"};
 		for (ch_cnt_t ch = 0; ch < DEFAULT_CHANNELS; ++ch)
 		{
-#ifdef LMMS_HAVE_JACK_PRENAME
+#ifdef MXM_HAVE_JACK_PRENAME
 			jack_port_rename(m_client, m_portMap[port].ports[ch], name[ch].toLatin1().constData());
 #else
 			jack_port_set_name(m_portMap[port].ports[ch], name[ch].toLatin1().constData());
@@ -457,11 +457,11 @@ void AudioJack::shutdownCallback(void* udata)
 AudioJack::setupWidget::setupWidget(QWidget* parent)
 	: AudioDeviceSetupWidget(AudioJack::name(), parent)
 {
-	// TODO: Once backend can be changed without restarting LMMS, add a button to start/stop
+	// TODO: Once backend can be changed without restarting MXM, add a button to start/stop
 	//       the JACK server and an indicator for the JACK server status.
 
 	jack_status_t status;
-	m_client = jack_client_open("LMMS-Setup Dialog", JackNoStartServer, &status);
+	m_client = jack_client_open("MXM-Setup Dialog", JackNoStartServer, &status);
 	if (!m_client)
 	{
 		// Failure is expected when not using the JACK backend
@@ -474,19 +474,19 @@ AudioJack::setupWidget::setupWidget(QWidget* parent)
 
 	const auto cm = ConfigManager::inst();
 	QString cn = cm->value(audioJackClass, clientNameKey);
-	if (cn.isEmpty()) { cn = "lmms"; }
+	if (cn.isEmpty()) { cn = "mxm"; }
 	m_clientName = new QLineEdit(cn, this);
 
 	form->addRow(tr("Client name"), m_clientName);
 
-	auto buildToolButton = [](QWidget* parent, const QString& currentSelection, const std::vector<std::string>& names, const QString& filteredLMMSClientName)
+	auto buildToolButton = [](QWidget* parent, const QString& currentSelection, const std::vector<std::string>& names, const QString& filteredMXMClientName)
 	{
 		auto toolButton = new QToolButton(parent);
 		// Make sure that the tool button will fill out the available space in the form layout
 		toolButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 		toolButton->setPopupMode(QToolButton::InstantPopup);
 		toolButton->setText(currentSelection);
-		auto menu = AudioJack::setupWidget::buildMenu(toolButton, names, filteredLMMSClientName);
+		auto menu = AudioJack::setupWidget::buildMenu(toolButton, names, filteredMXMClientName);
 		toolButton->setMenu(menu);
 
 		return toolButton;
@@ -578,7 +578,7 @@ std::vector<std::string> AudioJack::setupWidget::getAudioInputNames() const
 	return getAudioPortNames(JackPortIsOutput);
 }
 
-QMenu* AudioJack::setupWidget::buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredLMMSClientName)
+QMenu* AudioJack::setupWidget::buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredMXMClientName)
 {
 	auto menu = new QMenu(toolButton);
 	QMap<QString, QMenu*> clientNameToSubMenuMap;
@@ -599,9 +599,9 @@ QMenu* AudioJack::setupWidget::buildMenu(QToolButton* toolButton, const std::vec
 			const auto& clientName = list[0];
 			const auto& portName = list[1];
 
-			if (clientName == filteredLMMSClientName)
+			if (clientName == filteredMXMClientName)
 			{
-				// Prevent loops by not adding port of the LMMS client to the menu
+				// Prevent loops by not adding port of the MXM client to the menu
 				continue;
 			}
 
@@ -652,6 +652,6 @@ QMenu* AudioJack::setupWidget::buildMenu(QToolButton* toolButton, const std::vec
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_JACK
+#endif // MXM_HAVE_JACK

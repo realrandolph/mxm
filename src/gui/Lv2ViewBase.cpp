@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "Lv2ViewBase.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <QGridLayout>
 #include <QPushButton>
@@ -40,19 +40,19 @@
 #include "GuiApplication.h"
 #include "embed.h"
 #include "FontHelper.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "Lv2ControlBase.h"
 #include "Lv2Manager.h"
 #include "Lv2Proc.h"
 #include "Lv2Ports.h"
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 #include "Lv2UiHost.h"
 #endif
 #include "MainWindow.h"
 #include "SubWindow.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -156,9 +156,9 @@ Lv2ViewBase::Lv2ViewBase(QWidget* meAsWidget, Lv2ControlBase *ctrlBase) :
 		btnBox->addWidget(m_reloadPluginButton, 0);
 	}
 
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 	// A UI using instance-access can only control one DSP instance. Mono LV2s
-	// are duplicated for stereo by LMMS, so their generic controls remain the
+	// are duplicated for stereo by MXM, so their generic controls remain the
 	// safe, synchronized interface.
 	if (ctrlBase->processorCount() == 1 && Lv2UiHost::isAvailable(ctrlBase->getPlugin()))
 	{
@@ -227,7 +227,7 @@ Lv2ViewBase::~Lv2ViewBase() {
 
 void Lv2ViewBase::toggleUI()
 {
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 	if (!m_toggleUIButton)
 	{
 		qWarning() << "LV2 UI: Show GUI was requested without a toggle button";
@@ -264,7 +264,7 @@ void Lv2ViewBase::toggleUI()
 
 	m_uiHost = std::move(uiHost);
 	m_uiHost->show();
-#endif // LMMS_HAVE_LV2_UI
+#endif // MXM_HAVE_LV2_UI
 }
 
 
@@ -272,7 +272,7 @@ void Lv2ViewBase::toggleUI()
 
 void Lv2ViewBase::closeNativeUi()
 {
-#ifdef LMMS_HAVE_LV2_UI
+#ifdef MXM_HAVE_LV2_UI
 	m_uiHost.reset();
 #endif
 	if (m_toggleUIButton)
@@ -350,6 +350,6 @@ bool HelpWindowEventFilter::eventFilter(QObject* , QEvent* event)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2

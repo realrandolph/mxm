@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -40,7 +40,7 @@
 #include "Clipboard.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -138,10 +138,10 @@ AudioFileProcessorView::AudioFileProcessorView(Instrument* instrument,
 	m_waveView = 0;
 	newWaveView();
 
-	connect(castModel<AudioFileProcessor>(), SIGNAL(isPlaying(lmms::f_cnt_t)),
-			m_waveView, SLOT(isPlaying(lmms::f_cnt_t)));
+	connect(castModel<AudioFileProcessor>(), SIGNAL(isPlaying(mxm::f_cnt_t)),
+			m_waveView, SLOT(isPlaying(mxm::f_cnt_t)));
 
-	qRegisterMetaType<lmms::f_cnt_t>("lmms::f_cnt_t");
+	qRegisterMetaType<mxm::f_cnt_t>("mxm::f_cnt_t");
 
 	setAcceptDrops(true);
 }
@@ -281,4 +281,4 @@ void AudioFileProcessorView::modelChanged()
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm

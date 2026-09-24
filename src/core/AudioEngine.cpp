@@ -1,9 +1,9 @@
 /*
- * AudioEngine.cpp - device-independent audio engine for LMMS
+ * AudioEngine.cpp - device-independent audio engine for MXM
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -26,7 +26,7 @@
 
 #include "MixHelpers.h"
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
 #include "AudioEngineWorkerThread.h"
 #include "AudioBusHandle.h"
@@ -57,7 +57,7 @@
 
 #include "BufferManager.h"
 
-namespace lmms
+namespace mxm
 {
 
 using LocklessListElement = LocklessList<PlayHandle*>::Element;
@@ -578,7 +578,7 @@ void AudioEngine::doneChangeInModel()
 
 bool AudioEngine::isAudioDevNameValid(QString name)
 {
-#ifdef LMMS_HAVE_SDL
+#ifdef MXM_HAVE_SDL
 	if (name == AudioSdl::name())
 	{
 		return true;
@@ -586,7 +586,7 @@ bool AudioEngine::isAudioDevNameValid(QString name)
 #endif
 
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	if (name == AudioAlsa::name())
 	{
 		return true;
@@ -594,21 +594,21 @@ bool AudioEngine::isAudioDevNameValid(QString name)
 #endif
 
 
-#ifdef LMMS_HAVE_PULSEAUDIO
+#ifdef MXM_HAVE_PULSEAUDIO
 	if (name == AudioPulseAudio::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	if (name == AudioSndio::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	if (name == AudioJack::name())
 	{
 		return true;
@@ -616,7 +616,7 @@ bool AudioEngine::isAudioDevNameValid(QString name)
 #endif
 
 
-#ifdef LMMS_HAVE_PORTAUDIO
+#ifdef MXM_HAVE_PORTAUDIO
 	if (name == AudioPortAudio::name())
 	{
 		return true;
@@ -634,35 +634,35 @@ bool AudioEngine::isAudioDevNameValid(QString name)
 
 bool AudioEngine::isMidiDevNameValid(QString name)
 {
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	if (name == MidiAlsaSeq::name() || name == MidiAlsaRaw::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	if (name == MidiJack::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	if (name == MidiSndio::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_HAVE_WINMM
+#ifdef MXM_HAVE_WINMM
 	if (name == MidiWinMM::name())
 	{
 		return true;
 	}
 #endif
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
     if (name == MidiApple::name())
     {
 		return true;
@@ -689,7 +689,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 
 	m_audioDevStartFailed = false;
 
-#ifdef LMMS_HAVE_SDL
+#ifdef MXM_HAVE_SDL
 	if( dev_name == AudioSdl::name() || dev_name == "" )
 	{
 		dev = new AudioSdl( success_ful, this );
@@ -703,7 +703,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 #endif
 
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	if( dev_name == AudioAlsa::name() || dev_name == "" )
 	{
 		dev = new AudioAlsa( success_ful, this );
@@ -717,7 +717,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 #endif
 
 
-#ifdef LMMS_HAVE_PULSEAUDIO
+#ifdef MXM_HAVE_PULSEAUDIO
 	if( dev_name == AudioPulseAudio::name() || dev_name == "" )
 	{
 		dev = new AudioPulseAudio( success_ful, this );
@@ -730,7 +730,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 	}
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	if( dev_name == AudioSndio::name() || dev_name == "" )
 	{
 		dev = new AudioSndio( success_ful, this );
@@ -744,7 +744,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 #endif
 
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	if( dev_name == AudioJack::name() || dev_name == "" )
 	{
 		dev = new AudioJack( success_ful, this );
@@ -758,7 +758,7 @@ AudioDevice * AudioEngine::tryAudioDevices()
 #endif
 
 
-#ifdef LMMS_HAVE_PORTAUDIO
+#ifdef MXM_HAVE_PORTAUDIO
 	if (dev_name == AudioPortAudio::name() || dev_name.isEmpty())
 	{
 		dev = new AudioPortAudio( success_ful, this );
@@ -805,7 +805,7 @@ MidiClient * AudioEngine::tryMidiClients()
 		client_name = "";
 	}
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 	if( client_name == MidiAlsaSeq::name() || client_name == "" )
 	{
 		auto malsas = new MidiAlsaSeq;
@@ -829,7 +829,7 @@ MidiClient * AudioEngine::tryMidiClients()
 	}
 #endif
 
-#ifdef LMMS_HAVE_JACK
+#ifdef MXM_HAVE_JACK
 	if( client_name == MidiJack::name() || client_name == "" )
 	{
 		auto mjack = new MidiJack;
@@ -842,7 +842,7 @@ MidiClient * AudioEngine::tryMidiClients()
 	}
 #endif
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 	if( client_name == MidiSndio::name() || client_name == "" )
 	{
 		MidiSndio * msndio = new MidiSndio;
@@ -855,7 +855,7 @@ MidiClient * AudioEngine::tryMidiClients()
 	}
 #endif
 
-#ifdef LMMS_HAVE_WINMM
+#ifdef MXM_HAVE_WINMM
 	if( client_name == MidiWinMM::name() || client_name == "" )
 	{
 		MidiWinMM * mwmm = new MidiWinMM;
@@ -868,7 +868,7 @@ MidiClient * AudioEngine::tryMidiClients()
 	}
 #endif
 
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
     printf( "trying midi apple...\n" );
     if( client_name == MidiApple::name() || client_name == "" )
     {
@@ -898,4 +898,4 @@ MidiClient * AudioEngine::tryMidiClients()
 	return new MidiDummy;
 }
 
-} // namespace lmms
+} // namespace mxm

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,24 +22,24 @@
  *
  */
 
-#ifndef LMMS_GUI_TAB_BAR_H
-#define LMMS_GUI_TAB_BAR_H
+#ifndef MXM_GUI_TAB_BAR_H
+#define MXM_GUI_TAB_BAR_H
 
 #include <QBoxLayout>
 #include <QMap>
 #include <QWidget>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
 class TabButton;
 
 
-class LMMS_EXPORT TabBar : public QWidget
+class MXM_EXPORT TabBar : public QWidget
 {
 	Q_OBJECT
 public:
@@ -93,6 +93,6 @@ signals:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TAB_BAR_H
+#endif // MXM_GUI_TAB_BAR_H

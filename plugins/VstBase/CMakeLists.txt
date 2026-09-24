@@ -1,4 +1,4 @@
-if(NOT LMMS_HAVE_VST)
+if(NOT MXM_HAVE_VST)
 	RETURN()
 ENDIF()
 
@@ -8,7 +8,7 @@ INCLUDE(ExternalProject)
 # These variables are not meant to be used normally, except packaging
 SET(REMOTE_VST_PLUGIN_FILEPATH_32 "32/RemoteVstPlugin32" CACHE STRING "Relative file path to RemoteVstPlugin32")
 SET(REMOTE_VST_PLUGIN_FILEPATH_64 "RemoteVstPlugin64" CACHE STRING "Relative file path to RemoteVstPlugin64")
-IF(LMMS_BUILD_LINUX)
+IF(MXM_BUILD_LINUX)
 	SET(NATIVE_LINUX_REMOTE_VST_PLUGIN_FILEPATH_64 "NativeLinuxRemoteVstPlugin64"
 		CACHE STRING "Relative file path to NativeLinuxRemoteVstPlugin64")
 ENDIF()
@@ -24,15 +24,15 @@ SET(EXTERNALPROJECT_ARGS
 )
 
 set(export_variables
-		"LMMS_SOURCE_DIR"
-		"LMMS_BINARY_DIR"
+		"MXM_SOURCE_DIR"
+		"MXM_BINARY_DIR"
 		"CMAKE_MODULE_PATH"
 		"CMAKE_RUNTIME_OUTPUT_DIRECTORY"
 		"CMAKE_BUILD_TYPE"
-		"LMMS_BUILD_LINUX"
-		"LMMS_BUILD_WIN32"
+		"MXM_BUILD_LINUX"
+		"MXM_BUILD_WIN32"
 		"PLUGIN_DIR"
-		"LMMS_HAVE_LIBRT"
+		"MXM_HAVE_LIBRT"
 		"USE_WERROR"
 )
 
@@ -48,14 +48,14 @@ foreach(var ${export_variables})
 endforeach()
 
 # build 32 bit version of RemoteVstPlugin
-if(LMMS_HAVE_VST_32)
+if(MXM_HAVE_VST_32)
 	INCLUDE("${CMAKE_CURRENT_LIST_DIR}/RemoteVstPlugin32.cmake")
 ENDIF()
 # build 64 bit version of RemoteVstPlugin
-if(LMMS_HAVE_VST_64)
+if(MXM_HAVE_VST_64)
 	INCLUDE("${CMAKE_CURRENT_LIST_DIR}/RemoteVstPlugin64.cmake")
 ENDIF()
 
-IF(LMMS_BUILD_LINUX)
+IF(MXM_BUILD_LINUX)
 	INCLUDE("${CMAKE_CURRENT_LIST_DIR}/NativeLinuxRemoteVstPlugin64.cmake")
 ENDIF()

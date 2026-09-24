@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "embed.h"
 #include "FontHelper.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -88,4 +88,4 @@ void SideBarWidget::resizeEvent( QResizeEvent * )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

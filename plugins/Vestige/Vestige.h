@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -39,7 +39,7 @@ class QMdiSubWindow;
 class QPushButton;
 class QScrollArea;
 
-namespace lmms
+namespace mxm
 {
 
 class FloatModel;
@@ -75,7 +75,7 @@ public:
 	virtual gui::PluginView* instantiateView( QWidget * _parent );
 
 protected slots:
-	void setParameter( lmms::Model * action );
+	void setParameter( mxm::Model * action );
 	void handleConfigChange( QString cls, QString attr, QString value );
 	void reloadPlugin();
 
@@ -113,7 +113,7 @@ public:
 protected slots:
 	void syncPlugin();
 	void displayAutomatedOnly();
-	void setParameter( lmms::Model * action );
+	void setParameter( mxm::Model * action );
 	void closeWindow();
 
 protected:
@@ -185,6 +185,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

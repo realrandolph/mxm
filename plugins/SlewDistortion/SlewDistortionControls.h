@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_SLEW_DISTORTION_CONTROLS_H
-#define LMMS_SLEW_DISTORTION_CONTROLS_H
+#ifndef MXM_SLEW_DISTORTION_CONTROLS_H
+#define MXM_SLEW_DISTORTION_CONTROLS_H
 
 #include "EffectControls.h"
 #include "SlewDistortionControlDialog.h"
 #include "ComboBox.h"
 
-namespace lmms
+namespace mxm
 {
 
 constexpr int SLEWDIST_MAX_OVERSAMPLE_STAGES = 5;
@@ -115,6 +115,6 @@ private:
 	friend class SlewDistortion;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SLEW_DISTORTION_CONTROLS_H
+#endif // MXM_SLEW_DISTORTION_CONTROLS_H

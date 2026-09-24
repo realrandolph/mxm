@@ -9,7 +9,7 @@
 #include "MainWindow.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -66,7 +66,7 @@ void TemplatesMenu::addTemplatesFromDir( const QDir& dir ) {
 		auto action = addAction(projectFileIcon,
 			templateFile.completeBaseName().replace("&", "&&"));
 		action->setData(templateFile.absoluteFilePath());
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 		action->setIconVisibleInMenu(false); // QTBUG-44565 workaround
 		action->setIconVisibleInMenu(true);
 #endif
@@ -74,4 +74,4 @@ void TemplatesMenu::addTemplatesFromDir( const QDir& dir ) {
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

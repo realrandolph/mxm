@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,19 +22,19 @@
  *
  */
 
-#ifndef LMMS_GUI_TEXT_FLOAT_H
-#define LMMS_GUI_TEXT_FLOAT_H
+#ifndef MXM_GUI_TEXT_FLOAT_H
+#define MXM_GUI_TEXT_FLOAT_H
 
 #include <QWidget>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QLabel;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT TextFloat : public QWidget
+class MXM_EXPORT TextFloat : public QWidget
 {
 	Q_OBJECT
 public:
@@ -73,6 +73,6 @@ private:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TEXT_FLOAT_H
+#endif // MXM_GUI_TEXT_FLOAT_H

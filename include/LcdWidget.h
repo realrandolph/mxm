@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,18 +22,18 @@
  *
  */
 
-#ifndef LMMS_GUI_LCD_WIDGET_H
-#define LMMS_GUI_LCD_WIDGET_H
+#ifndef MXM_GUI_LCD_WIDGET_H
+#define MXM_GUI_LCD_WIDGET_H
 
 #include <QMap>
 #include <QWidget>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT LcdWidget : public QWidget
+class MXM_EXPORT LcdWidget : public QWidget
 {
 	Q_OBJECT
 	
@@ -113,6 +113,6 @@ private:
 
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_LCD_WIDGET_H
+#endif // MXM_GUI_LCD_WIDGET_H

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -56,7 +56,7 @@
 #include "StringPairDrag.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -115,13 +115,13 @@ static int getKeyOffsetFromKeyEvent( QKeyEvent * _ke )
 {
 	// TODO: check the scan codes for ',' = c, 'L' = c#, '.' = d, ':' = d#,
 	// '/' = d, '[' = f', '=' = f'#, ']' = g' - Paul's additions
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 	const int k = _ke->nativeVirtualKey();
 #else
 	const int k = _ke->nativeScanCode();
 #endif
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	switch( k )
 	{
 		case 44: return 0; // Z  = C
@@ -163,10 +163,10 @@ static int getKeyOffsetFromKeyEvent( QKeyEvent * _ke )
 		case 13: return 30; // =
 		case 27: return 31; // ]
 	}
-#endif // LMMS_BUILD_WIN32
+#endif // MXM_BUILD_WIN32
 
 // TODO: Simplify by moving remaining platforms into else block or split into dedicated headers
-#if defined(LMMS_BUILD_LINUX) || defined(LMMS_BUILD_OPENBSD) || defined(LMMS_BUILD_FREEBSD) || defined(LMMS_BUILD_CYGWIN)
+#if defined(MXM_BUILD_LINUX) || defined(MXM_BUILD_OPENBSD) || defined(MXM_BUILD_FREEBSD) || defined(MXM_BUILD_CYGWIN)
 	switch( k )
 	{
 		case 52: return 0; // Z  = C
@@ -208,7 +208,7 @@ static int getKeyOffsetFromKeyEvent( QKeyEvent * _ke )
 		case 35: return 31; // ]
 	}
 #endif
-#ifdef LMMS_BUILD_APPLE
+#ifdef MXM_BUILD_APPLE
 	switch( k )
 	{
 		case 6: return 0; // Z  = C
@@ -246,7 +246,7 @@ static int getKeyOffsetFromKeyEvent( QKeyEvent * _ke )
 		case 29: return 27; // 0 = d'#
 		case 35: return 28; // P = e'
 	}
-#endif // LMMS_BUILD_APPLE
+#endif // MXM_BUILD_APPLE
 
 	return -100;
 }
@@ -827,5 +827,5 @@ void PianoView::paintEvent( QPaintEvent * )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 

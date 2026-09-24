@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TRACK_VIEW_H
-#define LMMS_GUI_TRACK_VIEW_H
+#ifndef MXM_GUI_TRACK_VIEW_H
+#define MXM_GUI_TRACK_VIEW_H
 
 #include <QWidget>
 
@@ -34,7 +34,7 @@
 
 class QMenu;
 
-namespace lmms
+namespace mxm
 {
 
 class Track;
@@ -227,7 +227,7 @@ private:
 private slots:
 	//! @brief Create a Clip View in this track View.
 	//! @param clip The Clip to create the view for.
-	void createClipView(lmms::Clip* clip);
+	void createClipView(mxm::Clip* clip);
 
 	void muteChanged();
 	void onTrackGripGrabbed();
@@ -237,6 +237,6 @@ private slots:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_TRACK_VIEW_H
+#endif // MXM_GUI_TRACK_VIEW_H

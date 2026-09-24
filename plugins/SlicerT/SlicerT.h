@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Daniel Kauss Serna <daniel.kauss.serna@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_SLICERT_H
-#define LMMS_SLICERT_H
+#ifndef MXM_SLICERT_H
+#define MXM_SLICERT_H
 
 #include "AutomatableModel.h"
 #include "ComboBoxModel.h"
@@ -32,7 +32,7 @@
 #include "Sample.h"
 #include "SlicerTView.h"
 
-namespace lmms {
+namespace mxm {
 
 class SlicerT : public Instrument
 {
@@ -81,5 +81,5 @@ private:
 	friend class gui::SlicerTView;
 	friend class gui::SlicerTWaveform;
 };
-} // namespace lmms
-#endif // LMMS_SLICERT_H
+} // namespace mxm
+#endif // MXM_SLICERT_H

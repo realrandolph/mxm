@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2005-2007 Danny McRae <khjklujn/at/yahoo.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,7 +36,7 @@
 
 
 
-namespace lmms
+namespace mxm
 {
 
 MidiClip::MidiClip( InstrumentTrack * _instrument_track ) :
@@ -676,4 +676,4 @@ void MidiClip::changeTimeSignature()
 }
 
 
-} // namespace lmms
+} // namespace mxm

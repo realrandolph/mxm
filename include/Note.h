@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_NOTE_H
-#define LMMS_NOTE_H
+#ifndef MXM_NOTE_H
+#define MXM_NOTE_H
 
 #include <memory>
 #include <optional>
@@ -36,7 +36,7 @@
 #include "TimePos.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -97,7 +97,7 @@ const float MaxDetuning = 5 * 12.0f;
 
 
 
-class LMMS_EXPORT Note : public SerializingObject
+class MXM_EXPORT Note : public SerializingObject
 {
 public:
 	Note( const TimePos & length = TimePos( 0 ),
@@ -296,6 +296,6 @@ struct NoteBounds
 std::optional<NoteBounds> boundsForNotes(const NoteVector& notes);
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_NOTE_H
+#endif // MXM_NOTE_H

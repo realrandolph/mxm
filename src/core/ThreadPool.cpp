@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 saker
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,7 +25,7 @@
 
 #include <cassert>
 
-namespace lmms {
+namespace mxm {
 ThreadPool::ThreadPool(size_t numWorkers)
 {
 	assert(numWorkers > 0);
@@ -80,4 +80,4 @@ auto ThreadPool::instance() -> ThreadPool&
 	return s_pool;
 }
 
-} // namespace lmms
+} // namespace mxm

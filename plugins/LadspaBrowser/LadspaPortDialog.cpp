@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,15 +31,15 @@
 #include "AudioEngine.h"
 #include "embed.h"
 #include "Engine.h"
-#include "Ladspa2LMMS.h"
+#include "Ladspa2MXM.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
 LadspaPortDialog::LadspaPortDialog( const ladspa_key_t & _key )
 {
-	Ladspa2LMMS * manager = Engine::getLADSPAManager();
+	Ladspa2MXM * manager = Engine::getLADSPAManager();
 
 	setWindowIcon( embed::getIconPixmap( "ports" ) );
 	setWindowTitle( tr( "Ports" ) );
@@ -168,4 +168,4 @@ LadspaPortDialog::LadspaPortDialog( const ladspa_key_t & _key )
 
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2010 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_INLINE_AUTOMATION_H
-#define LMMS_INLINE_AUTOMATION_H
+#ifndef MXM_INLINE_AUTOMATION_H
+#define MXM_INLINE_AUTOMATION_H
 
 #include "AutomationNode.h"
 #include "AutomationClip.h"
 
-namespace lmms
+namespace mxm
 {
 
 class InlineAutomation : public FloatModel
@@ -98,6 +98,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INLINE_AUTOMATION_H
+#endif // MXM_INLINE_AUTOMATION_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,15 +22,15 @@
  *
  */
 
-#ifndef LMMS_AUDIO_DUMMY_H
-#define LMMS_AUDIO_DUMMY_H
+#ifndef MXM_AUDIO_DUMMY_H
+#define MXM_AUDIO_DUMMY_H
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
 #include "AudioEngine.h"
 #include "MicroTimer.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioDummy : public QThread, public AudioDevice
@@ -106,6 +106,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_DUMMY_H
+#endif // MXM_AUDIO_DUMMY_H

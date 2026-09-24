@@ -1,4 +1,4 @@
-This is a port of sfxr to LMMS, ported by Wong Cho Ching.
+This is a port of sfxr to MXM, ported by Wong Cho Ching.
 
 NOTE: Do NOT remove the MIT license below to prevent legal problem.
 Original Readme File:

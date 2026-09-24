@@ -5,7 +5,7 @@
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@
 #include "Song.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 int AutomationClip::s_quantization = 1;
@@ -104,8 +104,8 @@ bool AutomationClip::addObject( AutomatableModel * _obj, bool _search_dup )
 
 	m_objects.push_back(_obj);
 
-	connect( _obj, SIGNAL(destroyed(lmms::jo_id_t)),
-			this, SLOT(objectDestroyed(lmms::jo_id_t)),
+	connect( _obj, SIGNAL(destroyed(mxm::jo_id_t)),
+			this, SLOT(objectDestroyed(mxm::jo_id_t)),
 						Qt::DirectConnection );
 
 	emit dataChanged();
@@ -1183,4 +1183,4 @@ std::vector<Track*> AutomationClip::combineAllTracks()
 	return combinedTrackList;
 }
 
-} // namespace lmms
+} // namespace mxm

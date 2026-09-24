@@ -1,4 +1,4 @@
-if(LMMS_HAVE_GIG)
+if(MXM_HAVE_GIG)
 	INCLUDE(BuildPlugin)
 	include_directories(SYSTEM ${GIG_INCLUDE_DIRS})
 	SET(CMAKE_AUTOUIC ON)
@@ -14,4 +14,4 @@ if(LMMS_HAVE_GIG)
 		EMBEDDED_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.png"
 	)
 	target_link_libraries(gigplayer SampleRate::samplerate)
-endif(LMMS_HAVE_GIG)
+endif(MXM_HAVE_GIG)

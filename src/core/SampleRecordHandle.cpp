@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008 Csaba Hruska <csaba.hruska/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "SampleClip.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -140,4 +140,4 @@ void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _fra
 }
 
 
-} // namespace lmms
+} // namespace mxm

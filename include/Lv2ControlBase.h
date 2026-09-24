@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018-2023 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,22 +22,22 @@
  *
  */
 
-#ifndef LMMS_LV2_CONTROL_BASE_H
-#define LMMS_LV2_CONTROL_BASE_H
+#ifndef MXM_LV2_CONTROL_BASE_H
+#define MXM_LV2_CONTROL_BASE_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <lilv/lilv.h>
 #include <functional>
 #include <memory>
 
 #include "LinkedModelGroups.h"
-#include "lmms_export.h"
+#include "mxm_export.h"
 #include "Plugin.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -72,7 +72,7 @@ class SampleFrame;
 	* this class can not override virtuals of Instrument or EffectControls, so
 	  it will offer functions that must be called by virtuals in its child class
 */
-class LMMS_EXPORT Lv2ControlBase : public LinkedModelGroups
+class MXM_EXPORT Lv2ControlBase : public LinkedModelGroups
 {
 public:
 	static Plugin::Type check(const LilvPlugin* m_plugin,
@@ -117,15 +117,15 @@ protected:
 	/*
 		utils for the run thread
 	*/
-	//! Copy values from the LMMS core (connected models, MIDI events, ...) into
+	//! Copy values from the MXM core (connected models, MIDI events, ...) into
 	//! the respective ports
 	void copyModelsFromLmms();
-	//! Bring values from all ports to the LMMS core
+	//! Bring values from all ports to the MXM core
 	void copyModelsToLmms() const;
 
-	//! Copy buffer passed by LMMS into our ports
+	//! Copy buffer passed by MXM into our ports
 	void copyBuffersFromLmms(const SampleFrame* buf, f_cnt_t frames);
-	//! Copy our ports into buffers passed by LMMS
+	//! Copy our ports into buffers passed by MXM
 	void copyBuffersToLmms(SampleFrame* buf, f_cnt_t frames) const;
 	//! Run the Lv2 plugin instance for @param frames frames
 	void run(f_cnt_t frames);
@@ -149,7 +149,7 @@ protected:
 private:
 	//! Independent processors
 	//! If this is a mono effect, the vector will have size 2 in order to
-	//! fulfill LMMS' requirement of having stereo input and output
+	//! fulfill MXM's requirement of having stereo input and output
 	std::vector<std::unique_ptr<Lv2Proc>> m_procs;
 
 	bool m_hasGUI = false;
@@ -160,8 +160,8 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2_CONTROL_BASE_H
+#endif // MXM_LV2_CONTROL_BASE_H

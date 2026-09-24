@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2018      Dave French	<dave/dot/french3/at/googlemail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_OSCILLATORCONSTANTS_H
-#define LMMS_OSCILLATORCONSTANTS_H
+#ifndef MXM_OSCILLATORCONSTANTS_H
+#define MXM_OSCILLATORCONSTANTS_H
 
 #include <array>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms::OscillatorConstants
+namespace mxm::OscillatorConstants
 {
 
 	// Limit wavetables to the audible audio spectrum
@@ -53,6 +53,6 @@ namespace lmms::OscillatorConstants
 	using wavetable_t = std::array<sample_t, WAVETABLE_LENGTH>;
 	using waveform_t = std::array<wavetable_t, WAVE_TABLES_PER_WAVEFORM_COUNT>;
 
-} // namespace lmms::OscillatorConstants
+} // namespace mxm::OscillatorConstants
 
-#endif // LMMS_OSCILLATORCONSTANTS_H
+#endif // MXM_OSCILLATORCONSTANTS_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,7 +33,7 @@
 #include "Instrument.h"
 #include "InstrumentTrack.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -384,4 +384,4 @@ QString InstrumentSoundShaping::getResonanceNodeName() const
 	return getResonanceParameters().nodeName() + "res";
 }
 
-} // namespace lmms
+} // namespace mxm

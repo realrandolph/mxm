@@ -3,7 +3,7 @@
  *
  * Copyright (c) LMMS team
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include "GuiApplication.h"
 #include "MainWindow.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -89,4 +89,4 @@ void SimpleTextFloat::hide()
 	QWidget::hide();
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

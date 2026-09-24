@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "TempoSyncKnob.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 InstrumentFunctionNoteStackingView::InstrumentFunctionNoteStackingView( InstrumentFunctionNoteStacking* cc, QWidget* parent ) :
@@ -183,4 +183,4 @@ void InstrumentFunctionArpeggioView::modelChanged()
 
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

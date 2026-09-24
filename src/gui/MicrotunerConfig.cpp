@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -42,15 +42,15 @@
 #include "Keymap.h"
 #include "LcdFloatSpinBox.h"
 #include "LcdSpinBox.h"
-#include "lmms_constants.h"
-#include "lmmsversion.h"
+#include "mxm_constants.h"
+#include "mxmversion.h"
 #include "MainWindow.h"
 #include "Note.h"
 #include "Scale.h"
 #include "Song.h"
 #include "SubWindow.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -493,7 +493,7 @@ bool MicrotunerConfig::loadKeymapFromFile()
 		QString line = stream.readLine();
 		if (line != "" && line[0] == '!')
 		{
-			if (line.length() > 1 && line[1] == '!' && i == -7)		// LMMS extension: double "!" occurring before any
+			if (line.length() > 1 && line[1] == '!' && i == -7)		// MXM extension: double "!" occurring before any
 			{														// value is loaded marks a description field.
 				m_keymapNameEdit->setText(line.mid(2));
 			}
@@ -533,7 +533,7 @@ bool MicrotunerConfig::saveScaleToFile()
 
 	QTextStream stream(&file);
 	stream << "! " << QFileInfo(fileName).fileName() << "\n";
-	stream << "! Exported from LMMS " LMMS_VERSION "\n";
+	stream << "! Exported from MXM " MXM_VERSION "\n";
 	stream << "!\n";
 	stream << "! Scale description:\n";
 	stream << m_scaleNameEdit->text() << "\n";
@@ -565,7 +565,7 @@ bool MicrotunerConfig::saveKeymapToFile()
 
 	QTextStream stream(&file);
 	stream << "! " << QFileInfo(fileName).fileName() << "\n";
-	stream << "! Exported from LMMS " LMMS_VERSION "\n";
+	stream << "! Exported from MXM " MXM_VERSION "\n";
 	stream << "!\n";
 	stream << "! Keymap description:\n";
 	stream << "!!" << m_keymapNameEdit->text() << "\n";
@@ -605,4 +605,4 @@ void MicrotunerConfig::loadSettings(const QDomElement &element)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

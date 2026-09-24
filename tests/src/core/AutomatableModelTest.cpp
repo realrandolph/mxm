@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2020 Johannes Lorenz <j.git$$$lorenz-ho.me, $$$=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -45,19 +45,19 @@ private slots: // tests
 
 	void initTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::init(true);
 	}
 
 	void cleanupTestCase()
 	{
-		using namespace lmms;
+		using namespace mxm;
 		Engine::destroy();
 	}
 
 	void CastTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		ComboBoxModel comboModel;
 		AutomatableModel* amPtr = &comboModel;
@@ -76,7 +76,7 @@ private slots: // tests
 
 	void LinkTests()
 	{
-		using namespace lmms;
+		using namespace mxm;
 
 		BoolModel m1(true), m2(false);
 

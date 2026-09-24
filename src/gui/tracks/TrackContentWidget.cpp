@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -44,7 +44,7 @@
 #include "ClipView.h"
 #include "TrackView.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 //! @brief Alternate between a darker and a lighter background color every 4 bars
@@ -277,8 +277,8 @@ bool TrackContentWidget::canPasteSelection( TimePos clipPos, const QDropEvent* d
 {
 	const QMimeData * mimeData = de->mimeData();
 
-	// If the source of the DropEvent is the current instance of LMMS we don't allow pasting in the same bar
-	// if it's another instance of LMMS we allow it
+	// If the source of the DropEvent is the current instance of MXM we don't allow pasting in the same bar
+	// if it's another instance of MXM we allow it
 	return de->source()
 		? canPasteSelection( clipPos, mimeData )
 		: canPasteSelection( clipPos, mimeData, true );
@@ -625,4 +625,4 @@ void TrackContentWidget::contextMenuAction( QContextMenuEvent * cme, ContextMenu
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

@@ -2,7 +2,7 @@
  *
  * Copyright (c) 2024- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,13 +21,13 @@
  *
  */
 
-#ifndef LMMS_GUI_COLOR_HELPER_H
-#define LMMS_GUI_COLOR_HELPER_H
+#ifndef MXM_GUI_COLOR_HELPER_H
+#define MXM_GUI_COLOR_HELPER_H
 
 #include <cmath>
 #include <QColor>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class ColorHelper
@@ -57,6 +57,6 @@ public:
 	}
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_COLOR_HELPER_H
+#endif // MXM_GUI_COLOR_HELPER_H

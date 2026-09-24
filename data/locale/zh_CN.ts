@@ -3,13 +3,13 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="20"/>
-        <source>About LMMS</source>
-        <translation>关于LMMS</translation>
+        <source>About MXM</source>
+        <translation>关于MXM</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="43"/>
-        <source>LMMS</source>
-        <translation>LMMS</translation>
+        <source>MXM</source>
+        <translation>MXM</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="50"/>
@@ -23,8 +23,8 @@
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="100"/>
-        <source>LMMS - easy music production for everyone.</source>
-        <translation>LMMS - 人人都是作曲家</translation>
+        <source>MXM - easy music production for everyone.</source>
+        <translation>MXM - 人人都是作曲家</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="126"/>
@@ -33,8 +33,8 @@
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="152"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://lmms.io&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#33cc33;&quot;&gt;https://lmms.io&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://lmms.io&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#33cc33;&quot;&gt;https://lmms.io&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/realrandolph/mxm&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#33cc33;&quot;&gt;https://github.com/realrandolph/mxm&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/realrandolph/mxm&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#33cc33;&quot;&gt;https://github.com/realrandolph/mxm&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="176"/>
@@ -59,7 +59,7 @@
     <message>
         <location filename="../../src/gui/modals/about_dialog.ui" line="220"/>
         <source>Current language not translated (or native English).
-If you&apos;re interested in translating LMMS in another language or want to improve existing translations, you&apos;re welcome to help us! Simply contact the maintainer!</source>
+If you&apos;re interested in translating MXM in another language or want to improve existing translations, you&apos;re welcome to help us! Simply contact the maintainer!</source>
         <translation>当前语言是简体中文。
 
 以下是简体中文翻译团队（至2026.1.17）：
@@ -105,7 +105,7 @@ xiaofuyesnew
 zm1990s
 白敬新
 
-LMMS作为一款开源免费编辑软件，其翻译是各位热爱作曲的人的无私奉献而就。我们需要更多、更地道、更权威、更准确的翻译！若您有兴趣提高翻译质量，您可以访问：
+MXM作为一款开源免费编辑软件，其翻译是各位热爱作曲的人的无私奉献而就。我们需要更多、更地道、更权威、更准确的翻译！若您有兴趣提高翻译质量，您可以访问：
 https://github.com/LMMS/lmms/wiki/Creating-a-localization
 或者联系维护团队 (https://github.com/AOSC-Dev/translations)、之前的译者或本项目维护者!</translation>
     </message>
@@ -808,8 +808,8 @@ https://github.com/LMMS/lmms/wiki/Creating-a-localization
     </message>
     <message>
         <location filename="../../plugins/HydrogenImport/HydrogenImport.cpp" line="30"/>
-        <source>Filter for importing Hydrogen files into LMMS</source>
-        <translation>导入 Hydrogen 工程文件到 LMMS 的解析器</translation>
+        <source>Filter for importing Hydrogen files into MXM</source>
+        <translation>导入 Hydrogen 工程文件到 MXM 的解析器</translation>
     </message>
     <message>
         <location filename="../../plugins/Kicker/Kicker.cpp" line="53"/>
@@ -823,8 +823,8 @@ https://github.com/LMMS/lmms/wiki/Creating-a-localization
     </message>
     <message>
         <location filename="../../plugins/LadspaEffect/LadspaEffect.cpp" line="56"/>
-        <source>plugin for using arbitrary LADSPA-effects inside LMMS.</source>
-        <translation>在 LMMS 中使用任意 LADSPA 效果的插件。</translation>
+        <source>plugin for using arbitrary LADSPA-effects inside MXM.</source>
+        <translation>在 MXM 中使用任意 LADSPA 效果的插件。</translation>
     </message>
     <message>
         <location filename="../../plugins/Lb302/Lb302.cpp" line="69"/>
@@ -833,23 +833,23 @@ https://github.com/LMMS/lmms/wiki/Creating-a-localization
     </message>
     <message>
         <location filename="../../plugins/Lv2Effect/Lv2Effect.cpp" line="46"/>
-        <source>plugin for using arbitrary LV2-effects inside LMMS.</source>
-        <translation>在 LMMS 中使用任意 LV2 效果的插件。</translation>
+        <source>plugin for using arbitrary LV2-effects inside MXM.</source>
+        <translation>在 MXM 中使用任意 LV2 效果的插件。</translation>
     </message>
     <message>
         <location filename="../../plugins/Lv2Instrument/Lv2Instrument.cpp" line="54"/>
-        <source>plugin for using arbitrary LV2 instruments inside LMMS.</source>
-        <translation>在 LMMS 中使用任意 LV2 乐器的插件。</translation>
+        <source>plugin for using arbitrary LV2 instruments inside MXM.</source>
+        <translation>在 MXM 中使用任意 LV2 乐器的插件。</translation>
     </message>
     <message>
         <location filename="../../plugins/MidiExport/MidiExport.cpp" line="49"/>
-        <source>Filter for exporting MIDI-files from LMMS</source>
-        <translation> 从 LMMS 导出 MIDI 文件的生成器</translation>
+        <source>Filter for exporting MIDI-files from MXM</source>
+        <translation> 从 MXM 导出 MIDI 文件的生成器</translation>
     </message>
     <message>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="68"/>
-        <source>Filter for importing MIDI-files into LMMS</source>
-        <translation>导入 MIDI 文件到 LMMS 的解析器</translation>
+        <source>Filter for importing MIDI-files into MXM</source>
+        <translation>导入 MIDI 文件到 MXM 的解析器</translation>
     </message>
     <message>
         <location filename="../../plugins/Monstro/Monstro.cpp" line="48"/>
@@ -898,8 +898,8 @@ https://github.com/LMMS/lmms/wiki/Creating-a-localization
     </message>
     <message>
         <location filename="../../plugins/Sfxr/Sfxr.cpp" line="55"/>
-        <source>LMMS port of sfxr</source>
-        <translation>sfxr 的 LMMS 移植版本</translation>
+        <source>MXM port of sfxr</source>
+        <translation>sfxr 的 MXM 移植版本</translation>
     </message>
     <message>
         <location filename="../../plugins/Sid/SidInstrument.cpp" line="79"/>
@@ -940,8 +940,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="69"/>
-        <source>VST-host for using VST(i)-plugins within LMMS</source>
-        <translation>LMMS的VST(i)插件宿主</translation>
+        <source>VST-host for using VST(i)-plugins within MXM</source>
+        <translation>MXM的VST(i)插件宿主</translation>
     </message>
     <message>
         <location filename="../../plugins/Vibed/Vibed.cpp" line="55"/>
@@ -950,8 +950,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../plugins/VstEffect/VstEffect.cpp" line="48"/>
-        <source>plugin for using arbitrary VST effects inside LMMS.</source>
-        <translation>在 LMMS 中使用任意 VST 效果的插件。</translation>
+        <source>plugin for using arbitrary VST effects inside MXM.</source>
+        <translation>在 MXM 中使用任意 VST 效果的插件。</translation>
     </message>
     <message>
         <location filename="../../plugins/Watsyn/Watsyn.cpp" line="50"/>
@@ -1023,8 +1023,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../src/core/PluginFactory.cpp" line="188"/>
-        <source>LMMS plugin %1 does not have a plugin descriptor named %2!</source>
-        <translation>LMMS插件 %1 没有一个插件描述符命名为 %2</translation>
+        <source>MXM plugin %1 does not have a plugin descriptor named %2!</source>
+        <translation>MXM插件 %1 没有一个插件描述符命名为 %2</translation>
     </message>
 </context>
 <context>
@@ -1236,7 +1236,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AmplifierControls</name>
+    <name>mxm::AmplifierControls</name>
     <message>
         <location filename="../../plugins/Amplifier/AmplifierControls.cpp" line="36"/>
         <source>Volume</source>
@@ -1259,7 +1259,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AudioFileProcessor</name>
+    <name>mxm::AudioFileProcessor</name>
     <message>
         <location filename="../../plugins/AudioFileProcessor/AudioFileProcessor.cpp" line="71"/>
         <source>Amplify</source>
@@ -1322,7 +1322,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AudioJack</name>
+    <name>mxm::AudioJack</name>
     <message>
         <location filename="../../src/core/audio/AudioJack.cpp" line="141"/>
         <source>JACK client restarted</source>
@@ -1330,8 +1330,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../src/core/audio/AudioJack.cpp" line="142"/>
-        <source>LMMS was kicked by JACK for some reason. Therefore the JACK backend of LMMS has been restarted. You will have to make manual connections again.</source>
-        <translation>LMMS 由于某些原因与 JACK 断开连接，这可能是因为 LMMS 的 JACK 后端重启导致的，你需要手动重新连接。</translation>
+        <source>MXM was kicked by JACK for some reason. Therefore the JACK backend of MXM has been restarted. You will have to make manual connections again.</source>
+        <translation>MXM 由于某些原因与 JACK 断开连接，这可能是因为 MXM 的 JACK 后端重启导致的，你需要手动重新连接。</translation>
     </message>
     <message>
         <location filename="../../src/core/audio/AudioJack.cpp" line="149"/>
@@ -1340,8 +1340,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../src/core/audio/AudioJack.cpp" line="150"/>
-        <source>The JACK server seems to have been shutdown and starting a new instance failed. Therefore LMMS is unable to proceed. You should save your project and restart JACK and LMMS.</source>
-        <translation>JACK 服务好像崩溃了而且未能正常启动，LMMS 无法正常工作，你需要保存你的工程然后重启 JACK 和LMMS。</translation>
+        <source>The JACK server seems to have been shutdown and starting a new instance failed. Therefore MXM is unable to proceed. You should save your project and restart JACK and MXM.</source>
+        <translation>JACK 服务好像崩溃了而且未能正常启动，MXM 无法正常工作，你需要保存你的工程然后重启 JACK 和MXM。</translation>
     </message>
     <message>
         <location filename="../../src/core/audio/AudioJack.cpp" line="480"/>
@@ -1350,7 +1350,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AudioPulseAudio</name>
+    <name>mxm::AudioPulseAudio</name>
     <message>
         <location filename="../../src/core/audio/AudioPulseAudio.cpp" line="260"/>
         <source>Device</source>
@@ -1363,7 +1363,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AudioSdl::setupWidget</name>
+    <name>mxm::AudioSdl::setupWidget</name>
     <message>
         <location filename="../../src/core/audio/AudioSdl.cpp" line="202"/>
         <source>Playback device</source>
@@ -1376,7 +1376,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AudioSndio</name>
+    <name>mxm::AudioSndio</name>
     <message>
         <location filename="../../src/core/audio/AudioSndio.cpp" line="163"/>
         <source>Device</source>
@@ -1389,7 +1389,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AutomatableModel</name>
+    <name>mxm::AutomatableModel</name>
     <message>
         <location filename="../../src/gui/AutomatableModelView.cpp" line="62"/>
         <source>&amp;Reset (%1%2)</source>
@@ -1442,7 +1442,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AutomationClip</name>
+    <name>mxm::AutomationClip</name>
     <message>
         <location filename="../../src/core/AutomationClip.cpp" line="879"/>
         <source>Drag a control while pressing &lt;%1&gt;</source>
@@ -1450,7 +1450,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::AutomationTrack</name>
+    <name>mxm::AutomationTrack</name>
     <message>
         <location filename="../../src/tracks/AutomationTrack.cpp" line="39"/>
         <source>Automation track</source>
@@ -1458,7 +1458,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::BassBoosterControls</name>
+    <name>mxm::BassBoosterControls</name>
     <message>
         <location filename="../../plugins/BassBooster/BassBoosterControls.cpp" line="37"/>
         <source>Frequency</source>
@@ -1476,7 +1476,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::BitInvader</name>
+    <name>mxm::BitInvader</name>
     <message>
         <location filename="../../plugins/BitInvader/BitInvader.cpp" line="137"/>
         <source>Sample length</source>
@@ -1494,7 +1494,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::BitcrushControls</name>
+    <name>mxm::BitcrushControls</name>
     <message>
         <location filename="../../plugins/Bitcrush/BitcrushControls.cpp" line="39"/>
         <source>Input gain</source>
@@ -1542,7 +1542,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Clip</name>
+    <name>mxm::Clip</name>
     <message>
         <location filename="../../src/core/Clip.cpp" line="46"/>
         <location filename="../../src/core/Clip.cpp" line="67"/>
@@ -1551,7 +1551,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::CompressorControls</name>
+    <name>mxm::CompressorControls</name>
     <message>
         <location filename="../../plugins/Compressor/CompressorControls.cpp" line="37"/>
         <source>Threshold</source>
@@ -1694,7 +1694,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Controller</name>
+    <name>mxm::Controller</name>
     <message>
         <location filename="../../src/core/Controller.cpp" line="62"/>
         <source>Controller %1</source>
@@ -1702,7 +1702,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DelayControls</name>
+    <name>mxm::DelayControls</name>
     <message>
         <location filename="../../plugins/Delay/DelayControls.cpp" line="36"/>
         <source>Delay samples</source>
@@ -1730,7 +1730,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DetuningHelper</name>
+    <name>mxm::DetuningHelper</name>
     <message>
         <location filename="../../include/DetuningHelper.h" line="56"/>
         <source>Note detuning</source>
@@ -1738,7 +1738,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DispersionControls</name>
+    <name>mxm::DispersionControls</name>
     <message>
         <location filename="../../plugins/Dispersion/DispersionControls.cpp" line="36"/>
         <source>Amount</source>
@@ -1766,7 +1766,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DualFilterControls</name>
+    <name>mxm::DualFilterControls</name>
     <message>
         <location filename="../../plugins/DualFilter/DualFilterControls.cpp" line="42"/>
         <source>Filter 1 enabled</source>
@@ -1956,7 +1956,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DummyEffect</name>
+    <name>mxm::DummyEffect</name>
     <message>
         <location filename="../../include/DummyEffect.h" line="139"/>
         <source>NOT FOUND</source>
@@ -1964,7 +1964,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::DynProcControls</name>
+    <name>mxm::DynProcControls</name>
     <message>
         <location filename="../../plugins/DynamicsProcessor/DynamicsProcessorControls.cpp" line="45"/>
         <source>Input gain</source>
@@ -1992,7 +1992,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Effect</name>
+    <name>mxm::Effect</name>
     <message>
         <location filename="../../src/core/Effect.cpp" line="49"/>
         <source>Effect enabled</source>
@@ -2010,7 +2010,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::EffectChain</name>
+    <name>mxm::EffectChain</name>
     <message>
         <location filename="../../src/core/EffectChain.cpp" line="42"/>
         <source>Effects enabled</source>
@@ -2018,7 +2018,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Engine</name>
+    <name>mxm::Engine</name>
     <message>
         <location filename="../../src/core/Engine.cpp" line="62"/>
         <source>Generating wavetables</source>
@@ -2041,7 +2041,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::EnvelopeAndLfoParameters</name>
+    <name>mxm::EnvelopeAndLfoParameters</name>
     <message>
         <location filename="../../src/core/EnvelopeAndLfoParameters.cpp" line="99"/>
         <source>Env pre-delay</source>
@@ -2119,7 +2119,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::EqControls</name>
+    <name>mxm::EqControls</name>
     <message>
         <location filename="../../plugins/Eq/EqControls.cpp" line="39"/>
         <source>Input gain</source>
@@ -2332,7 +2332,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::FlangerControls</name>
+    <name>mxm::FlangerControls</name>
     <message>
         <location filename="../../plugins/Flanger/FlangerControls.cpp" line="38"/>
         <source>Delay samples</source>
@@ -2370,7 +2370,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::FreeBoyInstrument</name>
+    <name>mxm::FreeBoyInstrument</name>
     <message>
         <location filename="../../plugins/FreeBoy/FreeBoy.cpp" line="77"/>
         <source>Sweep time</source>
@@ -2493,7 +2493,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::GigInstrument</name>
+    <name>mxm::GigInstrument</name>
     <message>
         <location filename="../../plugins/GigPlayer/GigPlayer.cpp" line="86"/>
         <source>Bank</source>
@@ -2511,7 +2511,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::GranularPitchShifterControls</name>
+    <name>mxm::GranularPitchShifterControls</name>
     <message>
         <location filename="../../plugins/GranularPitchShifter/GranularPitchShifterControls.cpp" line="35"/>
         <source>Pitch</source>
@@ -2614,7 +2614,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::InstrumentFunctionArpeggio</name>
+    <name>mxm::InstrumentFunctionArpeggio</name>
     <message>
         <location filename="../../src/core/InstrumentFunctions.cpp" line="303"/>
         <source>Arpeggio</source>
@@ -2712,7 +2712,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::InstrumentFunctionNoteStacking</name>
+    <name>mxm::InstrumentFunctionNoteStacking</name>
     <message>
         <location filename="../../src/core/InstrumentFunctions.cpp" line="212"/>
         <source>Chords</source>
@@ -2730,7 +2730,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::InstrumentSoundShaping</name>
+    <name>mxm::InstrumentSoundShaping</name>
     <message>
         <location filename="../../src/core/InstrumentSoundShaping.cpp" line="47"/>
         <source>Envelopes/LFOs</source>
@@ -2874,7 +2874,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::InstrumentTrack</name>
+    <name>mxm::InstrumentTrack</name>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="339"/>
         <location filename="../../src/tracks/InstrumentTrack.cpp" line="106"/>
@@ -2944,7 +2944,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Keymap</name>
+    <name>mxm::Keymap</name>
     <message>
         <location filename="../../src/core/Keymap.cpp" line="37"/>
         <source>empty</source>
@@ -2952,7 +2952,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::KickerInstrument</name>
+    <name>mxm::KickerInstrument</name>
     <message>
         <location filename="../../plugins/Kicker/Kicker.cpp" line="68"/>
         <source>Start frequency</source>
@@ -3015,7 +3015,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::LOMMControls</name>
+    <name>mxm::LOMMControls</name>
     <message>
         <location filename="../../plugins/LOMM/LOMMControls.cpp" line="37"/>
         <source>Depth</source>
@@ -3268,7 +3268,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::LadspaControl</name>
+    <name>mxm::LadspaControl</name>
     <message>
         <location filename="../../src/core/LadspaControl.cpp" line="42"/>
         <source>Link channels</source>
@@ -3276,7 +3276,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::LadspaEffect</name>
+    <name>mxm::LadspaEffect</name>
     <message>
         <location filename="../../plugins/LadspaEffect/LadspaEffect.cpp" line="77"/>
         <source>Unknown LADSPA plugin %1 requested.</source>
@@ -3284,7 +3284,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Lb302Synth</name>
+    <name>mxm::Lb302Synth</name>
     <message>
         <location filename="../../plugins/Lb302/Lb302.cpp" line="218"/>
         <source>VCF Cutoff Frequency</source>
@@ -3342,7 +3342,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::LfoController</name>
+    <name>mxm::LfoController</name>
     <message>
         <location filename="../../src/core/LfoController.cpp" line="41"/>
         <source>LFO Controller</source>
@@ -3385,7 +3385,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MalletsInstrument</name>
+    <name>mxm::MalletsInstrument</name>
     <message>
         <location filename="../../plugins/Stk/Mallets/Mallets.cpp" line="74"/>
         <source>Hardness</source>
@@ -3543,7 +3543,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MeterModel</name>
+    <name>mxm::MeterModel</name>
     <message>
         <location filename="../../src/core/MeterModel.cpp" line="35"/>
         <source>Numerator</source>
@@ -3556,7 +3556,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Microtuner</name>
+    <name>mxm::Microtuner</name>
     <message>
         <location filename="../../src/core/Microtuner.cpp" line="41"/>
         <source>Microtuner</source>
@@ -3579,7 +3579,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MidiController</name>
+    <name>mxm::MidiController</name>
     <message>
         <location filename="../../src/core/midi/MidiController.cpp" line="35"/>
         <source>MIDI Controller</source>
@@ -3592,7 +3592,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MidiImport</name>
+    <name>mxm::MidiImport</name>
     <message>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="98"/>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="110"/>
@@ -3606,8 +3606,8 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="111"/>
-        <source>You did not compile LMMS with support for SoundFont2 player, which is used to add default sound to imported MIDI files. Therefore no sound will be played back after importing this MIDI file.</source>
-        <translation>你在编译 LMMS 时没有加入 SoundFont2 播放器支持, 此播放器默认用于添加导入的 MIDI 文件。因此在 MIDI 文件导入后, 将没有声音。</translation>
+        <source>You did not compile MXM with support for SoundFont2 player, which is used to add default sound to imported MIDI files. Therefore no sound will be played back after importing this MIDI file.</source>
+        <translation>你在编译 MXM 时没有加入 SoundFont2 播放器支持, 此播放器默认用于添加导入的 MIDI 文件。因此在 MIDI 文件导入后, 将没有声音。</translation>
     </message>
     <message>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="296"/>
@@ -3642,7 +3642,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MidiJack</name>
+    <name>mxm::MidiJack</name>
     <message>
         <location filename="../../src/core/midi/MidiJack.cpp" line="58"/>
         <source>JACK server down</source>
@@ -3657,7 +3657,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MidiPort</name>
+    <name>mxm::MidiPort</name>
     <message>
         <location filename="../../src/core/midi/MidiPort.cpp" line="56"/>
         <source>Input channel</source>
@@ -3715,7 +3715,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Mixer</name>
+    <name>mxm::Mixer</name>
     <message>
         <location filename="../../src/core/Mixer.cpp" line="766"/>
         <source>Master</source>
@@ -3745,7 +3745,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MixerRoute</name>
+    <name>mxm::MixerRoute</name>
     <message>
         <location filename="../../src/core/Mixer.cpp" line="48"/>
         <location filename="../../src/core/Mixer.cpp" line="58"/>
@@ -3754,7 +3754,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::MonstroInstrument</name>
+    <name>mxm::MonstroInstrument</name>
     <message>
         <location filename="../../plugins/Monstro/Monstro.cpp" line="865"/>
         <source>Osc 1 volume</source>
@@ -4350,7 +4350,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::NesInstrument</name>
+    <name>mxm::NesInstrument</name>
     <message>
         <location filename="../../plugins/Nes/Nes.cpp" line="484"/>
         <source>Channel 1 enable</source>
@@ -4528,7 +4528,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::OpulenzInstrument</name>
+    <name>mxm::OpulenzInstrument</name>
     <message>
         <location filename="../../plugins/OpulenZ/OpulenZ.cpp" line="99"/>
         <source>Patch</source>
@@ -4676,7 +4676,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::OrganicInstrument</name>
+    <name>mxm::OrganicInstrument</name>
     <message>
         <location filename="../../plugins/Organic/Organic.cpp" line="79"/>
         <source>Distortion</source>
@@ -4689,7 +4689,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::OscillatorObject</name>
+    <name>mxm::OscillatorObject</name>
     <message>
         <location filename="../../plugins/Organic/Organic.cpp" line="537"/>
         <source>Osc %1 waveform</source>
@@ -4754,7 +4754,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::OscilloscopeControls</name>
+    <name>mxm::OscilloscopeControls</name>
     <message>
         <location filename="../../plugins/Oscilloscope/OscilloscopeControls.cpp" line="36"/>
         <source>Amplitude</source>
@@ -4782,7 +4782,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::PatternTrack</name>
+    <name>mxm::PatternTrack</name>
     <message>
         <location filename="../../src/tracks/PatternTrack.cpp" line="49"/>
         <source>Pattern %1</source>
@@ -4795,7 +4795,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::PeakController</name>
+    <name>mxm::PeakController</name>
     <message>
         <location filename="../../src/core/PeakController.cpp" line="48"/>
         <source>Peak Controller</source>
@@ -4808,12 +4808,12 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
     <message>
         <location filename="../../src/core/PeakController.cpp" line="214"/>
-        <source>Due to a bug in older version of LMMS, the peak controllers may not be connect properly. Please ensure that peak controllers are connected properly and re-save this file. Sorry for any inconvenience caused.</source>
-        <translation>在老版本的 LMMS 中, 峰值控制器因为有 bug 而可能没有正确连接。请确保峰值控制器正常连接后再次保存次文件。我们对给你造成的不便深表歉意。</translation>
+        <source>Due to a bug in an older version of LMMS, the peak controllers may not be connect properly. Please ensure that peak controllers are connected properly and re-save this file. Sorry for any inconvenience caused.</source>
+        <translation>在老版本的 MXM 中, 峰值控制器因为有 bug 而可能没有正确连接。请确保峰值控制器正常连接后再次保存次文件。我们对给你造成的不便深表歉意。</translation>
     </message>
 </context>
 <context>
-    <name>lmms::PeakControllerEffectControls</name>
+    <name>mxm::PeakControllerEffectControls</name>
     <message>
         <location filename="../../plugins/PeakControllerEffect/PeakControllerEffectControls.cpp" line="42"/>
         <source>Base value</source>
@@ -4856,7 +4856,7 @@ This chip was used in the Commodore 64 computer.</source>
     </message>
 </context>
 <context>
-    <name>lmms::Plugin</name>
+    <name>mxm::Plugin</name>
     <message>
         <location filename="../../src/core/Plugin.cpp" line="219"/>
         <source>Plugin not found</source>
@@ -4881,7 +4881,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::ReverbSCControls</name>
+    <name>mxm::ReverbSCControls</name>
     <message>
         <location filename="../../plugins/ReverbSC/ReverbSCControls.cpp" line="38"/>
         <source>Input gain</source>
@@ -4904,7 +4904,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SaControls</name>
+    <name>mxm::SaControls</name>
     <message>
         <location filename="../../plugins/SpectrumAnalyzer/SaControls.cpp" line="41"/>
         <source>Pause</source>
@@ -5081,7 +5081,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SampleClip</name>
+    <name>mxm::SampleClip</name>
     <message>
         <location filename="../../src/core/SampleClip.cpp" line="330"/>
         <source>Sample not found</source>
@@ -5089,7 +5089,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SampleTrack</name>
+    <name>mxm::SampleTrack</name>
     <message>
         <location filename="../../src/tracks/SampleTrack.cpp" line="49"/>
         <source>Volume</source>
@@ -5113,7 +5113,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::Scale</name>
+    <name>mxm::Scale</name>
     <message>
         <location filename="../../src/core/Scale.cpp" line="76"/>
         <source>empty</source>
@@ -5121,7 +5121,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::Sf2Instrument</name>
+    <name>mxm::Sf2Instrument</name>
     <message>
         <location filename="../../plugins/Sf2Player/Sf2Player.cpp" line="143"/>
         <source>Bank</source>
@@ -5194,7 +5194,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SfxrInstrument</name>
+    <name>mxm::SfxrInstrument</name>
     <message>
         <location filename="../../plugins/Sfxr/Sfxr.cpp" line="345"/>
         <source>Wave</source>
@@ -5202,7 +5202,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SidInstrument</name>
+    <name>mxm::SidInstrument</name>
     <message>
         <location filename="../../plugins/Sid/SidInstrument.cpp" line="121"/>
         <source>Cutoff frequency</source>
@@ -5235,7 +5235,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SlewDistortionControls</name>
+    <name>mxm::SlewDistortionControls</name>
     <message>
         <location filename="../../plugins/SlewDistortion/SlewDistortionControls.cpp" line="37"/>
         <source>Type 1</source>
@@ -5458,7 +5458,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::SlicerT</name>
+    <name>mxm::SlicerT</name>
     <message>
         <location filename="../../plugins/SlicerT/SlicerT.cpp" line="60"/>
         <source>Note threshold</source>
@@ -5491,7 +5491,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::Song</name>
+    <name>mxm::Song</name>
     <message>
         <location filename="../../src/core/Song.cpp" line="72"/>
         <source>Tempo</source>
@@ -5524,8 +5524,8 @@ Reason: &quot;%2&quot;</source>
     </message>
     <message>
         <location filename="../../src/core/Song.cpp" line="1198"/>
-        <source>LMMS Error report</source>
-        <translation>LMMS 错误报告</translation>
+        <source>MXM Error report</source>
+        <translation>MXM 错误报告</translation>
     </message>
     <message>
         <location filename="../../src/core/Song.cpp" line="1491"/>
@@ -5539,7 +5539,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::StereoEnhancerControls</name>
+    <name>mxm::StereoEnhancerControls</name>
     <message>
         <location filename="../../plugins/StereoEnhancer/StereoEnhancerControls.cpp" line="37"/>
         <source>Width</source>
@@ -5547,7 +5547,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::StereoMatrixControls</name>
+    <name>mxm::StereoMatrixControls</name>
     <message>
         <location filename="../../plugins/StereoMatrix/StereoMatrixControls.cpp" line="37"/>
         <source>Left to Left</source>
@@ -5570,7 +5570,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::Track</name>
+    <name>mxm::Track</name>
     <message>
         <location filename="../../src/core/Track.cpp" line="54"/>
         <source>Mute</source>
@@ -5583,7 +5583,7 @@ Reason: &quot;%2&quot;</source>
     </message>
 </context>
 <context>
-    <name>lmms::TrackContainer</name>
+    <name>mxm::TrackContainer</name>
     <message>
         <location filename="../../plugins/MidiImport/MidiImport.cpp" line="268"/>
         <source>Importing MIDI-file...</source>
@@ -5609,9 +5609,9 @@ Reason: &quot;%2&quot;</source>
     <message>
         <location filename="../../src/core/ImportFilter.cpp" line="81"/>
         <source>Couldn't find a filter for importing file %1.
-You should convert this file into a format supported by LMMS using another software.</source>
+You should convert this file into a format supported by MXM using another software.</source>
         <translation>无法找到导入文件 %1 的导入器
-你需要使用其他软件将此文件转换成 LMMS 支持的格式。</translation>
+你需要使用其他软件将此文件转换成 MXM 支持的格式。</translation>
     </message>
     <message>
         <location filename="../../src/core/ImportFilter.cpp" line="100"/>
@@ -5647,7 +5647,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::TripleOscillator</name>
+    <name>mxm::TripleOscillator</name>
     <message>
         <location filename="../../plugins/TripleOscillator/TripleOscillator.cpp" line="290"/>
         <source>Sample not found</source>
@@ -5655,7 +5655,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::VecControls</name>
+    <name>mxm::VecControls</name>
     <message>
         <location filename="../../plugins/Vectorscope/VecControls.cpp" line="40"/>
         <source>Logarithmic scale</source>
@@ -5668,7 +5668,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::VestigeInstrument</name>
+    <name>mxm::VestigeInstrument</name>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="358"/>
         <source>Loading plugin</source>
@@ -5681,7 +5681,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::Vibed</name>
+    <name>mxm::Vibed</name>
     <message>
         <location filename="../../plugins/Vibed/Vibed.cpp" line="105"/>
         <source>String %1 volume</source>
@@ -5734,7 +5734,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::VoiceObject</name>
+    <name>mxm::VoiceObject</name>
     <message>
         <location filename="../../plugins/Sid/SidInstrument.cpp" line="96"/>
         <source>Voice %1 pulse width</source>
@@ -5792,7 +5792,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::VstPlugin</name>
+    <name>mxm::VstPlugin</name>
     <message>
         <location filename="../../plugins/VstBase/VstPlugin.cpp" line="535"/>
         <source>Open Preset</source>
@@ -5836,7 +5836,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::WatsynInstrument</name>
+    <name>mxm::WatsynInstrument</name>
     <message>
         <location filename="../../plugins/Watsyn/Watsyn.cpp" line="253"/>
         <source>Volume A1</source>
@@ -5984,7 +5984,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::WaveShaperControls</name>
+    <name>mxm::WaveShaperControls</name>
     <message>
         <location filename="../../plugins/WaveShaper/WaveShaperControls.cpp" line="45"/>
         <source>Input gain</source>
@@ -5997,7 +5997,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::Xpressive</name>
+    <name>mxm::Xpressive</name>
     <message>
         <location filename="../../plugins/Xpressive/Xpressive.cpp" line="90"/>
         <source>Selected graph</source>
@@ -6050,7 +6050,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::ZynAddSubFxInstrument</name>
+    <name>mxm::ZynAddSubFxInstrument</name>
     <message>
         <location filename="../../plugins/ZynAddSubFx/ZynAddSubFx.cpp" line="112"/>
         <source>Portamento</source>
@@ -6093,7 +6093,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::graphModel</name>
+    <name>mxm::graphModel</name>
     <message>
         <location filename="../../src/gui/widgets/Graph.cpp" line="467"/>
         <source>Graph</source>
@@ -6101,7 +6101,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AmplifierControlDialog</name>
+    <name>mxm::gui::AmplifierControlDialog</name>
     <message>
         <location filename="../../plugins/Amplifier/AmplifierControlDialog.cpp" line="57"/>
         <source>VOL</source>
@@ -6144,7 +6144,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AudioAlsaSetupWidget</name>
+    <name>mxm::gui::AudioAlsaSetupWidget</name>
     <message>
         <location filename="../../src/gui/AudioAlsaSetupWidget.cpp" line="71"/>
         <source>Device</source>
@@ -6157,7 +6157,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AudioFileProcessorView</name>
+    <name>mxm::gui::AudioFileProcessorView</name>
     <message>
         <location filename="../../plugins/AudioFileProcessor/AudioFileProcessorView.cpp" line="62"/>
         <source>Open sample</source>
@@ -6210,7 +6210,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AudioFileProcessorWaveView</name>
+    <name>mxm::gui::AudioFileProcessorWaveView</name>
     <message>
         <location filename="../../plugins/AudioFileProcessor/AudioFileProcessorWaveView.cpp" line="310"/>
         <source>Sample length:</source>
@@ -6218,7 +6218,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AudioPortAudioSetupWidget</name>
+    <name>mxm::gui::AudioPortAudioSetupWidget</name>
     <message>
         <location filename="../../src/core/audio/AudioPortAudio.cpp" line="276"/>
         <source>Input device</source>
@@ -6236,7 +6236,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AudioPortAudioSetupWidget::DeviceSelectorWidget</name>
+    <name>mxm::gui::AudioPortAudioSetupWidget::DeviceSelectorWidget</name>
     <message>
         <location filename="../../src/core/audio/AudioPortAudio.cpp" line="224"/>
         <source>Channels</source>
@@ -6244,7 +6244,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AutomatableSlider</name>
+    <name>mxm::gui::AutomatableSlider</name>
     <message>
         <location filename="../../src/gui/widgets/AutomatableSlider.cpp" line="121"/>
         <source>Set value</source>
@@ -6257,7 +6257,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AutomationClipView</name>
+    <name>mxm::gui::AutomationClipView</name>
     <message>
         <location filename="../../src/gui/clips/AutomationClipView.cpp" line="163"/>
         <source>Open in Automation editor</source>
@@ -6310,7 +6310,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AutomationEditor</name>
+    <name>mxm::gui::AutomationEditor</name>
     <message>
         <location filename="../../src/gui/editors/AutomationEditor.cpp" line="345"/>
         <source>Edit Value</source>
@@ -6333,7 +6333,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::AutomationEditorWindow</name>
+    <name>mxm::gui::AutomationEditorWindow</name>
     <message>
         <location filename="../../src/gui/editors/AutomationEditor.cpp" line="2013"/>
         <source>Play/pause current clip (Space)</source>
@@ -6458,7 +6458,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::BassBoosterControlDialog</name>
+    <name>mxm::gui::BassBoosterControlDialog</name>
     <message>
         <location filename="../../plugins/BassBooster/BassBoosterControlDialog.cpp" line="52"/>
         <source>FREQ</source>
@@ -6491,7 +6491,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::BitInvaderView</name>
+    <name>mxm::gui::BitInvaderView</name>
     <message>
         <location filename="../../plugins/BitInvader/BitInvader.cpp" line="318"/>
         <source>Sample length</source>
@@ -6556,7 +6556,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::BitcrushControlDialog</name>
+    <name>mxm::gui::BitcrushControlDialog</name>
     <message>
         <location filename="../../plugins/Bitcrush/BitcrushControlDialog.cpp" line="52"/>
         <source>IN</source>
@@ -6655,7 +6655,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::CPULoadWidget</name>
+    <name>mxm::gui::CPULoadWidget</name>
     <message>
         <location filename="../../src/gui/widgets/CPULoadWidget.cpp" line="102"/>
         <source>DSP total: %1%</source>
@@ -6683,7 +6683,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::CarlaInstrumentView</name>
+    <name>mxm::gui::CarlaInstrumentView</name>
     <message>
         <location filename="../../plugins/CarlaBase/Carla.cpp" line="626"/>
         <source>Show GUI</source>
@@ -6706,7 +6706,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::CarlaParamsView</name>
+    <name>mxm::gui::CarlaParamsView</name>
     <message>
         <location filename="../../plugins/CarlaBase/Carla.cpp" line="758"/>
         <source>Search..</source>
@@ -6729,7 +6729,7 @@ Please make sure you have read-permission to the file and the directory containi
     </message>
 </context>
 <context>
-    <name>lmms::gui::ClipView</name>
+    <name>mxm::gui::ClipView</name>
     <message>
         <location filename="../../src/gui/clips/ClipView.cpp" line="525"/>
         <source>Current position</source>
@@ -6849,7 +6849,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::CompressorControlDialog</name>
+    <name>mxm::gui::CompressorControlDialog</name>
     <message>
         <location filename="../../plugins/Compressor/CompressorControlDialog.cpp" line="87"/>
         <source>Threshold:</source>
@@ -7204,7 +7204,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ControllerConnectionDialog</name>
+    <name>mxm::gui::ControllerConnectionDialog</name>
     <message>
         <location filename="../../src/gui/modals/ControllerConnectionDialog.cpp" line="138"/>
         <source>Connection Settings</source>
@@ -7268,8 +7268,8 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
     <message>
         <location filename="../../src/gui/modals/ControllerConnectionDialog.cpp" line="332"/>
-        <source>LMMS</source>
-        <translation>LMMS</translation>
+        <source>MXM</source>
+        <translation>MXM</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/ControllerConnectionDialog.cpp" line="332"/>
@@ -7278,7 +7278,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ControllerRackView</name>
+    <name>mxm::gui::ControllerRackView</name>
     <message>
         <location filename="../../src/gui/ControllerRackView.cpp" line="53"/>
         <source>Controller Rack</source>
@@ -7301,7 +7301,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ControllerView</name>
+    <name>mxm::gui::ControllerView</name>
     <message>
         <location filename="../../src/gui/ControllerView.cpp" line="69"/>
         <source>Controls</source>
@@ -7344,7 +7344,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::CrossoverEQControlDialog</name>
+    <name>mxm::gui::CrossoverEQControlDialog</name>
     <message>
         <location filename="../../plugins/CrossoverEQ/CrossoverEQControlDialog.cpp" line="68"/>
         <source>Band 1/2 crossover</source>
@@ -7402,7 +7402,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::DelayControlsDialog</name>
+    <name>mxm::gui::DelayControlsDialog</name>
     <message>
         <location filename="../../plugins/Delay/DelayControlsDialog.cpp" line="48"/>
         <source>DELAY</source>
@@ -7455,7 +7455,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::DispersionControlDialog</name>
+    <name>mxm::gui::DispersionControlDialog</name>
     <message>
         <location filename="../../plugins/Dispersion/DispersionControlDialog.cpp" line="50"/>
         <source>AMOUNT</source>
@@ -7523,7 +7523,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::DualFilterControlDialog</name>
+    <name>mxm::gui::DualFilterControlDialog</name>
     <message>
         <location filename="../../plugins/DualFilter/DualFilterControlDialog.cpp" line="57"/>
         <location filename="../../plugins/DualFilter/DualFilterControlDialog.cpp" line="61"/>
@@ -7592,7 +7592,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::DynProcControlDialog</name>
+    <name>mxm::gui::DynProcControlDialog</name>
     <message>
         <location filename="../../plugins/DynamicsProcessor/DynamicsProcessorControlDialog.cpp" line="62"/>
         <source>INPUT</source>
@@ -7689,7 +7689,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::Editor</name>
+    <name>mxm::gui::Editor</name>
     <message>
         <location filename="../../src/gui/editors/Editor.cpp" line="100"/>
         <source>Transport controls</source>
@@ -7722,7 +7722,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EffectRackView</name>
+    <name>mxm::gui::EffectRackView</name>
     <message>
         <location filename="../../src/gui/EffectRackView.cpp" line="50"/>
         <source>EFFECTS CHAIN</source>
@@ -7735,7 +7735,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EffectSelectDialog</name>
+    <name>mxm::gui::EffectSelectDialog</name>
     <message>
         <location filename="../../src/gui/modals/EffectSelectDialog.cpp" line="60"/>
         <source>Add effect</source>
@@ -7778,7 +7778,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EffectView</name>
+    <name>mxm::gui::EffectView</name>
     <message>
         <location filename="../../src/gui/EffectView.cpp" line="63"/>
         <location filename="../../src/gui/EffectView.cpp" line="259"/>
@@ -7832,7 +7832,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EnvelopeAndLfoView</name>
+    <name>mxm::gui::EnvelopeAndLfoView</name>
     <message>
         <location filename="../../src/gui/instrument/EnvelopeAndLfoView.cpp" line="89"/>
         <location filename="../../src/gui/instrument/EnvelopeAndLfoView.cpp" line="175"/>
@@ -7951,7 +7951,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EnvelopeGraph</name>
+    <name>mxm::gui::EnvelopeGraph</name>
     <message>
         <location filename="../../src/gui/instrument/EnvelopeGraph.cpp" line="68"/>
         <source>Scaling</source>
@@ -7989,7 +7989,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EqControlsDialog</name>
+    <name>mxm::gui::EqControlsDialog</name>
     <message>
         <location filename="../../plugins/Eq/EqControlsDialog.cpp" line="66"/>
         <source>HP</source>
@@ -8079,7 +8079,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::EqHandle</name>
+    <name>mxm::gui::EqHandle</name>
     <message>
         <location filename="../../plugins/Eq/EqCurve.cpp" line="144"/>
         <source>Reso: </source>
@@ -8098,7 +8098,7 @@ Press &lt;Shift&gt; for destructive splitting.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ExportProjectDialog</name>
+    <name>mxm::gui::ExportProjectDialog</name>
     <message>
         <location filename="../../src/core/audio/AudioFileDevice.cpp" line="50"/>
         <source>Could not open file</source>
@@ -8234,7 +8234,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::Fader</name>
+    <name>mxm::gui::Fader</name>
     <message>
         <location filename="../../src/gui/widgets/Fader.cpp" line="91"/>
         <source>Volume:</source>
@@ -8265,7 +8265,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FileBrowser</name>
+    <name>mxm::gui::FileBrowser</name>
     <message>
         <location filename="../../src/gui/FileBrowser.cpp" line="94"/>
         <source>Browser</source>
@@ -8298,7 +8298,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FileBrowserTreeWidget</name>
+    <name>mxm::gui::FileBrowserTreeWidget</name>
     <message>
         <location filename="../../src/gui/FileBrowser.cpp" line="609"/>
         <source>Finder</source>
@@ -8411,7 +8411,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FileDialog</name>
+    <name>mxm::gui::FileDialog</name>
     <message>
         <location filename="../../src/gui/modals/FileDialog.cpp" line="149"/>
         <source>Open audio file</source>
@@ -8434,7 +8434,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FlangerControlsDialog</name>
+    <name>mxm::gui::FlangerControlsDialog</name>
     <message>
         <location filename="../../plugins/Flanger/FlangerControlsDialog.cpp" line="51"/>
         <source>DELAY</source>
@@ -8502,7 +8502,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FloatModelEditorBase</name>
+    <name>mxm::gui::FloatModelEditorBase</name>
     <message>
         <location filename="../../src/gui/widgets/FloatModelEditorBase.cpp" line="157"/>
         <source>Set linear</source>
@@ -8525,7 +8525,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FreeBoyInstrumentView</name>
+    <name>mxm::gui::FreeBoyInstrumentView</name>
     <message>
         <location filename="../../plugins/FreeBoy/FreeBoy.cpp" line="460"/>
         <source>Sweep time:</source>
@@ -8718,7 +8718,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FrequencyShifterControlDialog</name>
+    <name>mxm::gui::FrequencyShifterControlDialog</name>
     <message>
         <location filename="../../plugins/FrequencyShifter/FrequencyShifterControlDialog.cpp" line="90"/>
         <source>Frequency Shift</source>
@@ -8781,7 +8781,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::FrequencyShifterHelpView</name>
+    <name>mxm::gui::FrequencyShifterHelpView</name>
     <message>
         <location filename="../../plugins/FrequencyShifter/FrequencyShifterControlDialog.cpp" line="178"/>
         <source>&lt;div style=&apos;text-align: center;&apos;&gt;&lt;b&gt;Frequency Shifter&lt;/b&gt;&lt;br&gt;&lt;br&gt;Plugin by Lost Robot&lt;br&gt;GUI by Haeleon&lt;br&gt;&lt;/div&gt;&lt;h3&gt;Overview:&lt;/h3&gt;Frequency Shifter is &lt;b&gt;not&lt;/b&gt; a pitch shifter.&lt;br&gt;&lt;br&gt;While &amp;quot;frequency&amp;quot; refers to Hz, &amp;quot;pitch&amp;quot; refers to octaves, semitones, cents, etc. &lt;br&gt;So, pitch shifting impacts all partials in the audio multiplicatively, while frequency shifting impacts it additively.&lt;br&gt;For example: If you have frequencies 100, 200, and 300 Hz, a pitch shift upward by 1.2x would result in 120, 240, and 360 Hz. Meanwhile, a frequency shift upward by 20 Hz would result in 120, 220, and 320 Hz.&lt;br&gt;Notice that a pitch shifter preserves the harmonic relationships between these frequencies, while frequency shifting destroys them entirely, resulting in an inharmonic timbre.&lt;br&gt;&lt;br&gt;A frequency shifter can also be used as a &amp;quot;barberpole phaser&amp;quot;. This is similar to other phasers, but unlike those, it can audibly move upward or downward infinitely, similar to a Shepard tone.&lt;br&gt;To achieve this, simply set the frequency shift amount to your desired phaser rate, and set the Mix to 50%. The resulting phase cancellation will filter the audio.&lt;br&gt;You may also achieve this by simply increasing the delay feedback, and keeping the delay length very low.&lt;br&gt;&lt;br&gt;This frequency shifter sports a unique &amp;quot;anti-reflect&amp;quot; algorithm which eliminates all frequencies aliasing through Nyquist and 0 Hz.&lt;br&gt;&lt;br&gt;This plugin may also be used as a ring modulator via the RING parameter. Ring modulation is the result of frequency shifting the audio upward and downward by the same amount in parallel.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Shifter:&lt;/h3&gt;&lt;b&gt;Mix&lt;/b&gt; - Blends between the wet and dry signals.&lt;br&gt;&lt;b&gt;Frequency Shift&lt;/b&gt; - The amount of frequency shifting, in Hz.&lt;br&gt;&lt;b&gt;Spread&lt;/b&gt; - Offsets the frequency shift amount in opposite directions for the left and right channels.&lt;br&gt;Even very small amounts will add a lot of stereo width to the signal.&lt;br&gt;&lt;b&gt;Phase&lt;/b&gt; - Gives you manual control over the phase of the frequency shifter&apos;s internal oscillators.&lt;br&gt;When using the frequency shifter as a barberpole phaser, it is recommended to set the frequency shift amount to 0 and automate this Phase parameter.&lt;br&gt;&lt;b&gt;Ring&lt;/b&gt; - Blends in ring modulation, instead of just frequency shifting.&lt;br&gt;&lt;b&gt;Harm&lt;/b&gt; - Distorts the frequency shifter&apos;s internal sine oscillators. This brings them much closer to a smoothed square shape.&lt;br&gt;&lt;b&gt;Tone&lt;/b&gt; - A basic 1-pole lowpass on the frequency shifter&apos;s output, helpful for taming harsh high frequencies.&lt;br&gt;&lt;b&gt;Glide&lt;/b&gt; - Lowpass filters any frequency shift and phase parameter movements, so they move slowly over time rather than snapping to their target value instantly.&lt;br&gt;&lt;b&gt;Reset&lt;/b&gt; - Instantly resets the phases of the frequency shifter&apos;s internal oscillators. This is automatable.&lt;br&gt;&lt;b&gt;Anti-reflect&lt;/b&gt; - Magic.&lt;br&gt;It removes all aliased frequencies through Nyquist and through 0 Hz. This is done via clean and CPU-efficient math tricks, not oversampling.&lt;br&gt;&lt;br&gt;&lt;h3&gt;LFO:&lt;/h3&gt;This modulates the frequency shift amount. Audio-rate modulation is fully supported.&lt;br&gt;&lt;br&gt;&lt;b&gt;Amount&lt;/b&gt; - The amplitude of the LFO.&lt;br&gt;&lt;b&gt;Rate&lt;/b&gt; - LFO rate, in Hz.&lt;br&gt;&lt;b&gt;Stereo Phase&lt;/b&gt; - Offsets the phase of the LFO&apos;s right channel, making things stereo.&lt;br&gt;&lt;b&gt;Reset&lt;/b&gt; - Instantly resets the phases of the LFO&apos;s oscillators. This is automatable.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Routing:&lt;/h3&gt;&lt;b&gt;Send&lt;/b&gt; - Sends the frequency shifter output into the delay.&lt;br&gt;&lt;b&gt;Pass&lt;/b&gt; - The audio input bypasses the frequency shifter, and is sent to both the delay and the output. The frequency shifter is now located inside of the delay line. Use this if you want the frequency shifter to only impact the echoes.&lt;br&gt;&lt;b&gt;Mute&lt;/b&gt; - Like &amp;quot;Pass&amp;quot; routing, except the input signal isn&apos;t sent to the output, so all you hear is the output from the delay line.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Delay:&lt;/h3&gt;&lt;b&gt;Length&lt;/b&gt; - Delay time in milliseconds.&lt;br&gt;&lt;b&gt;Fine&lt;/b&gt; - Identical to delay Length, but with a smaller knob range. This is helpful when using the feedback to cause comb filtering, giving you access to a unique phaser/flanger hybrid.&lt;br&gt;&lt;b&gt;Feedback&lt;/b&gt; - Feeds the output of the delay back into the input of the frequency shifter.&lt;br&gt;The delay&apos;s feedback path has very gentle saturation at high amplitudes, so the plugin can&apos;t break from high feedback values.&lt;br&gt;&lt;b&gt;Damping&lt;/b&gt; - A 1-pole lowpass filter in the feedback loop, so high frequencies fade out sooner than low frequencies.&lt;br&gt;&lt;b&gt;Glide&lt;/b&gt; - Lowpass filters any delay length changes, so they move slowly over time rather than snapping to their target value instantly.&lt;br&gt;&lt;b&gt;Help&lt;/b&gt; - Instantly spawns a kiwano in a randomized location on the planet. 30 second cooldown.&lt;br&gt;</source>
@@ -8794,7 +8794,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::GigInstrumentView</name>
+    <name>mxm::gui::GigInstrumentView</name>
     <message>
         <location filename="../../plugins/GigPlayer/GigPlayer.cpp" line="924"/>
         <location filename="../../plugins/GigPlayer/GigPlayer.cpp" line="1027"/>
@@ -8818,7 +8818,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::GranularPitchShifterControlDialog</name>
+    <name>mxm::gui::GranularPitchShifterControlDialog</name>
     <message>
         <location filename="../../plugins/GranularPitchShifter/GranularPitchShifterControlDialog.cpp" line="57"/>
         <source>Grain Size:</source>
@@ -8899,7 +8899,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::GuiApplication</name>
+    <name>mxm::gui::GuiApplication</name>
     <message>
         <location filename="../../src/gui/GuiApplication.cpp" line="97"/>
         <source>Working directory</source>
@@ -8907,8 +8907,8 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/GuiApplication.cpp" line="98"/>
-        <source>The LMMS working directory %1 does not exist. Create it now? You can change the directory later via Edit -&gt; Settings.</source>
-        <translation>LMMS工作目录%1不存在，现在新建一个吗？你可以稍后在 编辑 -&gt; 设置 中更改此设置。</translation>
+        <source>The MXM working directory %1 does not exist. Create it now? You can change the directory later via Edit -&gt; Settings.</source>
+        <translation>MXM工作目录%1不存在，现在新建一个吗？你可以稍后在 编辑 -&gt; 设置 中更改此设置。</translation>
     </message>
     <message>
         <location filename="../../src/gui/GuiApplication.cpp" line="156"/>
@@ -8957,7 +8957,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentFunctionArpeggioView</name>
+    <name>mxm::gui::InstrumentFunctionArpeggioView</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentFunctionViews.cpp" line="98"/>
         <source>ARPEGGIO</source>
@@ -9077,7 +9077,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentFunctionNoteStackingView</name>
+    <name>mxm::gui::InstrumentFunctionNoteStackingView</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentFunctionViews.cpp" line="45"/>
         <source>STACKING</source>
@@ -9105,7 +9105,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentMidiIOView</name>
+    <name>mxm::gui::InstrumentMidiIOView</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentMidiIOView.cpp" line="50"/>
         <source>ENABLE MIDI INPUT</source>
@@ -9169,7 +9169,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentSoundShapingView</name>
+    <name>mxm::gui::InstrumentSoundShapingView</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentSoundShapingView.cpp" line="51"/>
         <source>TARGET</source>
@@ -9227,7 +9227,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentTrackView</name>
+    <name>mxm::gui::InstrumentTrackView</name>
     <message>
         <location filename="../../src/gui/tracks/InstrumentTrackView.cpp" line="85"/>
         <source>Mixer channel</source>
@@ -9290,7 +9290,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentTrackWindow</name>
+    <name>mxm::gui::InstrumentTrackWindow</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentTrackWindow.cpp" line="138"/>
         <source>Mute</source>
@@ -9433,7 +9433,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::InstrumentTuningView</name>
+    <name>mxm::gui::InstrumentTuningView</name>
     <message>
         <location filename="../../src/gui/instrument/InstrumentTuningView.cpp" line="54"/>
         <source>GLOBAL TRANSPOSITION</source>
@@ -9482,7 +9482,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::KickerInstrumentView</name>
+    <name>mxm::gui::KickerInstrumentView</name>
     <message>
         <location filename="../../plugins/Kicker/Kicker.cpp" line="286"/>
         <source>Start frequency:</source>
@@ -9535,7 +9535,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LOMMControlDialog</name>
+    <name>mxm::gui::LOMMControlDialog</name>
     <message>
         <location filename="../../plugins/LOMM/LOMMControlDialog.cpp" line="50"/>
         <source>Depth:</source>
@@ -9995,7 +9995,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaBrowserView</name>
+    <name>mxm::gui::LadspaBrowserView</name>
     <message>
         <location filename="../../plugins/LadspaBrowser/LadspaBrowser.cpp" line="109"/>
         <location filename="../../plugins/LadspaBrowser/LadspaBrowser.cpp" line="117"/>
@@ -10033,7 +10033,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaControlDialog</name>
+    <name>mxm::gui::LadspaControlDialog</name>
     <message>
         <location filename="../../plugins/LadspaEffect/LadspaControlDialog.cpp" line="61"/>
         <source>Link Channels</source>
@@ -10046,7 +10046,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaControlView</name>
+    <name>mxm::gui::LadspaControlView</name>
     <message>
         <location filename="../../src/gui/LadspaControlView.cpp" line="55"/>
         <source>Link channels</source>
@@ -10059,7 +10059,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaDescription</name>
+    <name>mxm::gui::LadspaDescription</name>
     <message>
         <location filename="../../plugins/LadspaBrowser/LadspaDescription.cpp" line="83"/>
         <source>Plugins</source>
@@ -10126,7 +10126,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaMatrixControlDialog</name>
+    <name>mxm::gui::LadspaMatrixControlDialog</name>
     <message>
         <location filename="../../plugins/LadspaEffect/LadspaMatrixControlDialog.cpp" line="70"/>
         <source>Link Channels</source>
@@ -10149,7 +10149,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LadspaPortDialog</name>
+    <name>mxm::gui::LadspaPortDialog</name>
     <message>
         <location filename="../../plugins/LadspaBrowser/LadspaPortDialog.cpp" line="45"/>
         <source>Ports</source>
@@ -10233,7 +10233,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::Lb302SynthView</name>
+    <name>mxm::gui::Lb302SynthView</name>
     <message>
         <location filename="../../plugins/Lb302/Lb302.cpp" line="630"/>
         <source>Cutoff Freq:</source>
@@ -10387,7 +10387,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LcdFloatSpinBox</name>
+    <name>mxm::gui::LcdFloatSpinBox</name>
     <message>
         <location filename="../../src/gui/widgets/LcdFloatSpinBox.cpp" line="216"/>
         <source>Set value</source>
@@ -10400,7 +10400,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LcdSpinBox</name>
+    <name>mxm::gui::LcdSpinBox</name>
     <message>
         <location filename="../../src/gui/widgets/LcdSpinBox.cpp" line="166"/>
         <source>Set value</source>
@@ -10413,7 +10413,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LeftRightNav</name>
+    <name>mxm::gui::LeftRightNav</name>
     <message>
         <location filename="../../src/gui/widgets/LeftRightNav.cpp" line="58"/>
         <source>Previous</source>
@@ -10436,7 +10436,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
 </context>
 <context>
-    <name>lmms::gui::LfoControllerDialog</name>
+    <name>mxm::gui::LfoControllerDialog</name>
     <message>
         <location filename="../../src/gui/LfoControllerDialog.cpp" line="58"/>
         <source>LFO</source>
@@ -10546,7 +10546,7 @@ Double click to pick a file.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::LfoGraph</name>
+    <name>mxm::gui::LfoGraph</name>
     <message>
         <location filename="../../src/gui/instrument/LfoGraph.cpp" line="165"/>
         <source>%1 Hz</source>
@@ -10554,20 +10554,20 @@ Double click to pick a file.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::LmmsStyle</name>
+    <name>mxm::gui::MxmStyle</name>
     <message>
-        <location filename="../../src/gui/LmmsStyle.cpp" line="152"/>
+        <location filename="../../src/gui/MxmStyle.cpp" line="152"/>
         <source>Theme updated</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/gui/LmmsStyle.cpp" line="153"/>
-        <source>LMMS theme file %1 has been reloaded.</source>
+        <location filename="../../src/gui/MxmStyle.cpp" line="153"/>
+        <source>MXM theme file %1 has been reloaded.</source>
         <translation type="unfinished"/>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MainWindow</name>
+    <name>mxm::gui::MainWindow</name>
     <message>
         <location filename="../../src/core/ConfigManager.cpp" line="541"/>
         <source>Configuration file</source>
@@ -10597,8 +10597,8 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/core/main.cpp" line="795"/>
-        <source>There is a recovery file present. It looks like the last session did not end properly or another instance of LMMS is already running. Do you want to recover the project of this session?</source>
-        <translation>发现了一个恢复文件。看上去上个会话没有正常结束或者其他的 LMMS 进程已经运行。你想要恢复这个项目吗?</translation>
+        <source>There is a recovery file present. It looks like the last session did not end properly or another instance of MXM is already running. Do you want to recover the project of this session?</source>
+        <translation>发现了一个恢复文件。看上去上个会话没有正常结束或者其他的 MXM 进程已经运行。你想要恢复这个项目吗?</translation>
     </message>
     <message>
         <location filename="../../src/core/main.cpp" line="800"/>
@@ -10608,8 +10608,8 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/core/main.cpp" line="801"/>
-        <source>Recover the file. Please don&apos;t run multiple instances of LMMS when you do this.</source>
-        <translation>恢复文件。请不要在恢复文件时运行多个 LMMS 程序。</translation>
+        <source>Recover the file. Please don&apos;t run multiple instances of MXM when you do this.</source>
+        <translation>恢复文件。请不要在恢复文件时运行多个 MXM 程序。</translation>
     </message>
     <message>
         <location filename="../../src/core/main.cpp" line="803"/>
@@ -10869,7 +10869,7 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="484"/>
-        <source>Failed to setup audio device for playback. Try adjusting your audio device settings (e.g. the sample rate), then restart LMMS.</source>
+        <source>Failed to setup audio device for playback. Try adjusting your audio device settings (e.g. the sample rate), then restart MXM.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -10884,8 +10884,8 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="592"/>
-        <source>LMMS %1</source>
-        <translation>LMMS %1</translation>
+        <source>MXM %1</source>
+        <translation>MXM %1</translation>
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="611"/>
@@ -10914,8 +10914,8 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="749"/>
-        <source>LMMS (*.mmp *.mmpz)</source>
-        <translation>LMMS (*.mmp *.mmpz)</translation>
+        <source>MXM (*.mmp *.mmpz)</source>
+        <translation>MXM (*.mmp *.mmpz)</translation>
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="792"/>
@@ -10924,13 +10924,13 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="793"/>
-        <source>LMMS Project</source>
-        <translation>LMMS 工程</translation>
+        <source>MXM Project</source>
+        <translation>MXM 工程</translation>
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="794"/>
-        <source>LMMS Project Template</source>
-        <translation>LMMS 工程模板</translation>
+        <source>MXM Project Template</source>
+        <translation>MXM 工程模板</translation>
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="824"/>
@@ -10954,10 +10954,10 @@ Please make sure you have write permission to the file and the directory contain
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="907"/>
-        <source>Currently there's no help available in LMMS.
-Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
-        <translation>LMMS现在没有可用的帮助
-请访问 http://lmms.sf.net/wiki 了解LMMS的相关文档。</translation>
+        <source>Currently there's no help available in MXM.
+Please visit http://lmms.sf.net/wiki for documentation on MXM.</source>
+        <translation>MXM现在没有可用的帮助
+请访问 http://lmms.sf.net/wiki 了解MXM的相关文档。</translation>
     </message>
     <message>
         <location filename="../../src/gui/MainWindow.cpp" line="1067"/>
@@ -11063,7 +11063,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MalletsInstrumentView</name>
+    <name>mxm::gui::MalletsInstrumentView</name>
     <message>
         <location filename="../../plugins/Stk/Mallets/Mallets.cpp" line="452"/>
         <source>Instrument</source>
@@ -11221,7 +11221,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ManageVSTEffectView</name>
+    <name>mxm::gui::ManageVSTEffectView</name>
     <message>
         <location filename="../../plugins/VstEffect/VstEffectControls.cpp" line="327"/>
         <source> - VST parameter control</source>
@@ -11245,7 +11245,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ManageVestigeInstrumentView</name>
+    <name>mxm::gui::ManageVestigeInstrumentView</name>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="919"/>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="1174"/>
@@ -11270,7 +11270,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MeterDialog</name>
+    <name>mxm::gui::MeterDialog</name>
     <message>
         <location filename="../../src/gui/widgets/MeterDialog.cpp" line="53"/>
         <location filename="../../src/gui/widgets/MeterDialog.cpp" line="60"/>
@@ -11300,7 +11300,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MicrotunerConfig</name>
+    <name>mxm::gui::MicrotunerConfig</name>
     <message>
         <location filename="../../src/gui/MicrotunerConfig.cpp" line="59"/>
         <source>Selected scale slot</source>
@@ -11620,7 +11620,7 @@ Enter &apos;x&apos; if you wish to leave the key disabled / not mapped.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MidiCCRackView</name>
+    <name>mxm::gui::MidiCCRackView</name>
     <message>
         <location filename="../../src/gui/MidiCCRackView.cpp" line="50"/>
         <location filename="../../src/gui/MidiCCRackView.cpp" line="123"/>
@@ -11639,7 +11639,7 @@ Enter &apos;x&apos; if you wish to leave the key disabled / not mapped.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MidiClipView</name>
+    <name>mxm::gui::MidiClipView</name>
     <message>
         <location filename="../../src/gui/clips/MidiClipView.cpp" line="158"/>
         <location filename="../../src/gui/clips/MidiClipView.cpp" line="234"/>
@@ -11708,7 +11708,7 @@ Enter &apos;x&apos; if you wish to leave the key disabled / not mapped.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MidiSetupWidget</name>
+    <name>mxm::gui::MidiSetupWidget</name>
     <message>
         <location filename="../../src/gui/MidiSetupWidget.cpp" line="51"/>
         <source>Device</source>
@@ -11716,7 +11716,7 @@ Enter &apos;x&apos; if you wish to leave the key disabled / not mapped.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MixerChannelLcdSpinBox</name>
+    <name>mxm::gui::MixerChannelLcdSpinBox</name>
     <message>
         <location filename="../../src/gui/widgets/MixerChannelLcdSpinBox.cpp" line="72"/>
         <source>Assign to:</source>
@@ -11739,7 +11739,7 @@ Enter &apos;x&apos; if you wish to leave the key disabled / not mapped.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MixerChannelView</name>
+    <name>mxm::gui::MixerChannelView</name>
     <message>
         <location filename="../../src/gui/MixerChannelView.cpp" line="88"/>
         <source>Channel send amount</source>
@@ -11835,7 +11835,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MixerView</name>
+    <name>mxm::gui::MixerView</name>
     <message>
         <location filename="../../src/gui/MixerView.cpp" line="72"/>
         <source>Mixer</source>
@@ -11843,7 +11843,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MonstroView</name>
+    <name>mxm::gui::MonstroView</name>
     <message>
         <location filename="../../plugins/Monstro/Monstro.cpp" line="1497"/>
         <source>Operators view</source>
@@ -12084,7 +12084,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::MultitapEchoControlDialog</name>
+    <name>mxm::gui::MultitapEchoControlDialog</name>
     <message>
         <location filename="../../plugins/MultitapEcho/MultitapEchoControlDialog.cpp" line="82"/>
         <source>Length</source>
@@ -12127,7 +12127,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::NesInstrumentView</name>
+    <name>mxm::gui::NesInstrumentView</name>
     <message>
         <location filename="../../plugins/Nes/Nes.cpp" line="748"/>
         <location filename="../../plugins/Nes/Nes.cpp" line="779"/>
@@ -12283,7 +12283,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::OpulenzInstrumentView</name>
+    <name>mxm::gui::OpulenzInstrumentView</name>
     <message>
         <location filename="../../plugins/OpulenZ/OpulenZ.cpp" line="801"/>
         <location filename="../../plugins/OpulenZ/OpulenZ.cpp" line="803"/>
@@ -12310,7 +12310,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::OrganicInstrumentView</name>
+    <name>mxm::gui::OrganicInstrumentView</name>
     <message>
         <location filename="../../plugins/Organic/Organic.cpp" line="411"/>
         <source>Distortion:</source>
@@ -12359,7 +12359,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::Oscilloscope</name>
+    <name>mxm::gui::Oscilloscope</name>
     <message>
         <location filename="../../src/gui/widgets/Oscilloscope.cpp" line="61"/>
         <source>Oscilloscope</source>
@@ -12372,7 +12372,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::OscilloscopeControlDialog</name>
+    <name>mxm::gui::OscilloscopeControlDialog</name>
     <message>
         <location filename="../../plugins/Oscilloscope/OscilloscopeControlDialog.cpp" line="56"/>
         <location filename="../../plugins/Oscilloscope/OscilloscopeControlDialog.cpp" line="57"/>
@@ -12401,7 +12401,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PatchesDialog</name>
+    <name>mxm::gui::PatchesDialog</name>
     <message>
         <location filename="../../plugins/Sf2Player/PatchesDialog.cpp" line="92"/>
         <source>Patch</source>
@@ -12419,7 +12419,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PatmanView</name>
+    <name>mxm::gui::PatmanView</name>
     <message>
         <location filename="../../plugins/Patman/Patman.cpp" line="453"/>
         <source>Open patch</source>
@@ -12462,7 +12462,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PatternClipView</name>
+    <name>mxm::gui::PatternClipView</name>
     <message>
         <location filename="../../src/gui/clips/PatternClipView.cpp" line="65"/>
         <source>Open in Pattern Editor</source>
@@ -12480,7 +12480,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PatternEditorWindow</name>
+    <name>mxm::gui::PatternEditorWindow</name>
     <message>
         <location filename="../../src/gui/editors/PatternEditor.cpp" line="283"/>
         <source>Pattern Editor</source>
@@ -12543,7 +12543,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PeakControllerDialog</name>
+    <name>mxm::gui::PeakControllerDialog</name>
     <message>
         <location filename="../../src/gui/PeakControllerDialog.cpp" line="42"/>
         <source>PEAK</source>
@@ -12556,7 +12556,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PeakControllerEffectControlDialog</name>
+    <name>mxm::gui::PeakControllerEffectControlDialog</name>
     <message>
         <location filename="../../plugins/PeakControllerEffect/PeakControllerEffectControlDialog.cpp" line="51"/>
         <source>BASE</source>
@@ -12629,7 +12629,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PeakIndicator</name>
+    <name>mxm::gui::PeakIndicator</name>
     <message>
         <location filename="../../src/gui/widgets/PeakIndicator.cpp" line="74"/>
         <source>-inf</source>
@@ -12637,7 +12637,7 @@ Warning: This operation can not be undone.</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PianoRoll</name>
+    <name>mxm::gui::PianoRoll</name>
     <message>
         <location filename="../../src/gui/editors/PianoRoll.cpp" line="230"/>
         <source>Note Velocity</source>
@@ -12768,7 +12768,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PianoRollWindow</name>
+    <name>mxm::gui::PianoRollWindow</name>
     <message>
         <location filename="../../src/gui/editors/PianoRoll.cpp" line="5184"/>
         <source>Play/pause current clip (Space)</source>
@@ -13025,7 +13025,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PianoView</name>
+    <name>mxm::gui::PianoView</name>
     <message>
         <location filename="../../src/gui/instrument/PianoView.cpp" line="669"/>
         <source>Base note</source>
@@ -13043,7 +13043,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PluginBrowser</name>
+    <name>mxm::gui::PluginBrowser</name>
     <message>
         <location filename="../../src/gui/PluginBrowser.cpp" line="49"/>
         <source>Instrument Plugins</source>
@@ -13066,7 +13066,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::PluginDescWidget</name>
+    <name>mxm::gui::PluginDescWidget</name>
     <message>
         <location filename="../../src/gui/PluginBrowser.cpp" line="301"/>
         <source>Send to new instrument track</source>
@@ -13074,7 +13074,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ProjectNotes</name>
+    <name>mxm::gui::ProjectNotes</name>
     <message>
         <location filename="../../src/gui/ProjectNotes.cpp" line="75"/>
         <source>Project Notes</source>
@@ -13222,7 +13222,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::RecentProjectsMenu</name>
+    <name>mxm::gui::RecentProjectsMenu</name>
     <message>
         <location filename="../../src/gui/menus/RecentProjectsMenu.cpp" line="18"/>
         <source>&amp;Recently Opened Projects</source>
@@ -13230,7 +13230,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::RenameDialog</name>
+    <name>mxm::gui::RenameDialog</name>
     <message>
         <location filename="../../src/gui/modals/RenameDialog.cpp" line="40"/>
         <source>Rename...</source>
@@ -13238,7 +13238,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ReverbSCControlDialog</name>
+    <name>mxm::gui::ReverbSCControlDialog</name>
     <message>
         <location filename="../../plugins/ReverbSC/ReverbSCControlDialog.cpp" line="49"/>
         <source>Input</source>
@@ -13281,7 +13281,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SaControlsDialog</name>
+    <name>mxm::gui::SaControlsDialog</name>
     <message>
         <location filename="../../plugins/SpectrumAnalyzer/SaControlsDialog.cpp" line="92"/>
         <source>Pause</source>
@@ -13523,7 +13523,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SampleClipView</name>
+    <name>mxm::gui::SampleClipView</name>
     <message>
         <location filename="../../src/gui/clips/SampleClipView.cpp" line="75"/>
         <source>Double-click to open sample</source>
@@ -13541,7 +13541,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SampleTrackView</name>
+    <name>mxm::gui::SampleTrackView</name>
     <message>
         <location filename="../../src/gui/tracks/SampleTrackView.cpp" line="68"/>
         <source>Mixer channel</source>
@@ -13589,7 +13589,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SampleTrackWindow</name>
+    <name>mxm::gui::SampleTrackWindow</name>
     <message>
         <location filename="../../src/gui/SampleTrackWindow.cpp" line="94"/>
         <source>Mute</source>
@@ -13652,7 +13652,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SaveOptionsWidget</name>
+    <name>mxm::gui::SaveOptionsWidget</name>
     <message>
         <location filename="../../src/gui/modals/VersionedSaveDialog.cpp" line="185"/>
         <source>Discard MIDI connections</source>
@@ -13665,7 +13665,7 @@ Shift-click to open the note in Automation Editor</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SetupDialog</name>
+    <name>mxm::gui::SetupDialog</name>
     <message>
         <location filename="../../src/gui/modals/SetupDialog.cpp" line="162"/>
         <source>Settings</source>
@@ -13984,8 +13984,8 @@ Shift-click to open the note in Automation Editor</source>
     </message>
     <message>
         <location filename="../../src/gui/modals/SetupDialog.cpp" line="825"/>
-        <source>LMMS working directory</source>
-        <translation>LMMS工作目录</translation>
+        <source>MXM working directory</source>
+        <translation>MXM工作目录</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/SetupDialog.cpp" line="829"/>
@@ -14071,8 +14071,8 @@ Latency: %2 ms</source>
     </message>
     <message>
         <location filename="../../src/gui/modals/SetupDialog.cpp" line="1323"/>
-        <source>Choose the LMMS working directory</source>
-        <translation>选择 LMMS 工作目录</translation>
+        <source>Choose the MXM working directory</source>
+        <translation>选择 MXM 工作目录</translation>
     </message>
     <message>
         <location filename="../../src/gui/modals/SetupDialog.cpp" line="1340"/>
@@ -14111,7 +14111,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::Sf2InstrumentView</name>
+    <name>mxm::gui::Sf2InstrumentView</name>
     <message>
         <location filename="../../plugins/Sf2Player/Sf2Player.cpp" line="943"/>
         <location filename="../../plugins/Sf2Player/Sf2Player.cpp" line="1152"/>
@@ -14181,7 +14181,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SidInstrumentView</name>
+    <name>mxm::gui::SidInstrumentView</name>
     <message>
         <location filename="../../plugins/Sid/SidInstrument.cpp" line="477"/>
         <source>Volume:</source>
@@ -14308,7 +14308,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SideBarWidget</name>
+    <name>mxm::gui::SideBarWidget</name>
     <message>
         <location filename="../../src/gui/SideBarWidget.cpp" line="51"/>
         <source>Close</source>
@@ -14316,7 +14316,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SlewDistortionControlDialog</name>
+    <name>mxm::gui::SlewDistortionControlDialog</name>
     <message>
         <location filename="../../plugins/SlewDistortion/SlewDistortionControlDialog.cpp" line="114"/>
         <source>Slew Up 1:</source>
@@ -14469,7 +14469,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SlewDistortionHelpView</name>
+    <name>mxm::gui::SlewDistortionHelpView</name>
     <message>
         <location filename="../../plugins/SlewDistortion/SlewDistortionControlDialog.cpp" line="399"/>
         <source>&lt;div style=&apos;text-align: center;&apos;&gt;&lt;b&gt;Slew Distortion&lt;/b&gt;&lt;br&gt;&lt;br&gt;Plugin by Lost Robot&lt;br&gt;GUI by thismoon&lt;br&gt;&lt;/div&gt;&lt;h3&gt;Overview:&lt;/h3&gt;Slew Distortion is a multiband slew rate limiter and distortion effect.&lt;br&gt;&lt;br&gt;Slew rate limiting is something I accidentally invented while trying to make a lowpass filter for the first time.&lt;br&gt;In short, a slew rate limiter limits how quickly the waveform can move from one point to the next.&lt;br&gt;You&apos;ll hear that it has a similar quality to a lowpass filter, in that it does quieten the high frequencies by quite a bit.&lt;br&gt;However, the intensity of this effect depends heavily on the input signal, and with it comes a rather unique distortion of that signal.&lt;br&gt;&lt;br&gt;In this plugin, the slew rate limiting is followed by waveshaping distortion.&lt;br&gt;Every distortion type is a pure waveshaping function with no filters or delays of any kind involved.&lt;br&gt;These distortions will generate new harmonics at exact frequency multiples of the incoming audio.&lt;br&gt;&lt;br&gt;Because the plugin is multiband, you can apply these effects to different frequency ranges independently.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Distortion Types:&lt;/h3&gt;&lt;b&gt;Hard Clip&lt;/b&gt; - Aggressively clamps the audio signal to 0 dBFS.&lt;br&gt;This leaves the signal entirely untouched until it passes the clamping threshold, beyond which all content is clipped out entirely.&lt;br&gt;&lt;b&gt;Tanh&lt;/b&gt; - A very gentle sigmoid distortion.&lt;br&gt;This waveshape is mathematically smooth and continuous at all derivatives.&lt;br&gt;It can be pushed significantly harder than most other distortion shapes before it starts generating harsh high frequencies.&lt;br&gt;&lt;b&gt;Fast Soft Clip 1&lt;/b&gt; - A CPU-efficient soft clipping function.&lt;br&gt;&lt;b&gt;Fast Soft Clip 2&lt;/b&gt; - A CPU-efficient cubic soft clipping function.&lt;br&gt;&lt;b&gt;Sinusoidal&lt;/b&gt; - Incredibly smooth wavewrapping distortion.&lt;br&gt;Unlike all the previous distortion types, loud audio information is not entirely lost or clipped away, and is instead wrapped back down to lower values.&lt;br&gt;&lt;b&gt;Foldover&lt;/b&gt; - A non-smooth wavewrapping alternative.&lt;br&gt;This leaves the audio values untouched relative to neighboring values,&lt;br&gt;except at the borders where the waveshape sharply changes directions, generating harsh distortion.&lt;br&gt;&lt;b&gt;Full-wave Rectify&lt;/b&gt; - Flips the bottom half of the waveform to the top half.&lt;br&gt;The timbre of this commonly sounds similar to shifting the audio upward by one octave.&lt;br&gt;Unlike all the previous distortion types, this one is asymmetrical by default, meaning it will generate even-multiple harmonics.&lt;br&gt;&lt;b&gt;Smooth Rectify&lt;/b&gt; - An alternative to Full-wave Rectify which has a smooth corner.&lt;br&gt;&lt;b&gt;Half-wave Rectify&lt;/b&gt; - An alternative to Full-wave Rectify which clips all negative audio samples instead of reflecting them upward.&lt;br&gt;&lt;b&gt;Bitcrush&lt;/b&gt; - Bit depth reduction. This distortion type is special-cased to have the Drive change its shape instead of its input amplitude.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Slew:&lt;/h3&gt;This section controls the slew rate limit, the speed at which the incoming waveform&apos;s values can change.&lt;br&gt;&lt;b&gt;Up&lt;/b&gt; and &lt;b&gt;Down&lt;/b&gt; control the slew rate limit for upward and downward movement, respectively.&lt;br&gt;The &lt;b&gt;Slew Link&lt;/b&gt; button locks the Slew Up and Slew Down parameters to the same value, for convenience.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Dynamics:&lt;/h3&gt;This section uses an envelope follower to track the volume of the incoming audio signal.&lt;br&gt;&lt;b&gt;Amount&lt;/b&gt; - Restores the dynamic range lost from the distortion and slew rate limiting by matching the output volume to the input volume.&lt;br&gt;&lt;b&gt;Slew&lt;/b&gt; - Dynamically changes the slew rate, depending on the input volume.&lt;br&gt;&lt;b&gt;Attack&lt;/b&gt; - How quickly the envelope follower responds to increases in volume (e.g. transients).&lt;br&gt;&lt;b&gt;Release&lt;/b&gt; - How quickly the envelope follower responds to decreases in volume.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Shape:&lt;/h3&gt;This section allows further sculpting of the distortion shape beyond what the distortion types can achieve on their own.&lt;br&gt;&lt;b&gt;Warp&lt;/b&gt; - Causes input values smaller than this value to be unimpacted by the waveshaping.&lt;br&gt;The distortion shape is properly scaled and shifted to ensure it remains perfectly clean and continuous.&lt;br&gt;&lt;b&gt;Crush&lt;/b&gt; - Increases the volume of audio below the Warp value.&lt;br&gt;This adds a sharp corner to the waveshaping function, resulting in much more aggressive distortion.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Miscellaneous:&lt;/h3&gt;&lt;b&gt;Mix&lt;/b&gt; - Blends between the wet and dry signals for the current band.&lt;br&gt;Since both the wet and dry signal are after the crossover filter and have oversampling applied,&lt;br&gt;this parameter is entirely immune to phase issues caused by blending signals.&lt;br&gt;&lt;b&gt;Bias&lt;/b&gt; - Adds DC offset to the input signal before the distortion, causing the waveshaping to be asymmetrical.&lt;br&gt;This allows every distortion type to generate even-multiple harmonics, including the symmetrical types which usually only generate odd-multiple harmonics.&lt;br&gt;&lt;b&gt;DC Remover&lt;/b&gt; - Removes DC offset (0 Hz audio) from the output signal. You&apos;ll almost always want to leave this enabled.&lt;br&gt;&lt;b&gt;Multiband&lt;/b&gt; - Splits the signal into two frequency bands. If disabled, the top band&apos;s parameters are applied to the entire audio signal.&lt;br&gt;&lt;b&gt;Split&lt;/b&gt; - The crossover frequency at which the Multiband mode splits the signal into two bands.&lt;br&gt;&lt;br&gt;&lt;h3&gt;Oversampling:&lt;/h3&gt;An audio signal is only capable of storing frequencies below Nyquist, which is half of the sample rate.&lt;br&gt;If any form of distortion generates new frequencies that are above this Nyquist frequency, they will be reflected (aliased) back downward.&lt;br&gt;For example, if the distortion generates a harmonic that is 5000 Hz above Nyquist, that frequency will be aliased down to 5000 Hz below Nyquist.&lt;br&gt;This aliasing is inharmonic, oftentimes sounds unpleasant, and can even contribute to auditory masking within the song.&lt;br&gt;&lt;br&gt;Oversampling helps to resolve this issue by temporarily increasing the sample rate of the signal,&lt;br&gt;so significantly higher frequencies can be supported before they start aliasing back into the audible range.&lt;br&gt;Those higher frequencies are then filtered out before decreasing the sample rate back to its original value so they don&apos;t alias.&lt;br&gt;&lt;br&gt;This plugin supports up to five stages of oversampling.&lt;br&gt;Each stage provides an extra 2 octaves of headroom before frequencies alias far enough to become audible.&lt;br&gt;The number on the button is how much the sample rate is increased by. THE PLUGIN&apos;S CPU USAGE WILL BE INCREASED BY APPROXIMATELY THE SAME AMOUNT.&lt;br&gt;Even just 2x oversampling can make a massive difference and is oftentimes all you need, but up to 32x oversampling is supported.&lt;br&gt;</source>
@@ -14477,7 +14477,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SlicerTView</name>
+    <name>mxm::gui::SlicerTView</name>
     <message>
         <location filename="../../plugins/SlicerT/SlicerTView.cpp" line="65"/>
         <source>Slice snap</source>
@@ -14566,7 +14566,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SlicerTWaveform</name>
+    <name>mxm::gui::SlicerTWaveform</name>
     <message>
         <location filename="../../plugins/SlicerT/SlicerTWaveform.cpp" line="219"/>
         <source>Click to load sample</source>
@@ -14574,7 +14574,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SongEditor</name>
+    <name>mxm::gui::SongEditor</name>
     <message>
         <location filename="../../src/core/DataFile.cpp" line="169"/>
         <source>Could not open file</source>
@@ -14662,7 +14662,7 @@ Latency: %2 ms</source>
     </message>
     <message>
         <location filename="../../src/core/DataFile.cpp" line="2170"/>
-        <source>This %1 was created with LMMS %2</source>
+        <source>This %1 was created with MXM %2</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -14721,7 +14721,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SongEditorWindow</name>
+    <name>mxm::gui::SongEditorWindow</name>
     <message>
         <location filename="../../src/gui/editors/SongEditor.cpp" line="922"/>
         <source>Song-Editor</source>
@@ -14841,7 +14841,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::StepRecorderWidget</name>
+    <name>mxm::gui::StepRecorderWidget</name>
     <message>
         <location filename="../../src/gui/editors/StepRecorderWidget.cpp" line="97"/>
         <source>Hint</source>
@@ -14854,7 +14854,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::StereoEnhancerControlDialog</name>
+    <name>mxm::gui::StereoEnhancerControlDialog</name>
     <message>
         <location filename="../../plugins/StereoEnhancer/StereoEnhancerControlDialog.cpp" line="44"/>
         <source>WIDTH</source>
@@ -14867,7 +14867,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::StereoMatrixControlDialog</name>
+    <name>mxm::gui::StereoMatrixControlDialog</name>
     <message>
         <location filename="../../plugins/StereoMatrix/StereoMatrixControlDialog.cpp" line="59"/>
         <source>Left to Left Vol:</source>
@@ -14890,7 +14890,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::SubWindow</name>
+    <name>mxm::gui::SubWindow</name>
     <message>
         <location filename="../../src/gui/SubWindow.cpp" line="79"/>
         <source>Close</source>
@@ -14913,7 +14913,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TapTempoView</name>
+    <name>mxm::gui::TapTempoView</name>
     <message>
         <location filename="../../plugins/TapTempo/TapTempoView.cpp" line="56"/>
         <location filename="../../plugins/TapTempo/TapTempoView.cpp" line="139"/>
@@ -14994,7 +14994,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TemplatesMenu</name>
+    <name>mxm::gui::TemplatesMenu</name>
     <message>
         <location filename="../../src/gui/menus/TemplatesMenu.cpp" line="17"/>
         <source>New from template</source>
@@ -15002,7 +15002,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TempoSyncBarModelEditor</name>
+    <name>mxm::gui::TempoSyncBarModelEditor</name>
     <message>
         <location filename="../../src/gui/widgets/TempoSyncBarModelEditor.cpp" line="47"/>
         <location filename="../../src/gui/widgets/TempoSyncBarModelEditor.cpp" line="231"/>
@@ -15106,7 +15106,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TempoSyncKnob</name>
+    <name>mxm::gui::TempoSyncKnob</name>
     <message>
         <location filename="../../src/gui/widgets/TempoSyncKnob.cpp" line="50"/>
         <location filename="../../src/gui/widgets/TempoSyncKnob.cpp" line="229"/>
@@ -15210,7 +15210,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TimeDisplayWidget</name>
+    <name>mxm::gui::TimeDisplayWidget</name>
     <message>
         <location filename="../../src/gui/widgets/TimeDisplayWidget.cpp" line="53"/>
         <source>Time units</source>
@@ -15248,7 +15248,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TimeLineWidget</name>
+    <name>mxm::gui::TimeLineWidget</name>
     <message>
         <location filename="../../src/gui/editors/TimeLineWidget.cpp" line="84"/>
         <source>Auto scrolling</source>
@@ -15331,7 +15331,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TrackContentWidget</name>
+    <name>mxm::gui::TrackContentWidget</name>
     <message>
         <location filename="../../src/gui/tracks/TrackContentWidget.cpp" line="604"/>
         <source>Paste</source>
@@ -15339,7 +15339,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TrackOperationsWidget</name>
+    <name>mxm::gui::TrackOperationsWidget</name>
     <message>
         <location filename="../../src/gui/tracks/TrackOperationsWidget.cpp" line="59"/>
         <source>Press &lt;%1&gt; while clicking on move-grip to begin a new drag&apos;n&apos;drop action.</source>
@@ -15439,7 +15439,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::TripleOscillatorView</name>
+    <name>mxm::gui::TripleOscillatorView</name>
     <message>
         <location filename="../../plugins/TripleOscillator/TripleOscillator.cpp" line="458"/>
         <source>Modulate phase of oscillator 1 by oscillator 2</source>
@@ -15589,7 +15589,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VecControlsDialog</name>
+    <name>mxm::gui::VecControlsDialog</name>
     <message>
         <location filename="../../plugins/Vectorscope/VecControlsDialog.cpp" line="57"/>
         <source>Log. scale</source>
@@ -15612,7 +15612,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VectorView</name>
+    <name>mxm::gui::VectorView</name>
     <message>
         <location filename="../../plugins/Vectorscope/VectorView.cpp" line="211"/>
         <source>Exec avg.: %1 ms</source>
@@ -15625,7 +15625,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VersionedSaveDialog</name>
+    <name>mxm::gui::VersionedSaveDialog</name>
     <message>
         <location filename="../../src/gui/modals/VersionedSaveDialog.cpp" line="54"/>
         <source>Increment version number</source>
@@ -15648,7 +15648,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VestigeInstrumentView</name>
+    <name>mxm::gui::VestigeInstrumentView</name>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="501"/>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="657"/>
@@ -15657,8 +15657,8 @@ Latency: %2 ms</source>
     </message>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="513"/>
-        <source>Control VST plugin from LMMS host</source>
-        <translation>从 LMMS 宿主控制 VST 插件</translation>
+        <source>Control VST plugin from MXM host</source>
+        <translation>从 MXM 宿主控制 VST 插件</translation>
     </message>
     <message>
         <location filename="../../plugins/Vestige/Vestige.cpp" line="526"/>
@@ -15732,7 +15732,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VibedView</name>
+    <name>mxm::gui::VibedView</name>
     <message>
         <location filename="../../plugins/Vibed/Vibed.cpp" line="281"/>
         <source>Enable waveform</source>
@@ -15853,7 +15853,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VolumeKnob</name>
+    <name>mxm::gui::VolumeKnob</name>
     <message>
         <location filename="../../src/gui/widgets/Knob.cpp" line="582"/>
         <source>Set value</source>
@@ -15866,7 +15866,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::VstEffectControlDialog</name>
+    <name>mxm::gui::VstEffectControlDialog</name>
     <message>
         <location filename="../../plugins/VstEffect/VstEffectControlDialog.cpp" line="76"/>
         <source>Show/hide</source>
@@ -15874,8 +15874,8 @@ Latency: %2 ms</source>
     </message>
     <message>
         <location filename="../../plugins/VstEffect/VstEffectControlDialog.cpp" line="103"/>
-        <source>Control VST plugin from LMMS host</source>
-        <translation>从 LMMS 宿主控制 VST 插件</translation>
+        <source>Control VST plugin from MXM host</source>
+        <translation>从 MXM 宿主控制 VST 插件</translation>
     </message>
     <message>
         <location filename="../../plugins/VstEffect/VstEffectControlDialog.cpp" line="119"/>
@@ -15910,7 +15910,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::WatsynView</name>
+    <name>mxm::gui::WatsynView</name>
     <message>
         <location filename="../../plugins/Watsyn/Watsyn.cpp" line="687"/>
         <location filename="../../plugins/Watsyn/Watsyn.cpp" line="688"/>
@@ -16135,7 +16135,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::WaveShaperControlDialog</name>
+    <name>mxm::gui::WaveShaperControlDialog</name>
     <message>
         <location filename="../../plugins/WaveShaper/WaveShaperControlDialog.cpp" line="63"/>
         <source>INPUT</source>
@@ -16192,7 +16192,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::XpressiveView</name>
+    <name>mxm::gui::XpressiveView</name>
     <message>
         <location filename="../../plugins/Xpressive/Xpressive.cpp" line="330"/>
         <source>Draw your own waveform here by dragging your mouse on this graph.</source>
@@ -16323,7 +16323,7 @@ Latency: %2 ms</source>
     </message>
 </context>
 <context>
-    <name>lmms::gui::ZynAddSubFxView</name>
+    <name>mxm::gui::ZynAddSubFxView</name>
     <message>
         <location filename="../../plugins/ZynAddSubFx/ZynAddSubFx.cpp" line="511"/>
         <source>PORT</source>

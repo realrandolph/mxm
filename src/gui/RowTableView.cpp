@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016 Javier Serrano Polo <javier@jasp.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include <QStyledItemDelegate>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -139,4 +139,4 @@ void RowTableView::keyPressEvent( QKeyEvent * event )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

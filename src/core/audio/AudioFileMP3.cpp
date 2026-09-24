@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2017 to present Michael Gregorius <michael.gregorius.git/at/arcor[dot]de>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,12 +27,12 @@
 
 #include "SampleFrame.h"
 
-#ifdef LMMS_HAVE_MP3LAME
+#ifdef MXM_HAVE_MP3LAME
 
 
 #include <cassert>
 
-namespace lmms
+namespace mxm
 {
 
 AudioFileMP3::AudioFileMP3(	OutputSettings const & outputSettings,
@@ -121,7 +121,7 @@ bool AudioFileMP3::initEncoder()
 
 	// Add a comment
 	id3tag_init(m_lame);
-	id3tag_set_comment(m_lame, "Created with LMMS");
+	id3tag_set_comment(m_lame, "Created with MXM");
 
 	return lame_init_params(m_lame) != -1;
 }
@@ -131,6 +131,6 @@ void AudioFileMP3::tearDownEncoder()
 	lame_close(m_lame);
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_MP3LAME
+#endif // MXM_HAVE_MP3LAME

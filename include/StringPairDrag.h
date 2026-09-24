@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2005-2007 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,23 +23,23 @@
  *
  */
 
-#ifndef LMMS_GUI_STRING_PAIR_DRAG_H
-#define LMMS_GUI_STRING_PAIR_DRAG_H
+#ifndef MXM_GUI_STRING_PAIR_DRAG_H
+#define MXM_GUI_STRING_PAIR_DRAG_H
 
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMimeData>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QPixmap;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
-class LMMS_EXPORT StringPairDrag : public QDrag
+class MXM_EXPORT StringPairDrag : public QDrag
 {
 public:
 	StringPairDrag( const QString & _key, const QString & _value,
@@ -53,6 +53,6 @@ public:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_STRING_PAIR_DRAG_H
+#endif // MXM_GUI_STRING_PAIR_DRAG_H

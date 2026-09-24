@@ -5,11 +5,11 @@
  * modified and enhanced by Tobias Doerffel
  * 
  * Lowpass_SV code originally from Nekobee, Copyright (C) 2004 Sean Bolton and others
- * adapted & modified for use in LMMS
+ * adapted & modified for use in MXM
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,19 +28,19 @@
  *
  */
 
-#ifndef LMMS_BASIC_FILTERS_H
-#define LMMS_BASIC_FILTERS_H
+#ifndef MXM_BASIC_FILTERS_H
+#define MXM_BASIC_FILTERS_H
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <numbers>
 
-#include "lmms_constants.h"
-#include "LmmsTypes.h"
+#include "mxm_constants.h"
+#include "MxmTypes.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 template<ch_cnt_t CHANNELS=DEFAULT_CHANNELS> class BasicFilters;
@@ -744,7 +744,7 @@ public:
 			// Stretch Q/resonance
 			m_vfq = _q * 0.25f;
 
-			// frequency in lmms ranges from 1Hz to 14000Hz
+			// frequency in mxm ranges from 1Hz to 14000Hz
 			const float vowelf = _freq * freqRatio;
 			const int vowel = static_cast<int>( vowelf );
 			const float fract = vowelf - vowel;
@@ -912,6 +912,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_BASIC_FILTERS_H
+#endif // MXM_BASIC_FILTERS_H

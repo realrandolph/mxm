@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_PROCESSOR_H
-#define LMMS_AUDIO_FILE_PROCESSOR_H
+#ifndef MXM_AUDIO_FILE_PROCESSOR_H
+#define MXM_AUDIO_FILE_PROCESSOR_H
 
 
 #include "AutomatableModel.h"
@@ -32,10 +32,10 @@
 
 #include "Instrument.h"
 #include "Sample.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class AudioFileProcessor : public Instrument
@@ -90,7 +90,7 @@ private slots:
 
 
 signals:
-	void isPlaying( lmms::f_cnt_t _current_frame );
+	void isPlaying( mxm::f_cnt_t _current_frame );
 	void sampleUpdated();
 
 private:
@@ -109,6 +109,6 @@ private:
 	bool m_nextPlayBackwards;
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_FILE_PROCESSOR_H
+#endif // MXM_AUDIO_FILE_PROCESSOR_H

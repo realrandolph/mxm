@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2020 Tien Dat Nguyen <ntd.bk.k56/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef LMMS_DEPRECATIONHELPER_H
-#define LMMS_DEPRECATIONHELPER_H
+#ifndef MXM_DEPRECATIONHELPER_H
+#define MXM_DEPRECATIONHELPER_H
 
 #include <type_traits>
 
@@ -35,7 +35,7 @@
 #include <QVariant>
 #include <QWheelEvent>
 
-namespace lmms
+namespace mxm
 {
 
 //! @brief Backwards-compatible adapter for `QDropEvent`'s new
@@ -185,6 +185,6 @@ inline bool setContent(QDomDocument& doc, QIODevice* dev, bool namespaceProcessi
 #endif
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_DEPRECATIONHELPER_H
+#endif // MXM_DEPRECATIONHELPER_H

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_TIME_POS_H
-#define LMMS_TIME_POS_H
+#ifndef MXM_TIME_POS_H
+#define MXM_TIME_POS_H
 
 #include <algorithm>
 #include <cassert>
-#include "lmms_export.h"
-#include "LmmsTypes.h"
+#include "mxm_export.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 // note: a bar was erroneously called "tact" in older versions of LMMS
@@ -48,7 +48,7 @@ class MeterModel;
 
 	Example: 6/8 means 6 beats in a bar with each beat having a duration of one 8th-note.
 */
-class LMMS_EXPORT TimeSig
+class MXM_EXPORT TimeSig
 {
 public:
 	TimeSig( int num, int denom );
@@ -64,7 +64,7 @@ private:
 /**
 	Represents a position in time or length of a note or event, in ticks, beats, and bars
 */
-class LMMS_EXPORT TimePos
+class MXM_EXPORT TimePos
 {
 public:
 	TimePos( const bar_t bar, const tick_t ticks );
@@ -146,6 +146,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TIME_POS_H
+#endif // MXM_TIME_POS_H

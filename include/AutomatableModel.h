@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2007-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_AUTOMATABLE_MODEL_H
-#define LMMS_AUTOMATABLE_MODEL_H
+#ifndef MXM_AUTOMATABLE_MODEL_H
+#define MXM_AUTOMATABLE_MODEL_H
 
 #include <cmath>
 #include <QMap>
@@ -36,7 +36,7 @@
 #include "ModelVisitor.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 // simple way to map a property of a view to a model
@@ -73,7 +73,7 @@ namespace lmms
 
 class ControllerConnection;
 
-class LMMS_EXPORT AutomatableModel : public Model, public JournallingObject
+class MXM_EXPORT AutomatableModel : public Model, public JournallingObject
 {
 	Q_OBJECT
 public:
@@ -429,14 +429,14 @@ private:
 
 signals:
 	void initValueChanged( float val );
-	void destroyed( lmms::jo_id_t id );
+	void destroyed( mxm::jo_id_t id );
 
 } ;
 
 
 
 
-template <typename T> class LMMS_EXPORT TypedAutomatableModel : public AutomatableModel
+template <typename T> class MXM_EXPORT TypedAutomatableModel : public AutomatableModel
 {
 public:
 	using AutomatableModel::AutomatableModel;
@@ -464,7 +464,7 @@ public:
 
 // some typed AutomatableModel-definitions
 
-class LMMS_EXPORT FloatModel : public TypedAutomatableModel<float>
+class MXM_EXPORT FloatModel : public TypedAutomatableModel<float>
 {
 	Q_OBJECT
 	MODEL_IS_VISITABLE
@@ -482,7 +482,7 @@ public:
 } ;
 
 
-class LMMS_EXPORT IntModel : public TypedAutomatableModel<int>
+class MXM_EXPORT IntModel : public TypedAutomatableModel<int>
 {
 	Q_OBJECT
 	MODEL_IS_VISITABLE
@@ -498,7 +498,7 @@ public:
 } ;
 
 
-class LMMS_EXPORT BoolModel : public TypedAutomatableModel<bool>
+class MXM_EXPORT BoolModel : public TypedAutomatableModel<bool>
 {
 	Q_OBJECT
 	MODEL_IS_VISITABLE
@@ -515,6 +515,6 @@ public:
 
 using AutomatedValueMap = QMap<AutomatableModel*, float>;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUTOMATABLE_MODEL_H
+#endif // MXM_AUTOMATABLE_MODEL_H

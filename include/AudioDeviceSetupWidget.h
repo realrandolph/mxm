@@ -4,7 +4,7 @@
  * Copyright (c) 2004-2015 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2023- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_GUI_AUDIO_DEVICE_SETUP_WIDGET_H
-#define LMMS_GUI_AUDIO_DEVICE_SETUP_WIDGET_H
+#ifndef MXM_GUI_AUDIO_DEVICE_SETUP_WIDGET_H
+#define MXM_GUI_AUDIO_DEVICE_SETUP_WIDGET_H
 
 #include <QGroupBox>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class AudioDeviceSetupWidget : public QGroupBox
@@ -44,6 +44,6 @@ public:
 	virtual void show();
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_AUDIO_DEVICE_SETUP_WIDGET_H
+#endif // MXM_GUI_AUDIO_DEVICE_SETUP_WIDGET_H

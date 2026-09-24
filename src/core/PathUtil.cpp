@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2022 Spekular <Spekularr@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,11 +29,11 @@
 
 #include "ConfigManager.h"
 #include "Engine.h"
-#include "lmmsconfig.h" // IWYU pragma: keep
+#include "mxmconfig.h" // IWYU pragma: keep
 #include "IoHelper.h" // IWYU pragma: keep
 #include "Song.h"
 
-namespace lmms::PathUtil
+namespace mxm::PathUtil
 {
 	auto relativeBases = std::array{ Base::ProjectDir, Base::FactoryProjects, Base::FactorySample, Base::UserSample, Base::UserVST, Base::Preset,
 		Base::FactoryPresets, Base::UserLADSPA, Base::DefaultLADSPA, Base::UserSoundfont, Base::DefaultSoundfont, Base::UserGIG, Base::DefaultGIG,
@@ -254,7 +254,7 @@ namespace lmms::PathUtil
 
 	auto stringToPath(std::string_view path) -> std::filesystem::path
 	{
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 		return toWString(path).get();
 #else
 		// Assume UTF-8 is the narrow encoding on non-Windows
@@ -264,7 +264,7 @@ namespace lmms::PathUtil
 
 	auto stringToPath(const QString& path) -> std::filesystem::path
 	{
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 		// Cast QString's UTF-16 encoded unsigned short* to wchar_t*
 		return reinterpret_cast<const wchar_t*>(path.utf16());
 #else
@@ -275,7 +275,7 @@ namespace lmms::PathUtil
 
 	auto pathToString(const std::filesystem::path& path) -> std::string
 	{
-#if defined(LMMS_BUILD_WIN32)
+#if defined(MXM_BUILD_WIN32)
 		const auto utf8String = path.u8string();
 		return {reinterpret_cast<const char*>(utf8String.c_str()), utf8String.size()};
 #else
@@ -283,4 +283,4 @@ namespace lmms::PathUtil
 		return path.string();
 #endif
 	}
-} // namespace lmms::PathUtil
+} // namespace mxm::PathUtil

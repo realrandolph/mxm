@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024- Michael Gregorius
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,18 +23,18 @@
  */
 
 
-#ifndef LMMS_GUI_PEAKINDICATOR_H
-#define LMMS_GUI_PEAKINDICATOR_H
+#ifndef MXM_GUI_PEAKINDICATOR_H
+#define MXM_GUI_PEAKINDICATOR_H
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 #include <QLabel>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT PeakIndicator : public QLabel
+class MXM_EXPORT PeakIndicator : public QLabel
 {
 	Q_OBJECT
 public:
@@ -55,6 +55,6 @@ private:
 	float m_peak;
 } ;
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_PEAKINDICATOR_H
+#endif // MXM_GUI_PEAKINDICATOR_H

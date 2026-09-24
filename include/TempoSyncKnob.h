@@ -4,7 +4,7 @@
  * Copyright (c) 2005-2008 Danny McRae <khjklujn/at/yahoo.com>
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_GUI_TEMPO_SYNC_KNOB_H
-#define LMMS_GUI_TEMPO_SYNC_KNOB_H
+#ifndef MXM_GUI_TEMPO_SYNC_KNOB_H
+#define MXM_GUI_TEMPO_SYNC_KNOB_H
 
 #include <QPixmap>
 #include <QPointer>
@@ -32,12 +32,12 @@
 #include "Knob.h"
 #include "TempoSyncKnobModel.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class MeterDialog;
 
-class LMMS_EXPORT TempoSyncKnob : public Knob
+class MXM_EXPORT TempoSyncKnob : public Knob
 {
 	Q_OBJECT
 public:
@@ -105,6 +105,6 @@ private:
 
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TEMPO_SYNC_KNOB_H
+#endif // MXM_GUI_TEMPO_SYNC_KNOB_H

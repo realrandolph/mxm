@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,16 +22,16 @@
  *
  */
 
-#ifndef LMMS_DSPEFFECTLIBRARY_H
-#define LMMS_DSPEFFECTLIBRARY_H
+#ifndef MXM_DSPEFFECTLIBRARY_H
+#define MXM_DSPEFFECTLIBRARY_H
 
 #include <numbers>
 
-#include "lmms_math.h"
-#include "LmmsTypes.h"
+#include "mxm_math.h"
+#include "MxmTypes.h"
 #include "SampleFrame.h"
 
-namespace lmms::DspEffectLibrary
+namespace mxm::DspEffectLibrary
 {
 
 	template<typename T>
@@ -340,6 +340,6 @@ namespace lmms::DspEffectLibrary
 
 	} ;
 
-} // namespace lmms::DspEffectLibrary
+} // namespace mxm::DspEffectLibrary
 
-#endif // LMMS_DSPEFFECTLIBRARY_H
+#endif // MXM_DSPEFFECTLIBRARY_H

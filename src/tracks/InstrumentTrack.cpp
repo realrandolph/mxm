@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -42,7 +42,7 @@
 #include "Pitch.h"
 #include "Song.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -297,7 +297,7 @@ void InstrumentTrack::processCCEvent(int controller)
 	auto value = static_cast<uint16_t>(m_midiCCModel[controller]->value());
 
 	// Process the MIDI CC event as an input event but with source set to Internal
-	// so we can know LMMS generated the event, not a controller, and can process it during
+	// so we can know MXM generated the event, not a controller, and can process it during
 	// the project export
 	processInEvent(MidiEvent(MidiControlChange, channel, cc, value, nullptr, MidiEvent::Source::Internal));
 }
@@ -1089,4 +1089,4 @@ void InstrumentTrack::autoAssignMidiDevice(bool assign)
 }
 
 
-} // namespace lmms
+} // namespace mxm

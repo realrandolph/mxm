@@ -101,7 +101,7 @@ endif()
 # Detect wine paths and handle linking problems
 IF(WINE_CXX)
 	# call wineg++ to obtain implied includes and libs
-	if(LMMS_HOST_X86_64 OR LMMS_HOST_X86)
+	if(MXM_HOST_X86_64 OR MXM_HOST_X86)
 		execute_process(COMMAND ${WINE_CXX} -m32 -v /dev/zero OUTPUT_VARIABLE WINEBUILD_OUTPUT_32 ERROR_QUIET)
 		execute_process(COMMAND ${WINE_CXX} -m64 -v /dev/zero OUTPUT_VARIABLE WINEBUILD_OUTPUT_64 ERROR_QUIET)
 	else()

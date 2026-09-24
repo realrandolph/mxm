@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2012 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -51,7 +51,7 @@
 #include <QPainter>
 #include <QPainterPath>  // IWYU pragma: keep
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "CaptionMenu.h"
 #include "ConfigManager.h"
 #include "DeprecationHelper.h"
@@ -65,7 +65,7 @@ namespace
 	constexpr auto c_faderMinDb = -120.f;
 }
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 SimpleTextFloat* Fader::s_textFloat = nullptr;
@@ -750,4 +750,4 @@ void Fader::paintFaderTicks(QPainter& painter)
 	painter.restore();
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2015 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_GUI_AUDIO_ALSA_SETUP_WIDGET_H
-#define LMMS_GUI_AUDIO_ALSA_SETUP_WIDGET_H
+#ifndef MXM_GUI_AUDIO_ALSA_SETUP_WIDGET_H
+#define MXM_GUI_AUDIO_ALSA_SETUP_WIDGET_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 
 #include "AudioDeviceSetupWidget.h"
 
@@ -36,7 +36,7 @@
 
 class QComboBox;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class LcdSpinBox;
@@ -62,8 +62,8 @@ private:
 	AudioAlsa::DeviceInfoCollection m_deviceInfos;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_HAVE_ALSA
+#endif // MXM_HAVE_ALSA
 
-#endif // LMMS_GUI_AUDIO_ALSA_SETUP_WIDGET_H
+#endif // MXM_GUI_AUDIO_ALSA_SETUP_WIDGET_H

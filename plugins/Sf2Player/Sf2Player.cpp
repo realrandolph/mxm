@@ -4,7 +4,7 @@
  * Copyright (c) 2008 Paul Giblock <drfaygo/at/gmail/dot/com>
  * Copyright (c) 2009-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -59,7 +59,7 @@
 #define FLUID_CHORUS_DEFAULT_SPEED 0.3f
 #define FLUID_CHORUS_DEFAULT_DEPTH 8.0f
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -68,7 +68,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT sf2player_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"Sf2 Player",
 	QT_TRANSLATE_NOOP( "PluginBrowser", "Player for SoundFont files" ),
 	"Paul Giblock <drfaygo/at/gmail/dot/com>",
@@ -605,7 +605,7 @@ void Sf2Instrument::reloadSynth()
 
 	if (m_internalSampleRate != Engine::audioEngine()->outputSampleRate())
 	{
-		// LMMS supports a sample rate of 192 kHZ, while FluidSynth only supports up to 96 kHZ.
+		// MXM supports a sample rate of 192 kHZ, while FluidSynth only supports up to 96 kHZ.
 		// Because of this, the instrument is resampled using libsamplerate when necessary.
 		// This uses linear interpolation, so the instrument's interpolation is set to FLUID_INTERP_LINEAR
 		// to match. A better option might be to make the interpolation option modifiable by the user, as well as only
@@ -1216,11 +1216,11 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * )
 {
 	return new Sf2Instrument( static_cast<InstrumentTrack *>( m ) );
 }
 }
 
 
-} // namespace lmms
+} // namespace mxm

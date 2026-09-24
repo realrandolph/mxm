@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,21 +22,21 @@
  *
  */
 
-#ifndef LMMS_GUI_INSTRUMENT_VIEW_H
-#define LMMS_GUI_INSTRUMENT_VIEW_H
+#ifndef MXM_GUI_INSTRUMENT_VIEW_H
+#define MXM_GUI_INSTRUMENT_VIEW_H
 
 #include "Instrument.h"
 #include "PluginView.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class InstrumentTrackWindow;
 
 
 //! Instrument view with variable size
-class LMMS_EXPORT InstrumentView : public PluginView
+class MXM_EXPORT InstrumentView : public PluginView
 {
 public:
 	InstrumentView( Instrument * _instrument, QWidget * _parent );
@@ -61,8 +61,8 @@ public:
 
 
 
-//! Instrument view with fixed LMMS-default size
-class LMMS_EXPORT InstrumentViewFixedSize : public InstrumentView
+//! Instrument view with fixed MXM-default size
+class MXM_EXPORT InstrumentViewFixedSize : public InstrumentView
 {
 	QSize sizeHint() const override { return QSize(250, 250); }
 	QSize minimumSizeHint() const override { return sizeHint(); }
@@ -73,6 +73,6 @@ public:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_INSTRUMENT_VIEW_H
+#endif // MXM_GUI_INSTRUMENT_VIEW_H

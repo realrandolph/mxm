@@ -26,7 +26,7 @@ function(determine_msvc_native_arch _arch_option_out)
 		message(FATAL_ERROR "Cross-compiling is not supported")
 	endif()
 
-	if(NOT LMMS_HOST_X86_64 AND NOT LMMS_HOST_ARM64)
+	if(NOT MXM_HOST_X86_64 AND NOT MXM_HOST_ARM64)
 		message(WARNING "CPU feature detection is only implemented for x86_64 and arm64 - using default /arch option.")
 		set("${_arch_option_out}" "" CACHE INTERNAL "Native /arch option")
 		return()

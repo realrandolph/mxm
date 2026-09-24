@@ -65,19 +65,19 @@ FUNCTION(INSTALL_TARGET_DEPENDENCIES)
 
 	LIST(REMOVE_DUPLICATES DEPS_LIB_DIRS)
 
-	IF(LMMS_BUILD_LINUX)
+	IF(MXM_BUILD_LINUX)
 		FILE(DOWNLOAD "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist"
 				"${CMAKE_BINARY_DIR}/excludelist")
 		SET(additional_args INCLUDE_SYSTEM IGNORE_LIBS_FILE ${CMAKE_BINARY_DIR}/excludelist)
-	ELSEIF(LMMS_BUILD_WIN32)
-		SET(additional_args IGNORE_CASE IGNORE_LIBS_FILE "${LMMS_SOURCE_DIR}/cmake/install/excludelist-win")
+	ELSEIF(MXM_BUILD_WIN32)
+		SET(additional_args IGNORE_CASE IGNORE_LIBS_FILE "${MXM_SOURCE_DIR}/cmake/install/excludelist-win")
 		IF(CMAKE_CROSSCOMPILING)
 			SET(additional_args "${additional_args}" GP_TOOL objdump)
 		ENDIF()
 	ENDIF()
 
 	INSTALL(CODE "
-		INCLUDE(\"${LMMS_SOURCE_DIR}/cmake/modules/InstallDependencies.cmake\")
+		INCLUDE(\"${MXM_SOURCE_DIR}/cmake/modules/InstallDependencies.cmake\")
 
 		INSTALL_DEPENDENCIES(
 			FILES \"\${DEPLOY_FILES}\"

@@ -2,7 +2,7 @@
  * GbApuWrapper.h - Gb_Apu subclass which allows direct buffer access
  * Copyright (c) 2017 Tres Finocchiaro <tres.finocchiaro/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,13 +21,13 @@
  *
  */
 
-#ifndef LMMS_GB_APU_WRAPPER_H
-#define LMMS_GB_APU_WRAPPER_H
+#ifndef MXM_GB_APU_WRAPPER_H
+#define MXM_GB_APU_WRAPPER_H
 
 #include <Gb_Apu.h>
 #include <Multi_Buffer.h>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -54,6 +54,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GB_APU_WRAPPER_H
+#endif // MXM_GB_APU_WRAPPER_H

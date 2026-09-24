@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,23 +22,23 @@
  *
  */
 
-#ifndef LMMS_LV2PORTS_H
-#define LMMS_LV2PORTS_H
+#ifndef MXM_LV2PORTS_H
+#define MXM_LV2PORTS_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <lilv/lilv.h>
 #include <memory>
 #include <vector>
 
 #include "Flags.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "PluginIssue.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class SampleFrame;
@@ -153,7 +153,7 @@ struct VisitablePort : public Base
 
 struct ControlPortBase : public VisitablePort<ControlPortBase, PortBase>
 {
-	//! LMMS models
+	//! MXM models
 	//! Always up-to-date, except during runs
 	std::unique_ptr<class AutomatableModel> m_connectedModel;
 
@@ -183,23 +183,23 @@ struct Audio : public VisitablePort<Audio, PortBase>
 {
 	Audio(std::size_t bufferSize, bool isSidechain);
 
-	//! @brief Copy buffer passed by LMMS into our ports
-	//! @param lmmsBuf The buffer to copy from
+	//! @brief Copy buffer passed by MXM into our ports
+	//! @param mxmBuf The buffer to copy from
 	//! @param channel channel index into each sample frame
-	//! @param frames The length of the buffer @p lmmsBuf
-	void copyBuffersFromCore(const SampleFrame* lmmsBuf, unsigned channel, f_cnt_t frames);
+	//! @param frames The length of the buffer @p mxmBuf
+	void copyBuffersFromCore(const SampleFrame* mxmBuf, unsigned channel, f_cnt_t frames);
 
-	//! @brief Add buffer passed by LMMS into our ports, and halve the result
-	//! @param lmmsBuf The buffer to average from
+	//! @brief Add buffer passed by MXM into our ports, and halve the result
+	//! @param mxmBuf The buffer to average from
 	//! @param channel channel index into each sample frame
-	//! @param frames The length of the buffer @p lmmsBuf
-	void averageWithBuffersFromCore(const SampleFrame* lmmsBuf, unsigned channel, f_cnt_t frames);
+	//! @param frames The length of the buffer @p mxmBuf
+	void averageWithBuffersFromCore(const SampleFrame* mxmBuf, unsigned channel, f_cnt_t frames);
 
-	//! @brief Copy our ports into buffers passed by LMMS
-	//! @param lmmsBuf The buffer to copy into
+	//! @brief Copy our ports into buffers passed by MXM
+	//! @param mxmBuf The buffer to copy into
 	//! @param channel channel index into each sample frame
-	//! @param frames The length of the buffer @p lmmsBuf
-	void copyBuffersToCore(SampleFrame* lmmsBuf, unsigned channel, f_cnt_t frames) const;
+	//! @param frames The length of the buffer @p mxmBuf
+	void copyBuffersToCore(SampleFrame* mxmBuf, unsigned channel, f_cnt_t frames) const;
 
 	bool isSideChain() const { return m_sidechain; }
 	bool isOptional() const { return m_optional; }
@@ -211,7 +211,7 @@ private:
 	bool m_sidechain;
 
 	// the only case when data of m_buffer may be referenced:
-	friend struct lmms::ConnectPortVisitor;
+	friend struct mxm::ConnectPortVisitor;
 };
 
 struct AtomSeq : public VisitablePort<AtomSeq, PortBase>
@@ -273,8 +273,8 @@ const Target* dcast(const PortBase* base)
 } // namespace Lv2Ports
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2PORTS_H
+#endif // MXM_LV2PORTS_H

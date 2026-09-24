@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2022 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_GUI_TEMPLATES_MENU_H
-#define LMMS_GUI_TEMPLATES_MENU_H
+#ifndef MXM_GUI_TEMPLATES_MENU_H
+#define MXM_GUI_TEMPLATES_MENU_H
 
 #include <QDir>
 #include <QMenu>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -48,6 +48,6 @@ private slots:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_TEMPLATES_MENU_H
+#endif // MXM_GUI_TEMPLATES_MENU_H

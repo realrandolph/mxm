@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/yahoo/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_VIBED_H
-#define LMMS_VIBED_H
+#ifndef MXM_VIBED_H
+#define MXM_VIBED_H
 
 #include "Instrument.h"
 #include "InstrumentView.h"
@@ -36,7 +36,7 @@
 #include <array>
 #include <memory>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -146,6 +146,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_VIBED_H
+#endif // MXM_VIBED_H

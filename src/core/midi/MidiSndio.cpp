@@ -4,7 +4,7 @@
  * Copyright (c) 2010-2016 jackmsr@openbsd.net
  * Copyright (c) 2016-2017 David Carlier <devnexen@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,7 +25,7 @@
 
 #include "MidiSndio.h"
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 
 #include <cstdlib>
 #include <sndio.h>
@@ -34,7 +34,7 @@
 #include "ConfigManager.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -113,6 +113,6 @@ void MidiSndio::run()
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif	// LMMS_HAVE_SNDIO
+#endif	// MXM_HAVE_SNDIO

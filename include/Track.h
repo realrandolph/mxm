@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_TRACK_H
-#define LMMS_TRACK_H
+#ifndef MXM_TRACK_H
+#define MXM_TRACK_H
 
 #include <vector>
 
@@ -31,11 +31,11 @@
 
 #include "AutomatableModel.h"
 #include "JournallingObject.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include <optional>
 
 
-namespace lmms
+namespace mxm
 {
 
 class TimePos;
@@ -63,7 +63,7 @@ char const *const FILENAME_FILTER = "[\\0000-\x1f\"*/:<>?\\\\|\x7f]";
 
 
 //! Base-class for all tracks
-class LMMS_EXPORT Track : public Model, public JournallingObject
+class MXM_EXPORT Track : public Model, public JournallingObject
 {
 	Q_OBJECT
 	mapPropertyFromModel(bool,isMuted,setMuted,m_mutedModel);
@@ -328,11 +328,11 @@ private:
 signals:
 	void destroyedTrack();
 	void nameChanged();
-	void clipAdded( lmms::Clip * );
+	void clipAdded( mxm::Clip * );
 	void colorChanged();
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TRACK_H
+#endif // MXM_TRACK_H

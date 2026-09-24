@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2011 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,7 +36,7 @@ class QPushButton;
 class QMdiSubWindow;
 class QScrollArea;
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -77,7 +77,7 @@ protected slots:
 	void rollPreset();
 	void rolrPreset();
 	void selPreset();
-	void setParameter( lmms::Model * action );
+	void setParameter( mxm::Model * action );
 
 protected:
 	virtual void paintEvent( QPaintEvent * _pe );
@@ -119,7 +119,7 @@ public:
 protected slots:
 	void syncPlugin();
 	void displayAutomatedOnly();
-	void setParameter( lmms::Model * action );
+	void setParameter( mxm::Model * action );
 	void closeWindow();
 
 private:
@@ -143,6 +143,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
 #endif

@@ -4,7 +4,7 @@
  * Copyright (c) 2008-2012 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2019 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,7 +29,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -219,4 +219,4 @@ int compressbands(const float *absspec_buffer, float *compressedband, int num_ol
 }
 
 
-} // namespace lmms
+} // namespace mxm

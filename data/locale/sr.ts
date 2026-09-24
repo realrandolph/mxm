@@ -2,7 +2,7 @@
 <context>
     <name>AboutDialog</name>
     <message>
-        <source>About LMMS</source>
+        <source>About MXM</source>
         <translation>О ЛММС</translation>
     </message>
     <message>
@@ -14,8 +14,8 @@
         <translation>О</translation>
     </message>
     <message>
-        <source>LMMS - easy music production for everyone</source>
-        <translation>LMMS - једноставна музичка продукција за све</translation>
+        <source>MXM - easy music production for everyone</source>
+        <translation>MXM - једноставна музичка продукција за све</translation>
     </message>
     <message>
         <source>Authors</source>
@@ -28,7 +28,7 @@
     <message>
         <source>Current language not translated (or native English).
 
-If you&apos;re interested in translating LMMS in another language or want to improve existing translations, you&apos;re welcome to help us! Simply contact the maintainer!</source>
+If you&apos;re interested in translating MXM in another language or want to improve existing translations, you&apos;re welcome to help us! Simply contact the maintainer!</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -36,11 +36,11 @@ If you&apos;re interested in translating LMMS in another language or want to imp
         <translation>Лиценца</translation>
     </message>
     <message>
-        <source>LMMS</source>
+        <source>MXM</source>
         <translation>ЛММС</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://lmms.io&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;http://lmms.io&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/realrandolph/mxm&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/realrandolph/mxm&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -214,7 +214,7 @@ If you&apos;re interested in translating LMMS in another language or want to imp
         <translation>JACK клијент рестартован</translation>
     </message>
     <message>
-        <source>LMMS was kicked by JACK for some reason. Therefore the JACK backend of LMMS has been restarted. You will have to make manual connections again.</source>
+        <source>MXM was kicked by JACK for some reason. Therefore the JACK backend of MXM has been restarted. You will have to make manual connections again.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -222,7 +222,7 @@ If you&apos;re interested in translating LMMS in another language or want to imp
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The JACK server seems to have been shutdown and starting a new instance failed. Therefore LMMS is unable to proceed. You should save your project and restart JACK and LMMS.</source>
+        <source>The JACK server seems to have been shutdown and starting a new instance failed. Therefore MXM is unable to proceed. You should save your project and restart JACK and MXM.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -852,7 +852,7 @@ If you&apos;re interested in translating LMMS in another language or want to imp
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS</source>
+        <source>MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2185,7 +2185,7 @@ Please make sure you have write-permission to the file and the directory contain
     </message>
     <message>
         <source>The mixer channel receives input from one or more instrument tracks.
- It in turn can be routed to multiple other mixer channels. LMMS automatically takes care of preventing infinite loops for you and doesn't allow making a connection that would result in an infinite loop.
+ It in turn can be routed to multiple other mixer channels. MXM automatically takes care of preventing infinite loops for you and doesn't allow making a connection that would result in an infinite loop.
 
 In order to route the channel to another channel, select the mixer channel and click on the &quot;send&quot; button on the channel you want to send to. The knob under the send button controls the level of signal that is sent to the channel.
 
@@ -2328,7 +2328,7 @@ You can remove and move mixer channels in the context menu, which is accessed by
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The LMMS working directory %1 does not exist. Create it now? You can change the directory later via Edit -&gt; Settings.</source>
+        <source>The MXM working directory %1 does not exist. Create it now? You can change the directory later via Edit -&gt; Settings.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3716,7 +3716,7 @@ Please make sure you have write-access to the file and try again.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS %1</source>
+        <source>MXM %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3732,12 +3732,12 @@ Please make sure you have write-access to the file and try again.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Currently there's no help available in LMMS.
-Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
+        <source>Currently there's no help available in MXM.
+Please visit http://lmms.sf.net/wiki for documentation on MXM.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS (*.mmp *.mmpz)</source>
+        <source>MXM (*.mmp *.mmpz)</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3821,7 +3821,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>There is a recovery file present. It looks like the last session did not end properly or another instance of LMMS is already running. Do you want to recover the project of this session?</source>
+        <source>There is a recovery file present. It looks like the last session did not end properly or another instance of MXM is already running. Do you want to recover the project of this session?</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3829,7 +3829,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Recover the file. Please don&apos;t run multiple instances of LMMS when you do this.</source>
+        <source>Recover the file. Please don&apos;t run multiple instances of MXM when you do this.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3837,7 +3837,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Launch LMMS as usual but with automatic backup disabled to prevent the present recover file from being overwritten.</source>
+        <source>Launch MXM as usual but with automatic backup disabled to prevent the present recover file from being overwritten.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -3929,11 +3929,11 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS Project</source>
+        <source>MXM Project</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS Project Template</source>
+        <source>MXM Project Template</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -4005,7 +4005,7 @@ Please visit http://lmms.sf.net/wiki for documentation on LMMS.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>You did not compile LMMS with support for SoundFont2 player, which is used to add default sound to imported MIDI files. Therefore no sound will be played back after importing this MIDI file.</source>
+        <source>You did not compile MXM with support for SoundFont2 player, which is used to add default sound to imported MIDI files. Therefore no sound will be played back after importing this MIDI file.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -5233,7 +5233,7 @@ PM means phase modulation: Oscillator 3&apos;s phase is modulated by oscillator 
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Due to a bug in older version of LMMS, the peak controllers may not be connect properly. Please ensure that peak controllers are connected properly and re-save this file. Sorry for any inconvenience caused.</source>
+        <source>Due to a bug in an older version of LMMS, the peak controllers may not be connect properly. Please ensure that peak controllers are connected properly and re-save this file. Sorry for any inconvenience caused.</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -5508,15 +5508,15 @@ PM means phase modulation: Oscillator 3&apos;s phase is modulated by oscillator 
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>This lets you select the length of new notes. &apos;Last Note&apos; means that LMMS will use the note length of the note you last edited</source>
+        <source>This lets you select the length of new notes. &apos;Last Note&apos; means that MXM will use the note length of the note you last edited</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>The feature is directly connected to the context-menu on the virtual keyboard, to the left in Piano Roll. After you have chosen the scale you want in this drop-down menu, you can right click on a desired key in the virtual keyboard, and then choose &apos;Mark current Scale&apos;. LMMS will highlight all notes that belongs to the chosen scale, and in the key you have selected!</source>
+        <source>The feature is directly connected to the context-menu on the virtual keyboard, to the left in Piano Roll. After you have chosen the scale you want in this drop-down menu, you can right click on a desired key in the virtual keyboard, and then choose &apos;Mark current Scale&apos;. MXM will highlight all notes that belongs to the chosen scale, and in the key you have selected!</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Let you select a chord which LMMS then can draw or highlight.You can find the most common chords in this drop-down menu. After you have selected a chord, click anywhere to place the chord, and right click on the virtual keyboard to open context menu and highlight the chord. To return to single note placement, you need to choose &apos;No chord&apos; in this drop-down menu.</source>
+        <source>Let you select a chord which MXM then can draw or highlight.You can find the most common chords in this drop-down menu. After you have selected a chord, click anywhere to place the chord, and right click on the virtual keyboard to open context menu and highlight the chord. To return to single note placement, you need to choose &apos;No chord&apos; in this drop-down menu.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -5597,7 +5597,7 @@ Reason: &quot;%2&quot;</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS plugin %1 does not have a plugin descriptor named %2!</source>
+        <source>MXM plugin %1 does not have a plugin descriptor named %2!</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -5908,7 +5908,7 @@ Reason: &quot;%2&quot;</source>
 <context>
     <name>SetupDialog</name>
     <message>
-        <source>Setup LMMS</source>
+        <source>Setup MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -5984,7 +5984,7 @@ Reason: &quot;%2&quot;</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS working directory</source>
+        <source>MXM working directory</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -6048,11 +6048,11 @@ Reason: &quot;%2&quot;</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Restart LMMS</source>
+        <source>Restart MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Please note that most changes won&apos;t take effect until you restart LMMS!</source>
+        <source>Please note that most changes won&apos;t take effect until you restart MXM!</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -6061,11 +6061,11 @@ Latency: %2 ms</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Here you can setup the internal buffer-size used by LMMS. Smaller values result in a lower latency but also may cause unusable sound or bad performance, especially on older computers or systems with a non-realtime kernel.</source>
+        <source>Here you can setup the internal buffer-size used by MXM. Smaller values result in a lower latency but also may cause unusable sound or bad performance, especially on older computers or systems with a non-realtime kernel.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Choose LMMS working directory</source>
+        <source>Choose MXM working directory</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -6229,7 +6229,7 @@ Remember to also save your project manually.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS Error report</source>
+        <source>MXM Error report</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -6317,7 +6317,7 @@ Remember to also save your project manually.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>This %1 was created with LMMS %2.</source>
+        <source>This %1 was created with MXM %2.</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -6600,7 +6600,7 @@ Remember to also save your project manually.</source>
     </message>
     <message>
         <source>Couldn't find a filter for importing file %1.
-You should convert this file into a format supported by LMMS using another software.</source>
+You should convert this file into a format supported by MXM using another software.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -6927,7 +6927,7 @@ Please make sure you have read-permission to the file and the directory containi
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Control VST-plugin from LMMS host</source>
+        <source>Control VST-plugin from MXM host</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -6997,7 +6997,7 @@ Please make sure you have read-permission to the file and the directory containi
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Control VST-plugin from LMMS host</source>
+        <source>Control VST-plugin from MXM host</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -7886,9 +7886,9 @@ Please make sure you have read-permission to the file and the directory containi
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>This dialog displays information on all of the LADSPA plugins LMMS was able to locate. The plugins are divided into five categories based upon an interpretation of the port types and names.
+        <source>This dialog displays information on all of the LADSPA plugins MXM was able to locate. The plugins are divided into five categories based upon an interpretation of the port types and names.
 
-Available Effects are those that can be used by LMMS. In order for LMMS to be able to use an effect, it must, first and foremost, be an effect, which is to say, it has to have both input channels and output channels. LMMS identifies an input channel as an audio rate port containing 'in' in the name. Output channels are identified by the letters 'out'. Furthermore, the effect must have the same number of inputs and outputs and be real time capable.
+Available Effects are those that can be used by MXM. In order for MXM to be able to use an effect, it must, first and foremost, be an effect, which is to say, it has to have both input channels and output channels. MXM identifies an input channel as an audio rate port containing 'in' in the name. Output channels are identified by the letters 'out'. Furthermore, the effect must have the same number of inputs and outputs and be real time capable.
 
 Unavailable Effects are those that were identified as effects, but either didn't have the same number of input and output channels or weren't real time capable.
 
@@ -8994,7 +8994,7 @@ Double clicking any of the plugins will bring up information on the ports.</sour
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>VST-host for using VST(i)-plugins within LMMS</source>
+        <source>VST-host for using VST(i)-plugins within MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -9002,11 +9002,11 @@ Double clicking any of the plugins will bring up information on the ports.</sour
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>plugin for using arbitrary LADSPA-effects inside LMMS.</source>
+        <source>plugin for using arbitrary LADSPA-effects inside MXM.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Filter for importing MIDI-files into LMMS</source>
+        <source>Filter for importing MIDI-files into MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -9035,11 +9035,11 @@ This chip was used in the Commodore 64 computer.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Filter for importing Hydrogen files into LMMS</source>
+        <source>Filter for importing Hydrogen files into MXM</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>LMMS port of sfxr</source>
+        <source>MXM port of sfxr</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -9087,7 +9087,7 @@ This chip was used in the Commodore 64 computer.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>plugin for using arbitrary VST effects inside LMMS.</source>
+        <source>plugin for using arbitrary VST effects inside MXM.</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -9131,7 +9131,7 @@ This chip was used in the Commodore 64 computer.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <source>Filter for exporting MIDI-files from LMMS</source>
+        <source>Filter for exporting MIDI-files from MXM</source>
         <translation type="unfinished"/>
     </message>
 </context>

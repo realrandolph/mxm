@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -69,7 +69,7 @@
 #include "TrackLabelButton.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -777,7 +777,7 @@ void InstrumentTrackWindow::updateSubWindow()
 
 		subWindow->setWindowFlag(Qt::WindowMaximizeButtonHint, instrumentViewResizable);
 
-		// TODO This is only needed if the sub window is implemented with LMMS' own SubWindow class.
+		// TODO This is only needed if the sub window is implemented with MXM's own SubWindow class.
 		// If an QMdiSubWindow is used everything works automatically. It seems that SubWindow is
 		// missing some implementation details that QMdiSubWindow has.
 		auto subWin = dynamic_cast<SubWindow*>(subWindow);
@@ -788,4 +788,4 @@ void InstrumentTrackWindow::updateSubWindow()
 	}
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

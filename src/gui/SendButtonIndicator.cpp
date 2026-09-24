@@ -5,7 +5,7 @@
 #include "MixerChannelView.h"
 #include "MixerView.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 SendButtonIndicator:: SendButtonIndicator(QWidget* parent, MixerChannelView* owner, MixerView* mv) :
@@ -52,4 +52,4 @@ void SendButtonIndicator::updateLightStatus()
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

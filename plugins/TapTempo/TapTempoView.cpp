@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "FontHelper.h"
 #include "TapTempo.h"
 
-namespace lmms::gui {
+namespace mxm::gui {
 TapTempoView::TapTempoView(TapTempo* plugin)
 	: ToolPluginView(plugin)
 	, m_tapButton(new QPushButton())
@@ -159,4 +159,4 @@ void TapTempoView::keyPressEvent(QKeyEvent* event)
 	ToolPluginView::keyPressEvent(event);
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

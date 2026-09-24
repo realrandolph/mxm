@@ -1,10 +1,10 @@
 /*
- * RingBuffer.h - an effective and flexible implementation of a ringbuffer for LMMS
+ * RingBuffer.h - an effective and flexible implementation of a ringbuffer for MXM
  *
  * Copyright (c) 2014 Vesa Kivimäki
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,23 +23,23 @@
  *
  */
 
-#ifndef LMMS_RING_BUFFER_H
-#define LMMS_RING_BUFFER_H
+#ifndef MXM_RING_BUFFER_H
+#define MXM_RING_BUFFER_H
 
 #include <cmath>
 #include <QObject>
-#include "LmmsTypes.h"
-#include "lmms_export.h"
+#include "MxmTypes.h"
+#include "mxm_export.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class SampleFrame;
 
-/** \brief A basic LMMS ring buffer for single-thread use. For thread and realtime safe alternative see LocklessRingBuffer.
+/** \brief A basic MXM ring buffer for single-thread use. For thread and realtime safe alternative see LocklessRingBuffer.
 */
-class LMMS_EXPORT RingBuffer : public QObject
+class MXM_EXPORT RingBuffer : public QObject
 {
 	Q_OBJECT
 public:
@@ -222,6 +222,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_RING_BUFFER_H
+#endif // MXM_RING_BUFFER_H

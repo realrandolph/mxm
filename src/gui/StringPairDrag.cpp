@@ -1,11 +1,11 @@
 /*
  * StringPairDrag.cpp - class StringPairDrag which provides general support
  *                        for drag'n'drop of string-pairs and which is the base
- *                        for all drag'n'drop-actions within LMMS
+ *                        for all drag'n'drop-actions within MXM
  *
  * Copyright (c) 2005-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "Clipboard.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -117,4 +117,4 @@ QString StringPairDrag::decodeValue( QDropEvent * _de )
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

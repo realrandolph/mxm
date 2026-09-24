@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "Sample.h"
 
-namespace lmms {
+namespace mxm {
 
 Sample::Sample(const SampleFrame* data, size_t numFrames, int sampleRate)
 	: m_buffer(std::make_shared<SampleBuffer>(data, numFrames, sampleRate))
@@ -190,4 +190,4 @@ void Sample::setAllPointFrames(int startFrame, int endFrame, int loopStartFrame,
 	setLoopEndFrame(loopEndFrame);
 }
 
-} // namespace lmms
+} // namespace mxm

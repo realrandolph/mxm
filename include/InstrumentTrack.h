@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_INSTRUMENT_TRACK_H
-#define LMMS_INSTRUMENT_TRACK_H
+#ifndef MXM_INSTRUMENT_TRACK_H
+#define MXM_INSTRUMENT_TRACK_H
 
 
 #include "AudioBusHandle.h"
@@ -40,7 +40,7 @@
 #include "Track.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -58,7 +58,7 @@ class MidiCCRackView;
 } // namespace gui
 
 
-class LMMS_EXPORT InstrumentTrack : public Track, public MidiEventProcessor
+class MXM_EXPORT InstrumentTrack : public Track, public MidiEventProcessor
 {
 	Q_OBJECT
 	mapPropertyFromModel(int,getVolume,setVolume,m_volumeModel);
@@ -260,8 +260,8 @@ public:
 
 signals:
 	void instrumentChanged();
-	void midiNoteOn( const lmms::Note& );
-	void midiNoteOff( const lmms::Note& );
+	void midiNoteOn( const mxm::Note& );
+	void midiNoteOff( const mxm::Note& );
 	void newNote();
 	void endNote();
 
@@ -340,6 +340,6 @@ private:
 
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INSTRUMENT_TRACK_H
+#endif // MXM_INSTRUMENT_TRACK_H

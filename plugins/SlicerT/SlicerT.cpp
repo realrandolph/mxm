@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Daniel Kauss Serna <daniel.kauss.serna@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,11 +37,11 @@
 #include "interpolation.h"
 #include "plugin_export.h"
 
-namespace lmms {
+namespace mxm {
 
 extern "C" {
 Plugin::Descriptor PLUGIN_EXPORT slicert_plugin_descriptor = {
-	LMMS_STRINGIFY(PLUGIN_NAME),
+	MXM_STRINGIFY(PLUGIN_NAME),
 	"SlicerT",
 	QT_TRANSLATE_NOOP("PluginBrowser", "Basic Slicer"),
 	"Daniel Kauss Serna <daniel.kauss.serna@gmail.com>",
@@ -395,9 +395,9 @@ gui::PluginView* SlicerT::instantiateView(QWidget* parent)
 }
 
 extern "C" {
-PLUGIN_EXPORT Plugin* lmms_plugin_main(Model* m, void*)
+PLUGIN_EXPORT Plugin* mxm_plugin_main(Model* m, void*)
 {
 	return new SlicerT(static_cast<InstrumentTrack*>(m));
 }
 } // extern
-} // namespace lmms
+} // namespace mxm

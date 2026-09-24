@@ -1,21 +1,21 @@
 ADD_SUBDIRECTORY(3rdparty)
 
-CONFIGURE_FILE("lmmsconfig.h.in"        "${CMAKE_BINARY_DIR}/lmmsconfig.h")
+CONFIGURE_FILE("mxmconfig.h.in"        "${CMAKE_BINARY_DIR}/mxmconfig.h")
 
-# Provide config flags to lmmsversion.h
+# Provide config flags to mxmversion.h
 get_cmake_property(_define_vars VARIABLES)
 foreach (_define_var ${_define_vars})
-    if(_define_var MATCHES "^WANT|LMMS_(HAVE|DEBUG)" )
-        list(APPEND LMMS_BUILD_OPTIONS "${_define_var}='${${_define_var}}'")
+    if(_define_var MATCHES "^WANT|MXM_(HAVE|DEBUG)" )
+        list(APPEND MXM_BUILD_OPTIONS "${_define_var}='${${_define_var}}'")
     endif()
 endforeach()
 
 # Format for readability
-string(REPLACE ";" " " LMMS_BUILD_OPTIONS "${LMMS_BUILD_OPTIONS}")
+string(REPLACE ";" " " MXM_BUILD_OPTIONS "${MXM_BUILD_OPTIONS}")
 
-CONFIGURE_FILE("lmmsversion.h.in"       "${CMAKE_BINARY_DIR}/lmmsversion.h")
+CONFIGURE_FILE("mxmversion.h.in"       "${CMAKE_BINARY_DIR}/mxmversion.h")
 
-SET(LMMS_SRCS "")
+SET(MXM_SRCS "")
 
 SET(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
@@ -24,7 +24,7 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Enable C++20
 SET(CMAKE_CXX_STANDARD 20)
 
-IF(LMMS_BUILD_APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+IF(MXM_BUILD_APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 ENDIF()
 
@@ -33,12 +33,12 @@ ADD_SUBDIRECTORY(core)
 ADD_SUBDIRECTORY(gui)
 ADD_SUBDIRECTORY(tracks)
 
-LIST(APPEND LMMS_SRCS ${LMMS_COMMON_SRCS})
+LIST(APPEND MXM_SRCS ${MXM_COMMON_SRCS})
 
 IF(WANT_QT6)
-	QT6_WRAP_UI(LMMS_UI_OUT ${LMMS_UIS})
+	QT6_WRAP_UI(MXM_UI_OUT ${MXM_UIS})
 ELSE()
-	QT5_WRAP_UI(LMMS_UI_OUT ${LMMS_UIS})
+	QT5_WRAP_UI(MXM_UI_OUT ${MXM_UIS})
 ENDIF()
 
 INCLUDE_DIRECTORIES(
@@ -50,25 +50,25 @@ INCLUDE_DIRECTORIES(
 )
 
 IF(WIN32 AND MSVC)
-	SET(WINRC "${CMAKE_BINARY_DIR}/lmms.rc")
+	SET(WINRC "${CMAKE_BINARY_DIR}/mxm.rc")
 ELSEIF(WIN32)
-	SET(WINRC "${CMAKE_BINARY_DIR}/lmmsrc.obj")
+	SET(WINRC "${CMAKE_BINARY_DIR}/mxmrc.obj")
 	ADD_CUSTOM_COMMAND(OUTPUT "${WINRC}"
 				COMMAND "${CMAKE_RC_COMPILER}"
 					"-I\"${CMAKE_SOURCE_DIR}\""
-					"-o\"${CMAKE_BINARY_DIR}/lmmsrc.obj\""
-					"-i\"${CMAKE_BINARY_DIR}/lmms.rc\""
-				DEPENDS "${CMAKE_BINARY_DIR}/lmms.rc")
+					"-o\"${CMAKE_BINARY_DIR}/mxmrc.obj\""
+					"-i\"${CMAKE_BINARY_DIR}/mxm.rc\""
+				DEPENDS "${CMAKE_BINARY_DIR}/mxm.rc")
 ENDIF()
 
 INCLUDE(GenQrc)
-ADD_GEN_QRC(LMMS_RCC_OUT lmms.qrc
+ADD_GEN_QRC(MXM_RCC_OUT mxm.qrc
 	"${CMAKE_SOURCE_DIR}/doc/AUTHORS"
 	"${CMAKE_SOURCE_DIR}/LICENSE.txt"
 	"${CONTRIBUTORS}"
 )
 
-# Paths relative to lmms executable
+# Paths relative to mxm executable
 FILE(RELATIVE_PATH LIB_DIR_RELATIVE "/${BIN_DIR}" "/${LIB_DIR}")
 FILE(RELATIVE_PATH PLUGIN_DIR_RELATIVE "/${BIN_DIR}" "/${PLUGIN_DIR}")
 ADD_DEFINITIONS(-DLIB_DIR="${LIB_DIR_RELATIVE}" -DPLUGIN_DIR="${PLUGIN_DIR_RELATIVE}" ${PULSEAUDIO_DEFINITIONS})
@@ -95,85 +95,85 @@ IF(SUIL_INCLUDE_DIRS)
 ENDIF()
 
 # Use libraries in non-standard directories (e.g., another version of Qt)
-IF(LMMS_BUILD_LINUX)
+IF(MXM_BUILD_LINUX)
 	LINK_LIBRARIES(-Wl,--enable-new-dtags)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 ENDIF()
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-ADD_LIBRARY(lmmsobjs OBJECT
-	${LMMS_SRCS}
-	${LMMS_INCLUDES}
-	${LMMS_RCC_OUT}
+ADD_LIBRARY(mxmobjs OBJECT
+	${MXM_SRCS}
+	${MXM_INCLUDES}
+	${MXM_RCC_OUT}
 )
 
-GENERATE_EXPORT_HEADER(lmmsobjs
-	BASE_NAME lmms
+GENERATE_EXPORT_HEADER(mxmobjs
+	BASE_NAME mxm
 )
 
-ADD_EXECUTABLE(lmms
+ADD_EXECUTABLE(mxm
 	core/main.cpp
 	"${WINRC}"
 )
-TARGET_INCLUDE_DIRECTORIES(lmms
+TARGET_INCLUDE_DIRECTORIES(mxm
 	PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
 )
-target_static_libraries(lmms PUBLIC lmmsobjs)
+target_static_libraries(mxm PUBLIC mxmobjs)
 
 # Enable updated C++ language standards
 IF(MSVC)
-	TARGET_COMPILE_OPTIONS(lmmsobjs PUBLIC "/Zc:__cplusplus" "/permissive-")
+	TARGET_COMPILE_OPTIONS(mxmobjs PUBLIC "/Zc:__cplusplus" "/permissive-")
 ENDIF()
 
 # CMake doesn't define target_EXPORTS for OBJECT libraries.
 # See the documentation of DEFINE_SYMBOL for details.
-# Also add LMMS_STATIC_DEFINE for targets linking against it.
-TARGET_COMPILE_DEFINITIONS(lmmsobjs
-	PRIVATE -Dlmmsobjs_EXPORTS
+# Also add MXM_STATIC_DEFINE for targets linking against it.
+TARGET_COMPILE_DEFINITIONS(mxmobjs
+	PRIVATE -Dmxmobjs_EXPORTS
 )
-target_static_definitions(lmmsobjs LMMS_STATIC_DEFINE)
+target_static_definitions(mxmobjs MXM_STATIC_DEFINE)
 
-# Set Visual Studio startup project to lmms
+# Set Visual Studio startup project to mxm
 # https://stackoverflow.com/a/37994396/8166701
 IF(NOT CMAKE_VERSION VERSION_LESS 3.6)
-	SET_PROPERTY(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT lmms)
+	SET_PROPERTY(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT mxm)
 ENDIF()
 
-SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LMMS_RCC_OUT} lmmsconfig.h")
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${MXM_RCC_OUT} mxmconfig.h")
 
-IF(LMMS_HAVE_WINMM)
+IF(MXM_HAVE_WINMM)
 	SET(EXTRA_LIBRARIES "winmm")
 ENDIF()
 
-IF(LMMS_BUILD_APPLE)
+IF(MXM_BUILD_APPLE)
 	SET(EXTRA_LIBRARIES "-framework CoreMIDI -framework CoreFoundation")
 ENDIF()
 
-IF(LMMS_BUILD_HAIKU)
+IF(MXM_BUILD_HAIKU)
 	SET(EXTRA_LIBRARIES "-lnetwork")
 ENDIF()
 
-if(LMMS_HAVE_LIBRT)
+if(MXM_HAVE_LIBRT)
 	list(APPEND EXTRA_LIBRARIES "rt")
 endif()
 
-if(LMMS_HAVE_PORTAUDIO)
+if(MXM_HAVE_PORTAUDIO)
 	list(APPEND EXTRA_LIBRARIES portaudio::portaudio)
 endif()
 
-if(LMMS_HAVE_MP3LAME)
+if(MXM_HAVE_MP3LAME)
 	list(APPEND EXTRA_LIBRARIES mp3lame::mp3lame)
 endif()
 
-if(LMMS_HAVE_OGGVORBIS)
+if(MXM_HAVE_OGGVORBIS)
 	list(APPEND EXTRA_LIBRARIES Vorbis::vorbisenc Vorbis::vorbisfile)
 endif()
 
-if(LMMS_HAVE_LV2)
+if(MXM_HAVE_LV2)
 	list(APPEND EXTRA_LIBRARIES Lilv::lilv)
 endif()
 
-SET(LMMS_REQUIRED_LIBS ${LMMS_REQUIRED_LIBS}
+SET(MXM_REQUIRED_LIBS ${MXM_REQUIRED_LIBS}
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
 	${ASOUND_LIBRARY}
@@ -189,31 +189,31 @@ SET(LMMS_REQUIRED_LIBS ${LMMS_REQUIRED_LIBS}
 	${EXTRA_LIBRARIES}
 )
 
-target_link_libraries(lmmsobjs
-	${LMMS_REQUIRED_LIBS}
+target_link_libraries(mxmobjs
+	${MXM_REQUIRED_LIBS}
 )
-target_static_libraries(lmmsobjs ringbuffer)
-if(LMMS_HAVE_LV2_UI)
-	target_include_directories(lmmsobjs SYSTEM PRIVATE ${X11_INCLUDE_DIR})
-	target_link_libraries(lmmsobjs ${X11_LIBRARIES})
+target_static_libraries(mxmobjs ringbuffer)
+if(MXM_HAVE_LV2_UI)
+	target_include_directories(mxmobjs SYSTEM PRIVATE ${X11_INCLUDE_DIR})
+	target_link_libraries(mxmobjs ${X11_LIBRARIES})
 endif()
 
-set_target_properties(lmms PROPERTIES
+set_target_properties(mxm PROPERTIES
 	ENABLE_EXPORTS ON
 	WIN32_EXECUTABLE $<NOT:$<CONFIG:DEBUG>>
 )
 
-set_target_properties(lmmsobjs PROPERTIES AUTOUIC_SEARCH_PATHS "gui/modals")
+set_target_properties(mxmobjs PROPERTIES AUTOUIC_SEARCH_PATHS "gui/modals")
 
-IF(NOT WIN32 AND NOT LMMS_BUILD_APPLE)
+IF(NOT WIN32 AND NOT MXM_BUILD_APPLE)
 	if(CMAKE_INSTALL_MANDIR)
 		SET(INSTALL_MANDIR ${CMAKE_INSTALL_MANDIR})
 	ELSE(CMAKE_INSTALL_MANDIR)
 		SET(INSTALL_MANDIR share/man)
 	ENDIF(CMAKE_INSTALL_MANDIR)
-	INSTALL(FILES "${CMAKE_SOURCE_DIR}/doc/lmms.1"
+	INSTALL(FILES "${CMAKE_SOURCE_DIR}/doc/mxm.1"
 			DESTINATION "${INSTALL_MANDIR}/man1/"
 			PERMISSIONS OWNER_READ GROUP_READ WORLD_READ)
 ENDIF()
 
-INSTALL(TARGETS lmms RUNTIME DESTINATION "${BIN_DIR}")
+INSTALL(TARGETS mxm RUNTIME DESTINATION "${BIN_DIR}")

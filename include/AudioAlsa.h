@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_AUDIO_ALSA_H
-#define LMMS_AUDIO_ALSA_H
+#ifndef MXM_AUDIO_ALSA_H
+#define MXM_AUDIO_ALSA_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 
 // older ALSA-versions might require this
 #define ALSA_PCM_NEW_HW_PARAMS_API
@@ -37,7 +37,7 @@
 
 #include "AudioDevice.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioAlsa : public QThread, public AudioDevice
@@ -109,8 +109,8 @@ private:
 	snd_pcm_sw_params_t * m_swParams;
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_ALSA
+#endif // MXM_HAVE_ALSA
 
-#endif // LMMS_AUDIO_ALSA_H
+#endif // MXM_AUDIO_ALSA_H

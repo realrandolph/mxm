@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  */
 
 
-#ifndef LMMS_LOMM_H
-#define LMMS_LOMM_H
+#ifndef MXM_LOMM_H
+#define MXM_LOMM_H
 
 #include "LOMMControls.h"
 #include "Effect.h"
 
 #include "BasicFilters.h"
 
-namespace lmms
+namespace mxm
 {
 
 constexpr inline float LOMM_MIN_FLOOR = 0.00012589f;// -72 dBFS
@@ -101,6 +101,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_LOMM_H
+#endif // MXM_LOMM_H

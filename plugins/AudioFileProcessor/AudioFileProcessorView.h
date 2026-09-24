@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,13 +22,13 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_PROCESSOR_VIEW_H
-#define LMMS_AUDIO_FILE_PROCESSOR_VIEW_H
+#ifndef MXM_AUDIO_FILE_PROCESSOR_VIEW_H
+#define MXM_AUDIO_FILE_PROCESSOR_VIEW_H
 
 #include "InstrumentView.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -80,6 +80,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_FILE_PROCESSOR_VIEW_H
+#endif // MXM_AUDIO_FILE_PROCESSOR_VIEW_H

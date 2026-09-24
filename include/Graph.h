@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2007 Andreas Brandmaier <andy/at/brandmaier/dot/de>
  *               2008 Paul Giblock <drfaygo/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_GUI_GRAPH_H
-#define LMMS_GUI_GRAPH_H
+#ifndef MXM_GUI_GRAPH_H
+#define MXM_GUI_GRAPH_H
 
 #include <QWidget>
 #include <QPixmap>
@@ -32,9 +32,9 @@
 
 #include "Model.h"
 #include "ModelView.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -44,7 +44,7 @@ namespace gui
 {
 
 
-class LMMS_EXPORT Graph : public QWidget, public ModelView
+class MXM_EXPORT Graph : public QWidget, public ModelView
 {
 	Q_OBJECT
 public:
@@ -131,7 +131,7 @@ private:
 	Function plot graph with discrete x scale and continous y scale
 	This makes it possible to display "#x" samples
 */
-class LMMS_EXPORT graphModel : public Model
+class MXM_EXPORT graphModel : public Model
 {
 	Q_OBJECT
 public:
@@ -224,6 +224,6 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_GRAPH_H
+#endif // MXM_GUI_GRAPH_H

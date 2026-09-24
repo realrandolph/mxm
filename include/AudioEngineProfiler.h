@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_AUDIO_ENGINE_PROFILER_H
-#define LMMS_AUDIO_ENGINE_PROFILER_H
+#ifndef MXM_AUDIO_ENGINE_PROFILER_H
+#define MXM_AUDIO_ENGINE_PROFILER_H
 
 #include <array>
 #include <atomic>
 #include <QFile>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 #include "MicroTimer.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioEngineProfiler
@@ -106,6 +106,6 @@ private:
 	std::array<std::atomic<float>, DetailCount> m_detailLoad{0};
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_ENGINE_PROFILER_H
+#endif // MXM_AUDIO_ENGINE_PROFILER_H

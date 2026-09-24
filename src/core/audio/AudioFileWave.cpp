@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2013 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 #include "AudioEngine.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 AudioFileWave::AudioFileWave( OutputSettings const & outputSettings,
@@ -88,7 +88,7 @@ bool AudioFileWave::startEncoding()
 	// Prevent fold overs when encountering clipped data
 	sf_command(m_sf, SFC_SET_CLIPPING, nullptr, SF_TRUE);
 
-	sf_set_string ( m_sf, SF_STR_SOFTWARE, "LMMS" );
+	sf_set_string ( m_sf, SF_STR_SOFTWARE, "MXM" );
 
 	return true;
 }
@@ -131,4 +131,4 @@ void AudioFileWave::finishEncoding()
 	}
 }
 
-} // namespace lmms
+} // namespace mxm

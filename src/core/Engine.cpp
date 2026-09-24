@@ -1,9 +1,9 @@
 /*
- * Engine.cpp - implementation of LMMS' engine-system
+ * Engine.cpp - implementation of MXM's engine-system
  *
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 #include "Mixer.h"
-#include "Ladspa2LMMS.h"
+#include "Ladspa2MXM.h"
 #include "Lv2Manager.h"
 #include "PatternStore.h"
 #include "Plugin.h"
@@ -37,7 +37,7 @@
 #include "BandLimitedWave.h"
 #include "Oscillator.h"
 
-namespace lmms
+namespace mxm
 {
 
 float Engine::s_framesPerTick;
@@ -46,10 +46,10 @@ Mixer * Engine::s_mixer = nullptr;
 PatternStore * Engine::s_patternStore = nullptr;
 Song * Engine::s_song = nullptr;
 ProjectJournal * Engine::s_projectJournal = nullptr;
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 Lv2Manager * Engine::s_lv2Manager = nullptr;
 #endif
-Ladspa2LMMS * Engine::s_ladspaManager = nullptr;
+Ladspa2MXM * Engine::s_ladspaManager = nullptr;
 void* Engine::s_dndPluginKey = nullptr;
 
 
@@ -72,11 +72,11 @@ void Engine::init( bool renderOnly )
 	s_mixer = new Mixer;
 	s_patternStore = new PatternStore;
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 	s_lv2Manager = new Lv2Manager;
 	s_lv2Manager->initPlugins();
 #endif
-	s_ladspaManager = new Ladspa2LMMS;
+	s_ladspaManager = new Ladspa2MXM;
 
 	s_projectJournal->setJournalling( true );
 
@@ -106,7 +106,7 @@ void Engine::destroy()
 	deleteHelper( &s_mixer );
 	deleteHelper( &s_audioEngine );
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 	deleteHelper( &s_lv2Manager );
 #endif
 	deleteHelper( &s_ladspaManager );
@@ -162,4 +162,4 @@ void *Engine::pickDndPluginKey()
 
 Engine * Engine::s_instanceOfMe = nullptr;
 
-} // namespace lmms
+} // namespace mxm

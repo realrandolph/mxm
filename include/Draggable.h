@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,18 +22,18 @@
  *
  */
  
-#ifndef LMMS_GUI_DRAGGABLE_H
-#define LMMS_GUI_DRAGGABLE_H
+#ifndef MXM_GUI_DRAGGABLE_H
+#define MXM_GUI_DRAGGABLE_H
 
 #include "FloatModelEditorBase.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 /**
  * @brief A pixmap that can be dragged from one location to another to control a FloatModel
  */
-class LMMS_EXPORT Draggable : public FloatModelEditorBase
+class MXM_EXPORT Draggable : public FloatModelEditorBase
 {
 	Q_OBJECT
 
@@ -71,6 +71,6 @@ private:
 	bool m_hasDefaultValPixmap;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_DRAGGABLE_H
+#endif // MXM_GUI_DRAGGABLE_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2006-2008 Javier Serrano Polo <jasp00/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_GUI_AUTOMATION_TRACK_VIEW_H
-#define LMMS_GUI_AUTOMATION_TRACK_VIEW_H
+#ifndef MXM_GUI_AUTOMATION_TRACK_VIEW_H
+#define MXM_GUI_AUTOMATION_TRACK_VIEW_H
 
 #include "TrackView.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AutomationTrack;
@@ -50,6 +50,6 @@ public:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_AUTOMATION_TRACK_VIEW_H
+#endif // MXM_GUI_AUTOMATION_TRACK_VIEW_H

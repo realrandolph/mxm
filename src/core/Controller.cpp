@@ -5,7 +5,7 @@
  * Copyright (c) 2008 Paul Giblock <drfaygo/at/gmail.com>
  * Copyright (c) 2014 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include "MidiController.h"
 #include "PeakController.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -314,7 +314,7 @@ int Controller::connectionCount() const{
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
 
 

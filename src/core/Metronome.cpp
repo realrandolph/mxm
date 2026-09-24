@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024 saker
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 #include "Engine.h"
 #include "SamplePlayHandle.h"
 
-namespace lmms {
+namespace mxm {
 void Metronome::processTick(int currentTick, int ticksPerBar, int beatsPerBar, size_t bufferOffset)
 {
 	const auto ticksPerBeat = ticksPerBar / beatsPerBar;
@@ -38,4 +38,4 @@ void Metronome::processTick(int currentTick, int ticksPerBar, int beatsPerBar, s
 	handle->setOffset(bufferOffset);
 	Engine::audioEngine()->addPlayHandle(handle);
 }
-} // namespace lmms
+} // namespace mxm

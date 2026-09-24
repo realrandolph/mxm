@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -32,7 +32,7 @@
 #include "PathUtil.h"
 #include "SampleDecoder.h"
 
-namespace lmms {
+namespace mxm {
 
 SampleBuffer::SampleBuffer(const SampleFrame* data, size_t numFrames, int sampleRate)
 	: m_data(data, data + numFrames)
@@ -130,4 +130,4 @@ std::shared_ptr<const SampleBuffer> SampleBuffer::fromBase64(const QString& str,
 	return std::make_shared<SampleBuffer>(std::move(data), sampleRate);
 }
 
-} // namespace lmms
+} // namespace mxm

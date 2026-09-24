@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_INSTRUMENT_FUNCTION_VIEWS_H
-#define LMMS_INSTRUMENT_FUNCTION_VIEWS_H
+#ifndef MXM_INSTRUMENT_FUNCTION_VIEWS_H
+#define MXM_INSTRUMENT_FUNCTION_VIEWS_H
 
 #include "ModelView.h"
 
@@ -31,7 +31,7 @@
 
 class QLabel;
 
-namespace lmms
+namespace mxm
 {
 
 class InstrumentFunctionArpeggio;
@@ -97,6 +97,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_INSTRUMENT_FUNCTION_VIEWS_H
+#endif // MXM_INSTRUMENT_FUNCTION_VIEWS_H

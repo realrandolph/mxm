@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,28 +22,28 @@
  *
  */
 
-#ifndef LMMS_PLAY_HANDLE_H
-#define LMMS_PLAY_HANDLE_H
+#ifndef MXM_PLAY_HANDLE_H
+#define MXM_PLAY_HANDLE_H
 
 #include <QList>
 #include <QMutex>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 #include "Flags.h"
 #include "ThreadableJob.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 class QThread;
 
-namespace lmms
+namespace mxm
 {
 
 class Track;
 class AudioBusHandle;
 class SampleFrame;
 
-class LMMS_EXPORT PlayHandle : public ThreadableJob
+class MXM_EXPORT PlayHandle : public ThreadableJob
 {
 public:
 	enum class Type
@@ -162,8 +162,8 @@ private:
 using PlayHandleList = QList<PlayHandle*>;
 using ConstPlayHandleList = QList<const PlayHandle*>;
 
-LMMS_DECLARE_OPERATORS_FOR_FLAGS(PlayHandle::Type)
+MXM_DECLARE_OPERATORS_FOR_FLAGS(PlayHandle::Type)
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PLAY_HANDLE_H
+#endif // MXM_PLAY_HANDLE_H

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,7 +27,7 @@
 #include "StereoEnhancerControls.h"
 #include "StereoEnhancer.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -66,4 +66,4 @@ void StereoEnhancerControls::saveSettings( QDomDocument & _doc,
 }
 
 
-} // namespace lmms
+} // namespace mxm

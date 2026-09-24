@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_DEVICE_H
-#define LMMS_AUDIO_FILE_DEVICE_H
+#ifndef MXM_AUDIO_FILE_DEVICE_H
+#define MXM_AUDIO_FILE_DEVICE_H
 
 #include <QFile>
 
 #include "AudioDevice.h"
 #include "OutputSettings.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioFileDevice : public AudioDevice
@@ -76,6 +76,6 @@ private:
 using AudioFileDeviceInstantiaton
 	= AudioFileDevice* (*)(const QString&, const OutputSettings&, const ch_cnt_t, AudioEngine*, bool&);
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_FILE_DEVICE_H
+#endif // MXM_AUDIO_FILE_DEVICE_H

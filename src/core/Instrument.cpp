@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -29,9 +29,9 @@
 
 #include "DummyInstrument.h"
 #include "InstrumentTrack.h"
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -215,4 +215,4 @@ QString Instrument::fullDisplayName() const
 }
 
 
-} // namespace lmms
+} // namespace mxm

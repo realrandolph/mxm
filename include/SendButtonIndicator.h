@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014-2022 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_GUI_SEND_BUTTON_INDICATOR_H
-#define LMMS_GUI_SEND_BUTTON_INDICATOR_H
+#ifndef MXM_GUI_SEND_BUTTON_INDICATOR_H
+#define MXM_GUI_SEND_BUTTON_INDICATOR_H
 
 #include <QLabel>
 #include "embed.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class FloatModel;
@@ -61,6 +61,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_SEND_BUTTON_INDICATOR_H
+#endif // MXM_GUI_SEND_BUTTON_INDICATOR_H

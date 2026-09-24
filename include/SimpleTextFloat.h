@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 LMMS team
 *
-* This file is part of LMMS - https://lmms.io
+* This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,20 +22,20 @@
  *
 */
 
-#ifndef LMMS_GUI_SIMPLE_TEXT_FLOAT_H
-#define LMMS_GUI_SIMPLE_TEXT_FLOAT_H
+#ifndef MXM_GUI_SIMPLE_TEXT_FLOAT_H
+#define MXM_GUI_SIMPLE_TEXT_FLOAT_H
 
 #include <QWidget>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 class QLabel;
 class QTimer;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT SimpleTextFloat : public QWidget
+class MXM_EXPORT SimpleTextFloat : public QWidget
 {
 	Q_OBJECT
 public:
@@ -74,6 +74,6 @@ private:
 	const QObject* m_source = nullptr;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_SIMPLE_TEXT_FLOAT_H
+#endif // MXM_GUI_SIMPLE_TEXT_FLOAT_H

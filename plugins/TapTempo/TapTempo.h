@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 saker <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_TAP_TEMPO_H
-#define LMMS_TAP_TEMPO_H
+#ifndef MXM_TAP_TEMPO_H
+#define MXM_TAP_TEMPO_H
 
 #include <array>
 #include <chrono>
@@ -31,7 +31,7 @@
 #include "TapTempoView.h"
 #include "ToolPlugin.h"
 
-namespace lmms {
+namespace mxm {
 
 class TapTempo : public ToolPlugin
 {
@@ -58,6 +58,6 @@ private:
 	int m_taps = 0;
 	double m_bpm = 0;
 };
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TAP_TEMPO_H
+#endif // MXM_TAP_TEMPO_H

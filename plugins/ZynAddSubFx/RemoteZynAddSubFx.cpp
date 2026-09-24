@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,8 +24,8 @@
 
 #include "RemoteZynAddSubFx.h"
 
-#include <lmmsconfig.h>
-#ifdef LMMS_BUILD_WIN32
+#include <mxmconfig.h>
+#ifdef MXM_BUILD_WIN32
 #include <winsock2.h>
 #endif
 
@@ -40,7 +40,7 @@
 #include <Nio/Nio.h>
 #include <UI/MasterUI.h>
 
-using namespace lmms;
+using namespace mxm;
 
 class RemoteZynAddSubFx : public RemotePluginClient, public LocalZynAddSubFx
 {
@@ -174,7 +174,7 @@ void RemoteZynAddSubFx::guiLoop()
 		}
 		else
 		{
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 			Sleep( m_guiSleepTime );
 #else
 			usleep( m_guiSleepTime*1000 );
@@ -256,7 +256,7 @@ int main( int _argc, char * * _argv )
 		return -1;
 	}
 
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 	const auto pollParentThread = PollParentThread{};
 #endif
 

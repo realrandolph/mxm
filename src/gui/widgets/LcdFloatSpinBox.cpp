@@ -5,7 +5,7 @@
  * Copyright (c) 2008 Paul Giblock <pgllama/at/gmail.com>
  * Copyright (c) 2020 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -44,9 +44,9 @@
 #include "FontHelper.h"
 #include "KeyboardShortcuts.h"
 #include "MainWindow.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -259,4 +259,4 @@ void LcdFloatSpinBox::paintEvent(QPaintEvent*)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

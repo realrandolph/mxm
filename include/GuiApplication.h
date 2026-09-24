@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2014 Lukas W <lukaswhl/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,18 +22,18 @@
  *
  */
 
-#ifndef LMMS_GUI_GUI_APPLICATION_H
-#define LMMS_GUI_GUI_APPLICATION_H
+#ifndef MXM_GUI_GUI_APPLICATION_H
+#define MXM_GUI_GUI_APPLICATION_H
 
 #include <QObject>
 
-#include "lmms_export.h"
-#include "lmmsconfig.h"
+#include "mxm_export.h"
+#include "mxmconfig.h"
 
 class QLabel;
 class QSocketNotifier;
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 class AutomationEditorWindow;
@@ -46,7 +46,7 @@ class PianoRollWindow;
 class ProjectNotes;
 class SongEditorWindow;
 
-class LMMS_EXPORT GuiApplication : public QObject
+class MXM_EXPORT GuiApplication : public QObject
 {
 	Q_OBJECT;
 public:
@@ -64,7 +64,7 @@ public:
 	static void sigintHandler(int);
 
 	static bool isWayland();
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	//! @brief Returns the Windows System font.
 	static QFont getWin32SystemFont();
 #endif
@@ -108,8 +108,8 @@ private:
 };
 
 // Short-hand function
-LMMS_EXPORT GuiApplication* getGUI();
+MXM_EXPORT GuiApplication* getGUI();
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_GUI_APPLICATION_H
+#endif // MXM_GUI_GUI_APPLICATION_H

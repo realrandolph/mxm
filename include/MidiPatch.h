@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_MIDI_PATCH_H
-#define LMMS_MIDI_PATCH_H
+#ifndef MXM_MIDI_PATCH_H
+#define MXM_MIDI_PATCH_H
 
 #include <cstdint>
 
-namespace lmms
+namespace mxm
 {
 
 struct MidiPatch
@@ -52,6 +52,6 @@ struct MidiPatch
 	}
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MIDI_PATCH_H
+#endif // MXM_MIDI_PATCH_H

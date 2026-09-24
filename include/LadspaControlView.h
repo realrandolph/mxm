@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2008 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_GUI_LADSPA_CONTROL_VIEW_H
-#define LMMS_GUI_LADSPA_CONTROL_VIEW_H
+#ifndef MXM_GUI_LADSPA_CONTROL_VIEW_H
+#define MXM_GUI_LADSPA_CONTROL_VIEW_H
 
 #include <QWidget>
 
 #include "ModelView.h"
 
-namespace lmms
+namespace mxm
 {
 
 class LadspaControl;
@@ -38,7 +38,7 @@ class LadspaControl;
 namespace gui
 {
 
-class LMMS_EXPORT LadspaControlView : public QWidget, public ModelView
+class MXM_EXPORT LadspaControlView : public QWidget, public ModelView
 {
 	Q_OBJECT
 public:
@@ -53,6 +53,6 @@ private:
 
 } // namespace gui
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_GUI_LADSPA_CONTROL_VIEW_H
+#endif // MXM_GUI_LADSPA_CONTROL_VIEW_H

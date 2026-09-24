@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 #include "MixHelpers.h"
 #include "SharedMemory.h"
 
-namespace lmms
+namespace mxm
 {
 
 namespace
@@ -359,4 +359,4 @@ auto AudioBuffer::absPeakValue(ch_cnt_t channel) const -> float
 	return std::abs(std::ranges::max(buffer(channel), {}, static_cast<float(&)(float)>(std::abs)));
 }
 
-} // namespace lmms
+} // namespace mxm

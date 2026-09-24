@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2020-2020 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,7 +24,7 @@
 
 #include "Lv2UridCache.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <lv2/atom/atom.h>
 #include <lv2/buf-size/buf-size.h>
@@ -39,7 +39,7 @@
 #define LV2_BUF_SIZE__nominalBlockLength LV2_BUF_SIZE_PREFIX "nominalBlockLength"
 #endif
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -72,8 +72,8 @@ Lv2UridCache::Lv2UridCache(UridMap &mapper)
 }
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
 

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2008 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_KNOB_H
-#define LMMS_GUI_KNOB_H
+#ifndef MXM_GUI_KNOB_H
+#define MXM_GUI_KNOB_H
 
 #include <memory>
 
@@ -31,7 +31,7 @@
 
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -43,7 +43,7 @@ enum class KnobType
 
 void convertPixmapToGrayScale(QPixmap &pixMap);
 
-class LMMS_EXPORT Knob : public FloatModelEditorBase
+class MXM_EXPORT Knob : public FloatModelEditorBase
 {
 	Q_OBJECT
 	Q_ENUMS( KnobType )
@@ -248,7 +248,7 @@ private:
  *   the same effect as its corresponding positive value, but with inverted phase.
  *   See Flanger's feedback knob for an example.
  */
-class LMMS_EXPORT VolumeKnob : public Knob
+class MXM_EXPORT VolumeKnob : public Knob
 {
 	Q_OBJECT
 
@@ -273,6 +273,6 @@ private:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_KNOB_H
+#endif // MXM_GUI_KNOB_H

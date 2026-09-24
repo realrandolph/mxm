@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -25,13 +25,13 @@
 
 #include "AudioAlsa.h"
 
-#ifdef LMMS_HAVE_ALSA
+#ifdef MXM_HAVE_ALSA
 
 #include "endian_handling.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 
-namespace lmms
+namespace mxm
 {
 
 AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
@@ -379,6 +379,6 @@ int AudioAlsa::setSWParams()
 	return 0;	// all ok
 }
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_ALSA
+#endif // MXM_HAVE_ALSA

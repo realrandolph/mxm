@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2008-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_AUDIO_PULSEAUDIO_H
-#define LMMS_AUDIO_PULSEAUDIO_H
+#ifndef MXM_AUDIO_PULSEAUDIO_H
+#define MXM_AUDIO_PULSEAUDIO_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_PULSEAUDIO
+#ifdef MXM_HAVE_PULSEAUDIO
 
 #include <pulse/pulseaudio.h>
 #include <QSemaphore>
@@ -38,7 +38,7 @@
 
 class QLineEdit;
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -94,8 +94,8 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_PULSEAUDIO
+#endif // MXM_HAVE_PULSEAUDIO
 
-#endif // LMMS_AUDIO_PULSEAUDIO_H
+#endif // MXM_AUDIO_PULSEAUDIO_H

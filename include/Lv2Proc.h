@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2022 Johannes Lorenz <jlsf2013$users.sourceforge.net, $=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_LV2_PROC_H
-#define LMMS_LV2_PROC_H
+#ifndef MXM_LV2_PROC_H
+#define MXM_LV2_PROC_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_LV2
+#ifdef MXM_HAVE_LV2
 
 #include <atomic>
 #include <lilv/lilv.h>
@@ -39,7 +39,7 @@
 #include <ringbuffer/ringbuffer.h>
 
 #include "LinkedModelGroups.h"
-#include "LmmsSemaphore.h"
+#include "MxmSemaphore.h"
 #include "Lv2Basics.h"
 #include "Lv2Features.h"
 #include "Lv2Options.h"
@@ -48,7 +48,7 @@
 #include "TimePos.h"
 
 
-namespace lmms
+namespace mxm
 {
 
 class PluginIssue;
@@ -122,11 +122,11 @@ public:
 		utils for the run thread
 	*/
 
-	//! @brief Copy values from the LMMS core (connected models, MIDI events, ...) into
+	//! @brief Copy values from the MXM core (connected models, MIDI events, ...) into
 	//! the respective ports
 	void copyModelsFromCore();
 
-	//! @brief Bring values from all ports to the LMMS core
+	//! @brief Bring values from all ports to the MXM core
 	void copyModelsToCore();
 
 	//! @brief Copy buffer passed by the core into our ports
@@ -229,7 +229,7 @@ private:
 	void initMOptions(); //!< initialize m_options
 	void initPluginSpecificFeatures();
 
-	//! load a file in the plugin, but don't do anything in LMMS
+	//! load a file in the plugin, but don't do anything in MXM
 	void loadFileInternal(const QString &file);
 	//! allocate m_ports, fill all with metadata, and assign meaning of ports
 	void createPorts();
@@ -246,8 +246,8 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_LV2
+#endif // MXM_HAVE_LV2
 
-#endif // LMMS_LV2_PROC_H
+#endif // MXM_LV2_PROC_H

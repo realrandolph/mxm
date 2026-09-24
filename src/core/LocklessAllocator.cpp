@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016 Javier Serrano Polo <javier@jasp.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -27,13 +27,13 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifndef LMMS_BUILD_WIN32
+#ifndef MXM_BUILD_WIN32
 #include <strings.h>
 #endif
 
-namespace lmms
+namespace mxm
 {
 
 static const size_t SIZEOF_SET = sizeof( int ) * 8;
@@ -84,7 +84,7 @@ LocklessAllocator::~LocklessAllocator()
 
 
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 static int ffs( int i )
 {
 	if( !i )
@@ -166,4 +166,4 @@ invalid:
 }
 
 
-} // namespace lmms
+} // namespace mxm

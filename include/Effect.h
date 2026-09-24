@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2007 Danny McRae <khjklujn/at/users.sourceforge.net>
  * Copyright (c) 2006-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_EFFECT_H
-#define LMMS_EFFECT_H
+#ifndef MXM_EFFECT_H
+#define MXM_EFFECT_H
 
 #include <span>
 
@@ -34,7 +34,7 @@
 #include "Plugin.h"
 #include "TempoSyncKnobModel.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioBuffer;
@@ -49,7 +49,7 @@ class EffectView;
 } // namespace gui
 
 
-class LMMS_EXPORT Effect : public Plugin
+class MXM_EXPORT Effect : public Plugin
 {
 	Q_OBJECT
 public:
@@ -219,6 +219,6 @@ private:
 using EffectKey = Effect::Descriptor::SubPluginFeatures::Key;
 using EffectKeyList = Effect::Descriptor::SubPluginFeatures::KeyList;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_EFFECT_H
+#endif // MXM_EFFECT_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2008-2012 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2019 Martin Pavelek <he29.HS/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_FFT_HELPERS_H
-#define LMMS_FFT_HELPERS_H
+#ifndef MXM_FFT_HELPERS_H
+#define MXM_FFT_HELPERS_H
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
 #include <vector>
 #include <fftw3.h>
 
-namespace lmms
+namespace mxm
 {
 
 // NOTE: FFT_BUFFER_SIZE should be considered deprecated!
@@ -57,8 +57,8 @@ enum class FFTWindow
  *
  *	@return -1 on error, 0 on success
  */
-float LMMS_EXPORT maximum(const float *abs_spectrum, unsigned int spec_size);
-float LMMS_EXPORT maximum(const std::vector<float> &abs_spectrum);
+float MXM_EXPORT maximum(const float *abs_spectrum, unsigned int spec_size);
+float MXM_EXPORT maximum(const std::vector<float> &abs_spectrum);
 
 
 /** Normalize the abs_spectrum array of absolute values to a 0..1 range
@@ -66,8 +66,8 @@ float LMMS_EXPORT maximum(const std::vector<float> &abs_spectrum);
  *
  *	@return -1 on error
  */
-int LMMS_EXPORT normalize(const float *abs_spectrum, float *norm_spectrum, unsigned int bin_count, unsigned int block_size);
-int LMMS_EXPORT normalize(const std::vector<float> &abs_spectrum, std::vector<float> &norm_spectrum, unsigned int block_size);
+int MXM_EXPORT normalize(const float *abs_spectrum, float *norm_spectrum, unsigned int bin_count, unsigned int block_size);
+int MXM_EXPORT normalize(const std::vector<float> &abs_spectrum, std::vector<float> &norm_spectrum, unsigned int block_size);
 
 
 /**	Check if the spectrum contains any non-zero value.
@@ -75,7 +75,7 @@ int LMMS_EXPORT normalize(const std::vector<float> &abs_spectrum, std::vector<fl
  *	@return 1 if spectrum contains any non-zero value
  *	@return 0 otherwise
  */
-int LMMS_EXPORT notEmpty(const std::vector<float> &spectrum);
+int MXM_EXPORT notEmpty(const std::vector<float> &spectrum);
 
 
 /**	Precompute a window function for later real-time use.
@@ -83,7 +83,7 @@ int LMMS_EXPORT notEmpty(const std::vector<float> &spectrum);
  *
  *	@return -1 on error
  */
-int LMMS_EXPORT precomputeWindow(float *window, unsigned int length, FFTWindow type, bool normalized = true);
+int MXM_EXPORT precomputeWindow(float *window, unsigned int length, FFTWindow type, bool normalized = true);
 
 
 /**	Compute absolute values of complex_buffer, save to absspec_buffer.
@@ -92,7 +92,7 @@ int LMMS_EXPORT precomputeWindow(float *window, unsigned int length, FFTWindow t
  *
  *	@return 0 on success, else -1
  */
-int LMMS_EXPORT absspec(const fftwf_complex *complex_buffer, float *absspec_buffer,
+int MXM_EXPORT absspec(const fftwf_complex *complex_buffer, float *absspec_buffer,
 						unsigned int compl_length);
 
 
@@ -102,10 +102,10 @@ int LMMS_EXPORT absspec(const fftwf_complex *complex_buffer, float *absspec_buff
  *
  *	@return 0 on success, else -1
  */
-int LMMS_EXPORT compressbands(const float * _absspec_buffer, float * _compressedband,
+int MXM_EXPORT compressbands(const float * _absspec_buffer, float * _compressedband,
 			int _num_old, int _num_new, int _bottom, int _top);
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FFT_HELPERS_H
+#endif // MXM_FFT_HELPERS_H

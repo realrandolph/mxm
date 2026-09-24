@@ -4,7 +4,7 @@
  * Copyright (c) 2022 Dominic Clark <mrdomclark/at/gmail.com>
  * Copyright (c) 2025-2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef LMMS_SHARED_MEMORY_H
-#define LMMS_SHARED_MEMORY_H
+#ifndef MXM_SHARED_MEMORY_H
+#define MXM_SHARED_MEMORY_H
 
 #include <memory>
 #include <memory_resource>
@@ -33,7 +33,7 @@
 #include <type_traits>
 
 
-namespace lmms
+namespace mxm
 {
 
 namespace detail
@@ -244,6 +244,6 @@ private:
 	SharedMemoryResource m_resource;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SHARED_MEMORY_H
+#endif // MXM_SHARED_MEMORY_H

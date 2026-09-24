@@ -6,7 +6,7 @@
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
 # Variables must be prefixed with "CPACK_" to be visible here
-set(lmms "${CPACK_PROJECT_NAME}")
+set(mxm "${CPACK_PROJECT_NAME}")
 set(APP "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/${CPACK_PROJECT_NAME_UCASE}.app")
 
 # Toggle command echoing & verbosity
@@ -34,8 +34,8 @@ if(NOT CPACK_STRIP_FILES_ORIG)
 endif()
 
 # Cleanup CPack "External" json, txt files, old DMG files
-file(GLOB cleanup "${CPACK_BINARY_DIR}/${lmms}-*.json"
-	"${CPACK_BINARY_DIR}/${lmms}-*.dmg"
+file(GLOB cleanup "${CPACK_BINARY_DIR}/${mxm}-*.json"
+	"${CPACK_BINARY_DIR}/${mxm}-*.dmg"
 	"${CPACK_BINARY_DIR}/install_manifest.txt")
 list(SORT cleanup)
 file(REMOVE ${cleanup})
@@ -51,24 +51,24 @@ file(RENAME "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/share" "${APP}/Contents/share"
 file(RENAME "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/bin" "${APP}/Contents/bin")
 
 # Move binaries into Contents/MacOS
-file(RENAME "${APP}/Contents/bin/${lmms}" "${APP}/Contents/MacOS/${lmms}")
-file(RENAME "${APP}/Contents/lib/${lmms}/RemoteZynAddSubFx" "${APP}/Contents/MacOS/RemoteZynAddSubFx")
+file(RENAME "${APP}/Contents/bin/${mxm}" "${APP}/Contents/MacOS/${mxm}")
+file(RENAME "${APP}/Contents/lib/${mxm}/RemoteZynAddSubFx" "${APP}/Contents/MacOS/RemoteZynAddSubFx")
 file(REMOVE_RECURSE "${APP}/Contents/bin")
 file(REMOVE_RECURSE "${APP}/Contents/share/man1")
 file(REMOVE_RECURSE "${APP}/Contents/include")
 
 # Copy missing files
-# Convert https://lmms.io to io.lmms
+# Convert the project URL to a reverse-DNS bundle identifier (e.g. github.realrandolph.mxm)
 string(REPLACE "." ";" mime_parts "${CPACK_PROJECT_URL}")
 string(REPLACE ":" ";" mime_parts "${mime_parts}")
 string(REPLACE "/" "" mime_parts "${mime_parts}")
 list(REMOVE_AT mime_parts 0)
 list(REVERSE mime_parts)
 list(JOIN mime_parts "." MACOS_MIMETYPE_ID)
-configure_file("${CPACK_CURRENT_SOURCE_DIR}/lmms.plist.in" "${APP}/Contents/Info.plist" @ONLY)
+configure_file("${CPACK_CURRENT_SOURCE_DIR}/mxm.plist.in" "${APP}/Contents/Info.plist" @ONLY)
 file(COPY "${CPACK_CURRENT_SOURCE_DIR}/project.icns" DESTINATION "${APP}/Contents/Resources")
 file(COPY "${CPACK_CURRENT_SOURCE_DIR}/icon.icns" DESTINATION "${APP}/Contents/Resources")
-file(RENAME "${APP}/Contents/Resources/icon.icns" "${APP}/Contents/Resources/${lmms}.icns")
+file(RENAME "${APP}/Contents/Resources/icon.icns" "${APP}/Contents/Resources/${mxm}.icns")
 
 # Copy Suil modules
 if(CPACK_SUIL_MODULES)
@@ -93,22 +93,22 @@ create_symlink("${QTDIR}/lib" "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/lib")
 execute_process(COMMAND install_name_tool -change
 	"@rpath/libcarlabase.dylib"
 	"@loader_path/libcarlabase.dylib"
-	"${APP}/Contents/lib/${lmms}/libcarlapatchbay.so"
+	"${APP}/Contents/lib/${mxm}/libcarlapatchbay.so"
 	COMMAND_ECHO ${COMMAND_ECHO}
 	COMMAND_ERROR_IS_FATAL ANY)
 execute_process(COMMAND install_name_tool -change
 	"@rpath/libcarlabase.dylib"
 	"@loader_path/libcarlabase.dylib"
-	"${APP}/Contents/lib/${lmms}/libcarlarack.so"
+	"${APP}/Contents/lib/${mxm}/libcarlarack.so"
 	COMMAND_ECHO ${COMMAND_ECHO}
 	COMMAND_ERROR_IS_FATAL ANY)
 
 # Build list of executables to inform macdeployqt about
 # e.g. -executable=foo.dylib -executable=bar.dylib
-file(GLOB LIBS "${APP}/Contents/lib/${lmms}/*.so")
+file(GLOB LIBS "${APP}/Contents/lib/${mxm}/*.so")
 
 # Inform macdeployqt about LADSPA plugins; may depend on bundled fftw3f, etc.
-file(GLOB LADSPA "${APP}/Contents/lib/${lmms}/ladspa/*.so")
+file(GLOB LADSPA "${APP}/Contents/lib/${mxm}/ladspa/*.so")
 
 # Inform macdeployqt about remote plugins
 file(GLOB REMOTE_PLUGINS "${APP}/Contents/MacOS/*Remote*")
@@ -157,7 +157,7 @@ file(REMOVE "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/lib")
 
 # Remove dummy carla libs, relink to a sane location (e.g. /Applications/Carla.app/...)
 # (must be done after calling macdeployqt)
-file(GLOB CARLALIBS "${APP}/Contents/lib/${lmms}/libcarla*")
+file(GLOB CARLALIBS "${APP}/Contents/lib/${mxm}/libcarla*")
 foreach(_carlalib IN LISTS CARLALIBS)
 	foreach(_lib "${CPACK_CARLA_LIBRARIES}")
 		set(_oldpath "../../Frameworks/lib${_lib}.dylib")

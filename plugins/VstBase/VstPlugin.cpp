@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@
 #include <QTemporaryFile>
 #include <QTimerEvent>
 
-#if defined(LMMS_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
+#if defined(MXM_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
 #	include <QX11Info>
 #	include <X11EmbedContainer.h>
 #endif
@@ -43,7 +43,7 @@
 #include <QWindow>
 
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 #	include <windows.h>
 #	include <QLayout>
 #endif
@@ -59,7 +59,7 @@
 #include "SimpleTextFloat.h"
 #include "Song.h"
 
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 #	include <X11/Xlib.h>
 #endif
 
@@ -116,7 +116,7 @@ private:
 
 } // namespace PE
 
-namespace lmms
+namespace mxm
 {
 
 enum class ExecutableType
@@ -136,7 +136,7 @@ VstPlugin::VstPlugin( const QString & _plugin ) :
 	setSplittedChannels( true );
 
 	auto pluginType = ExecutableType::Unknown;
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 	QFileInfo fi(m_plugin);
 	if (fi.suffix() == "so")
 	{
@@ -173,7 +173,7 @@ VstPlugin::VstPlugin( const QString & _plugin ) :
 	case ExecutableType::Win32:
 		tryLoad( REMOTE_VST_PLUGIN_FILEPATH_32 ); // Default: 32/RemoteVstPlugin32
 		break;
-#ifdef LMMS_BUILD_LINUX
+#ifdef MXM_BUILD_LINUX
 	case ExecutableType::Linux64:
 		tryLoad( NATIVE_LINUX_REMOTE_VST_PLUGIN_FILEPATH_64 ); // Default: NativeLinuxRemoteVstPlugin32
 		break;
@@ -185,8 +185,8 @@ VstPlugin::VstPlugin( const QString & _plugin ) :
 
 	setTempo( Engine::getSong()->getTempo() );
 
-	connect( Engine::getSong(), SIGNAL( tempoChanged( lmms::bpm_t ) ),
-			this, SLOT( setTempo( lmms::bpm_t ) ), Qt::DirectConnection );
+	connect( Engine::getSong(), SIGNAL( tempoChanged( mxm::bpm_t ) ),
+			this, SLOT( setTempo( mxm::bpm_t ) ), Qt::DirectConnection );
 	connect( Engine::audioEngine(), SIGNAL( sampleRateChanged() ),
 				this, SLOT( updateSampleRate() ) );
 
@@ -410,7 +410,7 @@ bool VstPlugin::processMessage( const message & _m )
 		if (m_embedMethod == "none" && !gui::GuiApplication::isWayland()
 			&& ConfigManager::inst()->value("ui", "vstalwaysontop").toInt())
 		{
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 			// We're changing the owner, not the parent,
 			// so this is legal despite MSDN's warning
 			SetWindowLongPtr( (HWND)(intptr_t) m_pluginWindowID,
@@ -418,7 +418,7 @@ bool VstPlugin::processMessage( const message & _m )
 					(LONG_PTR) gui::getGUI()->mainWindow()->winId() );
 #endif
 
-#if defined(LMMS_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
+#if defined(MXM_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
 			XSetTransientForHint( QX11Info::display(),
 					m_pluginWindowID,
 					gui::getGUI()->mainWindow()->winId() );
@@ -792,7 +792,7 @@ void VstPlugin::createUI( QWidget * parent )
 		container->installEventFilter(this);
 	} else
 
-#ifdef LMMS_BUILD_WIN32
+#ifdef MXM_BUILD_WIN32
 	if (m_embedMethod == "win32" )
 	{
 		QWidget * helper = new QWidget;
@@ -823,7 +823,7 @@ void VstPlugin::createUI( QWidget * parent )
 	} else
 #endif
 
-#if defined(LMMS_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
+#if defined(MXM_BUILD_LINUX) && (QT_VERSION < QT_VERSION_CHECK(6,0,0))
 	if (m_embedMethod == "xembed" )
 	{
 		if (parent)
@@ -929,4 +929,4 @@ auto VstPluginKnob::getParameterText() const -> QString
 }
 
 } // namespace gui
-} // namespace lmms
+} // namespace mxm

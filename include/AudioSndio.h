@@ -4,7 +4,7 @@
  * Copyright (c) 2010-2016 jackmsr@openbsd.net
  * Copyright (c) 2016-2017 David Carlier <devnexen@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_AUDIO_SNDIO_H
-#define LMMS_AUDIO_SNDIO_H
+#ifndef MXM_AUDIO_SNDIO_H
+#define MXM_AUDIO_SNDIO_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_SNDIO
+#ifdef MXM_HAVE_SNDIO
 
 #include <QThread>
 #include <sndio.h>
@@ -38,7 +38,7 @@
 
 class QLineEdit;
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -81,8 +81,8 @@ private:
 	struct sio_par m_par;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_SNDIO
+#endif // MXM_HAVE_SNDIO
 
-#endif // LMMS_AUDIO_SNDIO_H
+#endif // MXM_AUDIO_SNDIO_H

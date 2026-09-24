@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Andrew Wiltshire <aw1lt / at/ proton/ dot/me >
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,12 +22,12 @@
  *
  */
 
-#ifndef LMMS_GUI_FILE_REVEALER_H
-#define LMMS_GUI_FILE_REVEALER_H
+#ifndef MXM_GUI_FILE_REVEALER_H
+#define MXM_GUI_FILE_REVEALER_H
 
 #include <QFileInfo>
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 /**
  * @class FileRevealer
@@ -83,6 +83,6 @@ protected:
 	static bool supportsArg(const QString& command, const QString& arg);
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_FILE_REVEALER_H
+#endif // MXM_GUI_FILE_REVEALER_H

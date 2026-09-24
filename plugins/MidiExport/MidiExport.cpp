@@ -6,7 +6,7 @@
  * Copyright (c) 2020 EmoonX
  * Copyright (c) 2026 Dalton Messmer <messmer.dalton/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@
 #include "PatternTrack.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 extern "C"
@@ -46,10 +46,10 @@ extern "C"
 //! Standardized plugin descriptor for MIDI exporter
 Plugin::Descriptor PLUGIN_EXPORT midiexport_plugin_descriptor =
 {
-	LMMS_STRINGIFY(PLUGIN_NAME),
+	MXM_STRINGIFY(PLUGIN_NAME),
 	"MIDI Export",
 	QT_TRANSLATE_NOOP("PluginBrowser",
-		"Filter for exporting MIDI files from LMMS"),
+		"Filter for exporting MIDI files from MXM"),
 	"Mohamed Abdel Maksoud <mohamed at amaksoud.com> and "
 		"Hyunjin Song <tteu.ingog/at/gmail.com>",
 	0x0100,
@@ -59,7 +59,7 @@ Plugin::Descriptor PLUGIN_EXPORT midiexport_plugin_descriptor =
 	nullptr,
 };
 
-PLUGIN_EXPORT Plugin* lmms_plugin_main(Model*, void*)
+PLUGIN_EXPORT Plugin* mxm_plugin_main(Model*, void*)
 {
 	return new MidiExport{};
 }
@@ -345,4 +345,4 @@ void MidiExport::processPatternTrack(Track& track)
 	m_plists.emplace_back(std::move(plist));
 }
 
-} // namespace lmms
+} // namespace mxm

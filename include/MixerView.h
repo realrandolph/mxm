@@ -1,9 +1,9 @@
 /*
- * MixerView.h - effect-mixer-view for LMMS
+ * MixerView.h - effect-mixer-view for MXM
  *
  * Copyright (c) 2008-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_GUI_MIXER_VIEW_H
-#define LMMS_GUI_MIXER_VIEW_H
+#ifndef MXM_GUI_MIXER_VIEW_H
+#define MXM_GUI_MIXER_VIEW_H
 
 #include <QWidget>
 
@@ -37,15 +37,15 @@ class QHBoxLayout;
 class QStackedLayout;
 class QScrollArea;
 
-namespace lmms
+namespace mxm
 {
 	class Mixer;
 }
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT MixerView
+class MXM_EXPORT MixerView
 	: public QWidget
 	, public ModelView
 	, public SerializingObjectHook
@@ -129,6 +129,6 @@ private:
 } ;
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_MIXER_VIEW_H
+#endif // MXM_GUI_MIXER_VIEW_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2024 Khoi Dau <casboi86@gmail.com>
  * Copyright (c) 2024 Sotonye Atemie <sakertooth@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -35,7 +35,7 @@ namespace {
 	constexpr auto AggregationPerZoomStep = 10;
 }
 
-namespace lmms::gui {
+namespace mxm::gui {
 
 SampleThumbnail::Thumbnail::Thumbnail(std::vector<Peak> peaks, double samplesPerPeak)
 	: m_peaks(std::move(peaks))
@@ -178,4 +178,4 @@ void SampleThumbnail::visualize(VisualizeParameters parameters, QPainter& painte
 	painter.restore();
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

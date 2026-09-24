@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2019 Johannes Lorenz <j.git$$$lorenz-ho.me, $$$=@>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,10 +22,10 @@
  *
  */
 
-#ifndef LMMS_MODEL_VISITOR_H
-#define LMMS_MODEL_VISITOR_H
+#ifndef MXM_MODEL_VISITOR_H
+#define MXM_MODEL_VISITOR_H
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -66,6 +66,6 @@ public:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_MODEL_VISITOR_H
+#endif // MXM_MODEL_VISITOR_H

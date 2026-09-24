@@ -5,7 +5,7 @@
 
 #include "ImportFilter.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -26,7 +26,7 @@ private:
 };
 
 
-} // namespace lmms
+} // namespace mxm
 
 #endif
 

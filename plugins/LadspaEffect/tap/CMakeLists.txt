@@ -20,7 +20,7 @@ FOREACH(_item ${PLUGIN_SOURCES})
 	ENDIF()
 	INSTALL(TARGETS "${_plugin}" LIBRARY DESTINATION "${PLUGIN_DIR}/ladspa")
 	SET_TARGET_PROPERTIES("${_plugin}" PROPERTIES PREFIX "")
-	if(LMMS_BUILD_WIN32)
+	if(MXM_BUILD_WIN32)
 		add_custom_command(
 			TARGET "${_plugin}"
 			POST_BUILD

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2017 to present Michael Gregorius <michael.gregorius.git/at/arcor[dot]de>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,18 +23,18 @@
  *
  */
 
-#ifndef LMMS_AUDIO_FILE_MP3_H
-#define LMMS_AUDIO_FILE_MP3_H
+#ifndef MXM_AUDIO_FILE_MP3_H
+#define MXM_AUDIO_FILE_MP3_H
 
-#include "lmmsconfig.h"
+#include "mxmconfig.h"
 
-#ifdef LMMS_HAVE_MP3LAME
+#ifdef MXM_HAVE_MP3LAME
 
 #include "AudioFileDevice.h"
 
 #include "lame/lame.h"
 
-namespace lmms
+namespace mxm
 {
 
 class AudioFileMP3 : public AudioFileDevice
@@ -69,8 +69,8 @@ private:
 	lame_t m_lame;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_HAVE_MP3LAME
+#endif // MXM_HAVE_MP3LAME
 
-#endif // LMMS_AUDIO_FILE_MP3_H
+#endif // MXM_AUDIO_FILE_MP3_H

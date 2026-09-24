@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023-now Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,16 +24,16 @@
 
 #pragma once
 
-#ifndef LMMS_GUI_BAR_MODEL_EDITOR_H
-#define LMMS_GUI_BAR_MODEL_EDITOR_H
+#ifndef MXM_GUI_BAR_MODEL_EDITOR_H
+#define MXM_GUI_BAR_MODEL_EDITOR_H
 
 #include "FloatModelEditorBase.h"
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
-class LMMS_EXPORT BarModelEditor : public FloatModelEditorBase
+class MXM_EXPORT BarModelEditor : public FloatModelEditorBase
 {
 	Q_OBJECT
 
@@ -71,6 +71,6 @@ private:
 	QColor m_textColor;
 };
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
-#endif // LMMS_GUI_BAR_MODEL_EDITOR_H
+#endif // MXM_GUI_BAR_MODEL_EDITOR_H

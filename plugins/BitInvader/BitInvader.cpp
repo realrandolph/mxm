@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2006-2008 Andreas Brandmaier <andy/at/brandmaier/dot/de>
  * 
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -36,12 +36,12 @@
 #include "NotePlayHandle.h"
 #include "PixmapButton.h"
 #include "Song.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include "embed.h"
 #include "plugin_export.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -53,7 +53,7 @@ extern "C"
 
 Plugin::Descriptor PLUGIN_EXPORT bitinvader_plugin_descriptor =
 {
-	LMMS_STRINGIFY( PLUGIN_NAME ),
+	MXM_STRINGIFY( PLUGIN_NAME ),
 	"BitInvader",
 	QT_TRANSLATE_NOOP( "PluginBrowser",
 				"Customizable wavetable synthesizer" ),
@@ -127,7 +127,7 @@ sample_t BSynth::nextStringSample( float sample_length )
 *
 *	class BitInvader
 *
-*	lmms - plugin 
+*	mxm - plugin 
 *
 ***********************************************************************/
 
@@ -544,7 +544,7 @@ extern "C"
 {
 
 // necessary for getting instance out of shared lib
-PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
+PLUGIN_EXPORT Plugin * mxm_plugin_main( Model *m, void * )
 {
 	return( new BitInvader( static_cast<InstrumentTrack *>( m ) ) );
 }
@@ -553,4 +553,4 @@ PLUGIN_EXPORT Plugin * lmms_plugin_main( Model *m, void * )
 }
 
 
-} // namespace lmms
+} // namespace mxm

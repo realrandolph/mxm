@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Dominic Clark
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_ARRAY_VECTOR_H
-#define LMMS_ARRAY_VECTOR_H
+#ifndef MXM_ARRAY_VECTOR_H
+#define MXM_ARRAY_VECTOR_H
 
 #include <algorithm>
 #include <cassert>
@@ -35,7 +35,7 @@
 #include <utility>
 #include <type_traits>
 
-namespace lmms {
+namespace mxm {
 
 /**
  * A container that stores up to a maximum of `N` elements of type `T` directly
@@ -367,6 +367,6 @@ private:
 	size_type m_size = 0;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_ARRAY_VECTOR_H
+#endif // MXM_ARRAY_VECTOR_H

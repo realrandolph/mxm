@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef LMMS_SONG_H
-#define LMMS_SONG_H
+#ifndef MXM_SONG_H
+#define MXM_SONG_H
 
 #include <array>
 #include <memory>
@@ -34,7 +34,7 @@
 #include "AudioEngine.h"
 #include "Controller.h"
 #include "Metronome.h"
-#include "lmms_constants.h"
+#include "mxm_constants.h"
 #include "MeterModel.h"
 #include "Timeline.h"
 #include "TrackContainer.h"
@@ -42,7 +42,7 @@
 
 #include <filesystem> // QTBUG-73263
 
-namespace lmms
+namespace mxm
 {
 
 class AutomationTrack;
@@ -63,7 +63,7 @@ const bpm_t MaxTempo = 999;
 const tick_t MaxSongLength = 9999 * DefaultTicksPerBar;
 
 
-class LMMS_EXPORT Song : public TrackContainer
+class MXM_EXPORT Song : public TrackContainer
 {
 	Q_OBJECT
 	mapPropertyFromModel( int,getTempo,setTempo,m_tempoModel );
@@ -333,7 +333,7 @@ public slots:
 	void record();
 	void playAndRecord();
 	void playPattern();
-	void playMidiClip( const lmms::MidiClip * midiClipToPlay, bool loop = true );
+	void playMidiClip( const mxm::MidiClip * midiClipToPlay, bool loop = true );
 	void togglePause();
 	void stop();
 
@@ -470,10 +470,10 @@ signals:
 	void playbackStateChanged();
 	void playbackPositionJumped();
 	void lengthChanged( int bars );
-	void tempoChanged( lmms::bpm_t newBPM );
+	void tempoChanged( mxm::bpm_t newBPM );
 	void timeSignatureChanged( int oldTicksPerBar, int ticksPerBar );
-	void controllerAdded( lmms::Controller * );
-	void controllerRemoved( lmms::Controller * );
+	void controllerAdded( mxm::Controller * );
+	void controllerRemoved( mxm::Controller * );
 	void stopped();
 	void modified();
 	void projectFileNameChanged();
@@ -482,6 +482,6 @@ signals:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_SONG_H
+#endif // MXM_SONG_H

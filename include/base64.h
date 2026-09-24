@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2006-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,15 +23,15 @@
  *
  */
 
-#ifndef LMMS_BASE64_H
-#define LMMS_BASE64_H
+#ifndef MXM_BASE64_H
+#define MXM_BASE64_H
 
 #include <QByteArray>
 #include <QMetaType>
 #include <QString>
 #include <QVariant>
 
-namespace lmms::base64
+namespace mxm::base64
 {
 
 	inline void encode( const char * _data, const int _size,
@@ -53,6 +53,6 @@ namespace lmms::base64
 	QVariant decode(const QString& b64,
 		QMetaType::Type forceType = QMetaType::UnknownType);
 
-} // namespace lmms::base64
+} // namespace mxm::base64
 
-#endif // LMMS_BASE64_H
+#endif // MXM_BASE64_H

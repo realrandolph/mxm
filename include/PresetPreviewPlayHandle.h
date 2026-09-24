@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2005-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,12 +23,12 @@
  *
  */
 
-#ifndef LMMS_PRESET_PREVIEW_PLAY_HANDLE_H
-#define LMMS_PRESET_PREVIEW_PLAY_HANDLE_H
+#ifndef MXM_PRESET_PREVIEW_PLAY_HANDLE_H
+#define MXM_PRESET_PREVIEW_PLAY_HANDLE_H
 
 #include "NotePlayHandle.h"
 
-namespace lmms
+namespace mxm
 {
 
 
@@ -36,7 +36,7 @@ class DataFile;
 class InstrumentTrack;
 class PreviewTrackContainer;
 
-class LMMS_EXPORT PresetPreviewPlayHandle : public PlayHandle
+class MXM_EXPORT PresetPreviewPlayHandle : public PlayHandle
 {
 public:
 	PresetPreviewPlayHandle( const QString& presetFile, bool loadByPlugin = false, DataFile *dataFile = 0 );
@@ -67,6 +67,6 @@ private:
 } ;
 
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_PRESET_PREVIEW_PLAY_HANDLE_H
+#endif // MXM_PRESET_PREVIEW_PLAY_HANDLE_H

@@ -4,7 +4,7 @@
  * Copyright (c) 2005-2008 Danny McRae <khjklujn/at/yahoo.com>
  * Copyright (c) 2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -23,14 +23,14 @@
  *
  */
 
-#ifndef LMMS_TEMPO_SYNC_KNOB_MODEL_H
-#define LMMS_TEMPO_SYNC_KNOB_MODEL_H
+#ifndef MXM_TEMPO_SYNC_KNOB_MODEL_H
+#define MXM_TEMPO_SYNC_KNOB_MODEL_H
 
 #include "MeterModel.h"
 
 class QAction;
 
-namespace lmms
+namespace mxm
 {
 
 namespace gui
@@ -41,7 +41,7 @@ class TempoSyncKnob;
 } // namespace gui
 
 
-class LMMS_EXPORT TempoSyncKnobModel : public FloatModel
+class MXM_EXPORT TempoSyncKnobModel : public FloatModel
 {
 	Q_OBJECT
 	MODEL_IS_VISITABLE
@@ -86,7 +86,7 @@ public:
 	MeterModel const & getCustomMeterModel() const { return m_custom; }
 
 signals:
-	void syncModeChanged( lmms::TempoSyncKnobModel::SyncMode _new_mode );
+	void syncModeChanged( mxm::TempoSyncKnobModel::SyncMode _new_mode );
 	void scaleChanged( float _new_scale );
 
 
@@ -100,7 +100,7 @@ public slots:
 
 
 protected slots:
-	void calculateTempoSyncTime( lmms::bpm_t _bpm );
+	void calculateTempoSyncTime( mxm::bpm_t _bpm );
 	void updateCustom();
 
 
@@ -116,6 +116,6 @@ private:
 
 } ;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_TEMPO_SYNC_KNOB_MODEL_H
+#endif // MXM_TEMPO_SYNC_KNOB_MODEL_H

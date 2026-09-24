@@ -3,7 +3,7 @@
  * Copyright (c) 2019 Martin Pavelek <he29/dot/HS/at/gmail/dot/com>
  * Copyright (c) 2025- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -28,7 +28,7 @@
 
 #include "LocklessRingBuffer.h"
 
-namespace lmms
+namespace mxm
 {
 class VecControls;
 class SampleFrame;
@@ -36,7 +36,7 @@ class SampleFrame;
 
 //#define VEC_DEBUG
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 
@@ -78,7 +78,7 @@ private:
 
 	QPointF m_lastPoint = QPoint();
 
-	QColor m_colorTrace = QColor(60, 255, 130, 255);	// ~LMMS green
+	QColor m_colorTrace = QColor(60, 255, 130, 255);	// green trace
 	QColor m_colorGrid = QColor(76, 80, 84, 128);		// ~60 % gray (slightly cold / blue), 50 % transparent
 	QColor m_colorLabels = QColor(76, 80, 84, 255);		// ~60 % gray (slightly cold / blue)
 
@@ -88,6 +88,6 @@ private:
 };
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui
 
 #endif // VECTORVIEW_H

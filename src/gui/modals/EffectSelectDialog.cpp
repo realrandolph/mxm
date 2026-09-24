@@ -4,7 +4,7 @@
  * Copyright (c) 2006-2009 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  * Copyright (c) 2023 Lost Robot <r94231/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -44,7 +44,7 @@
 #include <QVBoxLayout>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 EffectSelectDialog::EffectSelectDialog(QWidget* parent) :
@@ -93,7 +93,7 @@ EffectSelectDialog::EffectSelectDialog(QWidget* parent) :
 		else
 		{
 			name = it->desc->displayName;
-			type = "LMMS";
+			type = "MXM";
 		}
 		m_sourceModel.setItem(row, 0, new QStandardItem(name));
 		m_sourceModel.setItem(row, 1, new QStandardItem(type));
@@ -108,8 +108,8 @@ EffectSelectDialog::EffectSelectDialog(QWidget* parent) :
 
 	QVBoxLayout* leftSectionLayout = new QVBoxLayout();
 
-	QStringList buttonLabels = { tr("All"), "LMMS", "LADSPA", "LV2", "VST" };
-	QStringList buttonSearchString = { "", "LMMS", "LADSPA", "LV2", "VST" };
+	QStringList buttonLabels = { tr("All"), "MXM", "LADSPA", "LV2", "VST" };
+	QStringList buttonSearchString = { "", "MXM", "LADSPA", "LV2", "VST" };
 
 	for (int i = 0; i < buttonLabels.size(); ++i)
 	{
@@ -337,4 +337,4 @@ bool EffectSelectDialog::eventFilter(QObject *obj, QEvent *event)
 	return QDialog::eventFilter(obj, event);
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

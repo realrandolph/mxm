@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -21,22 +21,22 @@
  * Boston, MA 02110-1301 USA.
  */
 
-#ifndef LMMS_FREQUENCY_SHIFTER_EFFECT_H
-#define LMMS_FREQUENCY_SHIFTER_EFFECT_H
+#ifndef MXM_FREQUENCY_SHIFTER_EFFECT_H
+#define MXM_FREQUENCY_SHIFTER_EFFECT_H
 
 #include "Effect.h"
 #include "FrequencyShifterControls.h"
 
 #include "HilbertTransform.h"
 #include "interpolation.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include <array>
 #include <cmath>
 #include <numbers>
 #include <vector>
 
-namespace lmms
+namespace mxm
 {
 
 class FrequencyShifterEffect : public Effect
@@ -109,7 +109,7 @@ private:
 	FrequencyShifterControls m_controls;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_FREQUENCY_SHIFTER_EFFECT_H
+#endif // MXM_FREQUENCY_SHIFTER_EFFECT_H
 

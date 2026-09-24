@@ -1,9 +1,9 @@
 /*
- * AudioDevice.h - base-class for audio-devices, used by LMMS audio engine
+ * AudioDevice.h - base-class for audio-devices, used by MXM audio engine
  *
  * Copyright (c) 2004-2014 Tobias Doerffel <tobydox/at/users.sourceforge.net>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_AUDIO_DEVICE_H
-#define LMMS_AUDIO_DEVICE_H
+#ifndef MXM_AUDIO_DEVICE_H
+#define MXM_AUDIO_DEVICE_H
 
 #include <QMutex>
 #include <samplerate.h>
 
-#include "LmmsTypes.h"
+#include "MxmTypes.h"
 
 class QThread;
 
-namespace lmms
+namespace mxm
 {
 
 class AudioEngine;
@@ -100,6 +100,6 @@ private:
 	std::atomic_flag m_running = ATOMIC_FLAG_INIT;
 };
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_AUDIO_DEVICE_H
+#endif // MXM_AUDIO_DEVICE_H

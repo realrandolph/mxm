@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2025 Lost Robot <r94231/at/gmail/dot/com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -33,11 +33,11 @@
 #include "GuiApplication.h"
 #include "PixmapButton.h"
 #include "Draggable.h"
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include <QPainterPath>
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 SlewDistortionControlDialog::SlewDistortionControlDialog(SlewDistortionControls* controls) :
@@ -478,7 +478,7 @@ SlewDistortionHelpView::SlewDistortionHelpView() : QTextEdit(s_helpText)
 	setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
 	getGUI()->mainWindow()->addWindowedWidget(this);
 	parentWidget()->setAttribute(Qt::WA_DeleteOnClose, false);
-	parentWidget()->setWindowIcon(QIcon(PixmapLoader("lmms-plugin-logo").pixmap()));
+	parentWidget()->setWindowIcon(QIcon(PixmapLoader("mxm-plugin-logo").pixmap()));
 	
 	// No maximize button
 	Qt::WindowFlags flags = parentWidget()->windowFlags();
@@ -487,4 +487,4 @@ SlewDistortionHelpView::SlewDistortionHelpView() : QTextEdit(s_helpText)
 }
 
 
-} // namespace lmms::gui
+} // namespace mxm::gui

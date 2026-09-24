@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019-2022 Spekular <Spekularr@gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,17 +22,17 @@
  *
  */
 
-#ifndef LMMS_PATHUTIL_H
-#define LMMS_PATHUTIL_H
+#ifndef MXM_PATHUTIL_H
+#define MXM_PATHUTIL_H
 
 #include <filesystem>
 #include <string_view>
 
 #include <QDir>
 
-#include "lmms_export.h"
+#include "mxm_export.h"
 
-namespace lmms::PathUtil
+namespace mxm::PathUtil
 {
 	enum class Base { Absolute, ProjectDir, FactoryProjects, FactorySample, UserSample, UserVST, Preset,
 		FactoryPresets, UserLADSPA, DefaultLADSPA, UserSoundfont, DefaultSoundfont, UserGIG, DefaultGIG,
@@ -42,43 +42,43 @@ namespace lmms::PathUtil
 	//! Optionally, if a pointer to boolean is given the method will
 	//! use it to indicate whether the prefix could be resolved properly
 	//! or not.
-	QString LMMS_EXPORT baseLocation(const Base base, bool* error = nullptr);
+	QString MXM_EXPORT baseLocation(const Base base, bool* error = nullptr);
 	//! Return the directory associated with a given base as a QDir.
 	//! Optional pointer to boolean to indicate if the prefix could
 	//! be resolved properly.
-	QDir LMMS_EXPORT baseQDir (const Base base, bool* error = nullptr);
+	QDir MXM_EXPORT baseQDir (const Base base, bool* error = nullptr);
 	//! Return the prefix used to denote this base in path strings
-	QString LMMS_EXPORT basePrefix(const Base base);
+	QString MXM_EXPORT basePrefix(const Base base);
 	//! Check the prefix of a path and return the base it corresponds to
 	//! Defaults to Base::Absolute
-	Base LMMS_EXPORT baseLookup(const QString& input);
+	Base MXM_EXPORT baseLookup(const QString& input);
 
 	//! Remove the prefix from a path, iff there is one
-	QString LMMS_EXPORT stripPrefix(const QString& input);
+	QString MXM_EXPORT stripPrefix(const QString& input);
 	//! Get the filename for a path, handling prefixed paths correctly
-	QString LMMS_EXPORT cleanName(const QString& input);
+	QString MXM_EXPORT cleanName(const QString& input);
 
 	//! Upgrade prefix-less relative paths to the new format
-	QString LMMS_EXPORT oldRelativeUpgrade(const QString& input);
+	QString MXM_EXPORT oldRelativeUpgrade(const QString& input);
 
 	//! Make this path absolute. If a pointer to boolean is given
 	//! it will indicate whether the path was converted successfully
-	QString LMMS_EXPORT toAbsolute(const QString& input, bool* error = nullptr);
+	QString MXM_EXPORT toAbsolute(const QString& input, bool* error = nullptr);
 	//! Make this path relative to a given base, return an absolute path if that fails
-	QString LMMS_EXPORT relativeOrAbsolute(const QString& input, const Base base);
+	QString MXM_EXPORT relativeOrAbsolute(const QString& input, const Base base);
 	//! Make this path relative to any base, choosing the shortest if there are
 	//! multiple options. allowLocal defines whether local paths should be considered.
 	//! Defaults to an absolute path if all bases fail.
-	QString LMMS_EXPORT toShortestRelative(const QString& input, bool allowLocal = false);
+	QString MXM_EXPORT toShortestRelative(const QString& input, bool allowLocal = false);
 
 	//! Converts a UTF-8 encoded string to std::filesystem::path
-	LMMS_EXPORT auto stringToPath(std::string_view path) -> std::filesystem::path;
+	MXM_EXPORT auto stringToPath(std::string_view path) -> std::filesystem::path;
 
 	//! Converts QString to std::filesystem::path
-	LMMS_EXPORT auto stringToPath(const QString& path) -> std::filesystem::path;
+	MXM_EXPORT auto stringToPath(const QString& path) -> std::filesystem::path;
 
 	//! Converts std::filesystem::path to a UTF-8 encoded std::string
-	LMMS_EXPORT auto pathToString(const std::filesystem::path& path) -> std::string;
-} // namespace lmms::PathUtil
+	MXM_EXPORT auto pathToString(const std::filesystem::path& path) -> std::string;
+} // namespace mxm::PathUtil
 
-#endif // LMMS_PATHUTIL_H
+#endif // MXM_PATHUTIL_H

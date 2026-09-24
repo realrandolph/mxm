@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016-2017 Orr Dvori
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -31,7 +31,7 @@
 #include <random>
 #include <numbers>
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 #include "NotePlayHandle.h"
 #include "SampleFrame.h"
 
@@ -40,7 +40,7 @@
 
 #define WARN_EXPRTK qWarning("ExprTk exception")
 
-namespace lmms
+namespace mxm
 {
 
 using symbol_table_t = exprtk::symbol_table<float>;
@@ -830,4 +830,4 @@ void ExprSynth::renderOutput(f_cnt_t frames, SampleFrame* buf)
 }
 
 
-} // namespace lmms
+} // namespace mxm

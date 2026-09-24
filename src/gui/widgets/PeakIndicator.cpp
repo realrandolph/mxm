@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2024- Michael Gregorius
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -24,12 +24,12 @@
 
 #include "PeakIndicator.h"
 
-#include "lmms_math.h"
+#include "mxm_math.h"
 
 #include <QMouseEvent>
 
 
-namespace lmms::gui
+namespace mxm::gui
 {
 
 PeakIndicator::PeakIndicator(QWidget* parent) :
@@ -80,4 +80,4 @@ void PeakIndicator::updatePeakDisplay()
 	}
 }
 
-} // namespace lmms::gui
+} // namespace mxm::gui

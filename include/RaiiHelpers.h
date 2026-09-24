@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2022 Dominic Clark <mrdomclark/at/gmail.com>
  *
- * This file is part of LMMS - https://lmms.io
+ * This file is part of MXM (Musica ex Machina), a fork of LMMS - https://lmms.io
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@
  *
  */
 
-#ifndef LMMS_RAII_HELPERS_H
-#define LMMS_RAII_HELPERS_H
+#ifndef MXM_RAII_HELPERS_H
+#define MXM_RAII_HELPERS_H
 
 #include <cstddef>
 #include <memory>
 
 
-namespace lmms
+namespace mxm
 {
 
 template<typename T, T Null>
@@ -62,6 +62,6 @@ struct NullableResourceDeleter
 template<typename T, T Null, auto Deleter>
 using UniqueNullableResource = std::unique_ptr<T, NullableResourceDeleter<T, Null, Deleter>>;
 
-} // namespace lmms
+} // namespace mxm
 
-#endif // LMMS_RAII_HELPERS_H
+#endif // MXM_RAII_HELPERS_H
