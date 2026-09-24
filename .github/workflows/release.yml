@@ -1,0 +1,156 @@
+---
+name: release
+
+'on':
+  workflow_run:
+    workflows: [build]
+    types: [completed]
+
+# The build workflow already produces native packages on Linux, Windows, and
+# macOS. This workflow deliberately publishes those exact tested artifacts
+# instead of rebuilding them a second time.
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish tagged release
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out triggering commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Resolve release tag
+        id: release_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t tags < <(
+            git tag --points-at HEAD \
+              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$' \
+              || true
+          )
+
+          if (( ${#tags[@]} == 0 )); then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "No release tag points at the triggering commit; nothing to publish."
+            exit 0
+          fi
+
+          if (( ${#tags[@]} > 1 )); then
+            printf 'Refusing ambiguous release: multiple version tags point at HEAD:\n' >&2
+            printf '  %s\n' "${tags[@]}" >&2
+            exit 1
+          fi
+
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "tag=${tags[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Download packaged build artifacts
+        if: steps.release_tag.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          gh run download "$RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir artifacts
+
+      - name: Select canonical release assets
+        if: steps.release_tag.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+
+          copy_asset() {
+            local source="$1"
+            local target="release/$(basename "$source")"
+            if [[ -e "$target" ]]; then
+              echo "Duplicate release filename: $target" >&2
+              exit 1
+            fi
+            cp "$source" "$target"
+          }
+
+          while IFS= read -r -d '' file; do
+            copy_asset "$file"
+          done < <(
+            find artifacts -type f \
+              \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \) \
+              ! -name '*mingw*' \
+              -print0
+          )
+
+          appimages=$(find release -maxdepth 1 -type f -name 'mxm-*.AppImage' | wc -l)
+          dmgs=$(find release -maxdepth 1 -type f -name 'mxm-*.dmg' | wc -l)
+          exes=$(find release -maxdepth 1 -type f -name 'mxm-*.exe' | wc -l)
+
+          if [[ "$appimages" -ne 2 || "$dmgs" -ne 2 || "$exes" -ne 2 ]]; then
+            echo "Expected 2 AppImages, 2 DMGs, and 2 canonical Windows installers." >&2
+            echo "Found: AppImage=$appimages dmg=$dmgs exe=$exes" >&2
+            find artifacts -type f -print >&2
+            exit 1
+          fi
+
+          # MinGW remains a CI compatibility build. The MSVC x64 package is
+          # the canonical Windows x64 release artifact.
+          if find release -maxdepth 1 -type f -iname '*mingw*' | grep -q .; then
+            echo "MinGW artifact unexpectedly selected for release." >&2
+            exit 1
+          fi
+
+      - name: Generate SHA-256 checksums
+        if: steps.release_tag.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum mxm-* | sort -k2 > SHA256SUMS
+          cat SHA256SUMS
+
+      # Future Windows signing and Apple signing/notarization belong in the
+      # platform build/package jobs before artifacts are uploaded. Do not add
+      # self-signed production packages here.
+      - name: Publish GitHub release
+        if: steps.release_tag.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release_tag.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_args=(
+            --repo "$GITHUB_REPOSITORY"
+            --verify-tag
+            --title "MXM ${RELEASE_TAG#v}"
+            --generate-notes
+          )
+
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; replacing its assets."
+            gh release upload "$RELEASE_TAG" release/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            gh release create "$RELEASE_TAG" release/* "${release_args[@]}"
+          fi
