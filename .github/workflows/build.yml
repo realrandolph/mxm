@@ -499,6 +499,10 @@ jobs:
           cmake -B build $CMAKE_OPTS
       - name: Build
         run: cmake --build build
+      - name: Run tests
+        run: |
+          cd build/tests
+          ctest --output-on-failure -j2
       - name: Package
         run: cmake --build build --target package
       - name: Upload artifacts
