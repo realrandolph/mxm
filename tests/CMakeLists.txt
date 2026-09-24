@@ -20,6 +20,7 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 
 	add_executable(${MXM_TEST_NAME} ${MXM_TEST_SRC})
 	add_test(NAME ${MXM_TEST_NAME} COMMAND ${MXM_TEST_NAME})
+	set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit")
 
 	# TODO CMake 3.12: Propagate usage requirements by linking to mxmobjs
 	target_include_directories(${MXM_TEST_NAME} PRIVATE $<TARGET_PROPERTY:mxmobjs,INCLUDE_DIRECTORIES>)
@@ -33,3 +34,5 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_features(${MXM_TEST_NAME} PRIVATE cxx_std_20)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
+
+add_subdirectory(integration)
