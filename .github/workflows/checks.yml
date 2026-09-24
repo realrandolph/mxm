@@ -1,18 +1,22 @@
 ---
 name: checks
 'on': [push, pull_request]
+permissions:
+  contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   scripted-checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
       - name: Install python-tinycss2
         run: sudo apt-get install -y python3-tinycss2
-      - name: Update submodules
-        run: git submodule update --init --recursive
       - name: Verify scripted tests
         run: tests/scripted/verify
       - name: Run check-strings
@@ -21,10 +25,11 @@ jobs:
         run: tests/scripted/check-namespace
   shellcheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     container: koalaman/shellcheck-alpine:v0.9.0
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Run shellcheck
         run: |
           shellcheck \
@@ -33,8 +38,9 @@ jobs:
             buildtools/update_locales
   yamllint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Run yamllint
         run: for i in $(git ls-files '*.yml'); do yamllint $i; done
