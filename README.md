@@ -1,7 +1,9 @@
 <div align="center">
-	<h1>
-	<img src="https://raw.githubusercontent.com/realrandolph/mxm/master/data/themes/default/icon.png" alt="MXM Logo"><br>MXM
-	</h1>
+	<p>
+		<a href="https://github.com/realrandolph/mxm">
+			<img src="branding/README-banner.png" alt="MXM — Musica ex Machina" width="640">
+		</a>
+	</p>
 	<p><b>Musica ex Machina</b> — pronounced <i>"Mix 'em"</i></p>
 	<p>Cross-platform music production software</p>
 	<p>
