@@ -24,6 +24,7 @@ SET(MXM_SRCS
 	gui/MxmStyle.cpp
 	gui/Lv2UiHost.cpp
 	gui/Lv2ViewBase.cpp
+	gui/mxmbridge/MxmPluginEditor.cpp
 	gui/MainApplication.cpp
 	gui/MainWindow.cpp
 	gui/MicrotunerConfig.cpp

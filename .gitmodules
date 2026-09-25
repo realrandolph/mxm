@@ -50,3 +50,15 @@
 [submodule "plugins/MidiImport/portsmf"]
 	path = plugins/MidiImport/portsmf
 	url = https://github.com/portsmf/portsmf
+[submodule "plugins/Vst3Base/vst3sdk/base"]
+	path = plugins/Vst3Base/vst3sdk/base
+	url = https://github.com/steinbergmedia/vst3_base.git
+[submodule "plugins/Vst3Base/vst3sdk/pluginterfaces"]
+	path = plugins/Vst3Base/vst3sdk/pluginterfaces
+	url = https://github.com/steinbergmedia/vst3_pluginterfaces.git
+[submodule "plugins/Vst3Base/vst3sdk/public.sdk"]
+	path = plugins/Vst3Base/vst3sdk/public.sdk
+	url = https://github.com/steinbergmedia/vst3_public_sdk.git
+[submodule "plugins/Vst3Base/vst3sdk/cmake"]
+	path = plugins/Vst3Base/vst3sdk/cmake
+	url = https://github.com/steinbergmedia/vst3_cmake.git

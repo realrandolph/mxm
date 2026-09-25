@@ -100,6 +100,7 @@ OPTION(WANT_TAP		"Include Tom's Audio Processing LADSPA plugins" ON)
 OPTION(WANT_VST		"Include VST support" ON)
 OPTION(WANT_VST_32	"Include 32-bit Windows VST support" ON)
 OPTION(WANT_VST_64	"Include 64-bit Windows VST support" ON)
+OPTION(WANT_VST3		"Include native VST3 support" ON)
 OPTION(WANT_WINMM	"Include WinMM MIDI support" OFF)
 OPTION(WANT_DEBUG_FPE	"Debug floating point exceptions" OFF)
 option(WANT_DEBUG_ASAN	"Enable AddressSanitizer" OFF)
@@ -687,6 +688,18 @@ if(WANT_VST)
 	endif()
 endif()
 
+# check for native VST3 hosting
+if(WANT_VST3)
+	if(MXM_BUILD_LINUX OR MXM_BUILD_WIN32)
+		set(MXM_HAVE_VST3 TRUE)
+		set(STATUS_VST3 "OK")
+	else()
+		set(STATUS_VST3 "<not supported on this platform>")
+	endif()
+else()
+	set(STATUS_VST3 "Not built, as requested")
+endif()
+
 IF(WANT_DEBUG_FPE)
 	IF(MXM_BUILD_LINUX OR MXM_BUILD_APPLE)
 		SET(MXM_DEBUG_FPE TRUE)
@@ -946,6 +959,7 @@ MESSAGE(
 "* VST plugin host             : ${STATUS_VST}\n"
 "  * 32-bit Windows host       : ${STATUS_VST_32}\n"
 "  * 64-bit Windows host       : ${STATUS_VST_64}\n"
+"* VST3 plugin host            : ${STATUS_VST3}\n"
 "* CALF LADSPA plugins         : ${STATUS_CALF}\n"
 "* CAPS LADSPA plugins         : ${STATUS_CAPS}\n"
 "* CMT LADSPA plugins          : ${STATUS_CMT}\n"
