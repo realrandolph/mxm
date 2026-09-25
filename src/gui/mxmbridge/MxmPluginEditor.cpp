@@ -279,6 +279,22 @@ void MxmPluginEditor::open()
 		}
 	};
 	(*embedAttempt)(0);
+
+	// Some plugins (u-he) resize their X window asynchronously after embedding
+	// (growing from an initial 1200x600 to their real 1550x930 UI). Poll the
+	// client's geometry briefly and keep the editor window matched to it.
+	auto pollCount = std::make_shared<int>(0);
+	auto poll = std::make_shared<std::function<void()>>();
+	*poll = [this, pollCount, poll]()
+	{
+		if (!m_attached) { return; }
+		synchronizeEditorSize(this, m_editorHost, m_plugin);
+		if (++(*pollCount) < 50)
+		{
+			QTimer::singleShot(100, this, [poll]() { (*poll)(); });
+		}
+	};
+	QTimer::singleShot(100, this, [poll]() { (*poll)(); });
 #endif
 }
 
