@@ -58,8 +58,6 @@
 #endif
 
 #include <csignal>  // To register the signal handler
-#include <fcntl.h>
-#include <execinfo.h> // For backtrace and backtrace_symbols_fd
 
 #include "MainApplication.h"
 #include "ConfigManager.h"
@@ -104,24 +102,6 @@ void sigfpeHandler(int signum)
 }
 #endif
 
-// Diagnostic crash handler: write a backtrace to a file so crashes can be
-// diagnosed from a GUI session that terminates without any visible error.
-static void crashHandler(int signum)
-{
-	const char* path = "/tmp/mxm-crash.log";
-	void* array[64];
-	const int size = backtrace(array, 64);
-	const int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fd >= 0)
-	{
-		dprintf(fd, "MXM crashed with signal %d\n", signum);
-		backtrace_symbols_fd(array, size, fd);
-		close(fd);
-	}
-	signal(signum, SIG_DFL);
-	raise(signum);
-}
-
 static inline QString baseName( const QString & file )
 {
 	return QFileInfo( file ).absolutePath() + "/" +
@@ -144,7 +124,6 @@ void consoleMessageHandler(QtMsgType type,
     fprintf(stderr, "%s\n", localMsg.constData());
 }
 #endif // MXM_BUILD_WIN32
-
 
 inline void loadTranslation( const QString & tname,
 	const QString & dir = mxm::ConfigManager::inst()->localeDir() )
@@ -335,8 +314,6 @@ int main( int argc, char * * argv )
 	signal(SIGFPE, sigfpeHandler);
 #endif
 	signal(SIGINT, gui::GuiApplication::sigintHandler);
-	signal(SIGSEGV, crashHandler);
-	signal(SIGABRT, crashHandler);
 
 #ifdef MXM_BUILD_WIN32
 	// Don't touch redirected streams here

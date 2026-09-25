@@ -40,6 +40,7 @@ class Vst3EffectControls;
 namespace gui
 {
 
+class Control;
 class MxmPluginEditor;
 
 class Vst3EffectControlDialog : public EffectControlDialog
@@ -55,7 +56,7 @@ private:
 	Vst3EffectControls* m_controls;
 	QPushButton* m_toggleGuiButton = nullptr;
 	MxmPluginEditor* m_editor = nullptr;
-	std::vector<QWidget*> m_parameterWidgets;
+	std::vector<std::unique_ptr<Control>> m_parameterControls;
 };
 
 } // namespace gui
