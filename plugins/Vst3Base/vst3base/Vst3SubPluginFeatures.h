@@ -28,12 +28,13 @@
 #include "Plugin.h"
 
 #include "Vst3Manager.h"
+#include "vst3base_export.h"
 
 namespace mxm
 {
 
 //! Maps discovered VST3 plugins into the MXM plugin browser / effect selector.
-class Vst3SubPluginFeatures : public Plugin::Descriptor::SubPluginFeatures
+class VST3BASE_EXPORT Vst3SubPluginFeatures : public Plugin::Descriptor::SubPluginFeatures
 {
 public:
 	explicit Vst3SubPluginFeatures(Plugin::Type type);

@@ -32,12 +32,13 @@
 #include <QString>
 
 #include "MxmBridge.h"
+#include "vst3base_export.h"
 
 namespace mxm
 {
 
 //! Discovers VST3 modules installed on the system and caches their class info.
-class Vst3Manager
+class VST3BASE_EXPORT Vst3Manager
 {
 public:
 	struct Descriptor

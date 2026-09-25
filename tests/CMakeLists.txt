@@ -35,4 +35,21 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
 
+# Native VST3 host adapter test (no GUI session required).
+if(MXM_HAVE_VST3 AND TARGET vst3base)
+	add_executable(Vst3AdapterTest src/core/Vst3AdapterTest.cpp)
+	add_test(NAME Vst3AdapterTest COMMAND Vst3AdapterTest)
+	set_tests_properties(Vst3AdapterTest PROPERTIES
+		LABELS "unit;vst3"
+		TIMEOUT 300
+	)
+	target_include_directories(Vst3AdapterTest PRIVATE ${CMAKE_SOURCE_DIR}/include)
+	target_link_libraries(Vst3AdapterTest PRIVATE vst3base Qt${QT_VERSION_MAJOR}::Core)
+	target_compile_features(Vst3AdapterTest PRIVATE cxx_std_20)
+	if(MXM_BUILD_LINUX)
+		set_tests_properties(Vst3AdapterTest PROPERTIES
+			ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/plugins:$ENV{LD_LIBRARY_PATH}")
+	endif()
+endif()
+
 add_subdirectory(integration)

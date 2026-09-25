@@ -46,6 +46,9 @@
 namespace mxm
 {
 
+class Vst3ComponentHandler;
+class Vst3PlugFrame;
+
 //! Native VST3 adapter: translates the VST3 model into the MXM plugin bridge.
 class Vst3Plugin : public bridge::IPlugin
 {
@@ -129,8 +132,8 @@ private:
 	Steinberg::IPtr<Steinberg::Vst::IAudioProcessor> m_processor;
 
 	Steinberg::IPtr<Steinberg::Vst::HostApplication> m_hostContext;
-	Steinberg::IPtr<Steinberg::Vst::IComponentHandler> m_componentHandler;
-	Steinberg::IPtr<Steinberg::IPlugFrame> m_plugFrame;
+	std::unique_ptr<Vst3ComponentHandler> m_componentHandler;
+	std::unique_ptr<Vst3PlugFrame> m_plugFrame;
 
 	Steinberg::IPtr<Steinberg::Vst::ConnectionProxy> m_componentCP;
 	Steinberg::IPtr<Steinberg::Vst::ConnectionProxy> m_controllerCP;
@@ -138,6 +141,8 @@ private:
 	Steinberg::Vst::HostProcessData m_processData;
 	Steinberg::Vst::EventList m_eventList;
 	Steinberg::Vst::ParameterChanges m_inputParameterChanges;
+	Steinberg::Vst::ParameterChanges m_outputParameterChanges;
+	Steinberg::Vst::EventList m_outputEventList;
 	Steinberg::Vst::ProcessContext m_processContext;
 
 	Steinberg::IPtr<Steinberg::IPlugView> m_plugView;

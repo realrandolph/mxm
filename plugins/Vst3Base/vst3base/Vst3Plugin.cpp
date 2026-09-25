@@ -34,6 +34,7 @@
 #include "pluginterfaces/vst/ivstprocesscontext.h"
 #include "pluginterfaces/vst/vstspeaker.h"
 
+#include <cstdio>
 #include <functional>
 
 namespace mxm
@@ -46,11 +47,14 @@ using namespace Steinberg::Vst;
 // Internal host classes
 //------------------------------------------------------------------------
 
-namespace
-{
-
 // IComponentHandler implementation: forwards plugin-side parameter edits and
 // restart requests to the LMMS side of the bridge.
+//
+// The reference counting is intentionally disabled (see the editorhost sample
+// in the VST3 SDK): some plugins release the handler more often than they
+// acquired it, which would otherwise destroy it while the host still holds a
+// reference. The host owns the handler via a std::unique_ptr, so its lifetime
+// is fully controlled by the host.
 class Vst3ComponentHandler : public IComponentHandler
 {
 public:
@@ -76,15 +80,27 @@ public:
 		return kResultOk;
 	}
 
-	DECLARE_FUNKNOWN_METHODS
+	tresult PLUGIN_API queryInterface(const TUID iid, void** obj) override
+	{
+		if (FUnknownPrivate::iidEqual(iid, IComponentHandler::iid)
+			|| FUnknownPrivate::iidEqual(iid, FUnknown::iid))
+		{
+			*obj = this;
+			return kResultOk;
+		}
+		*obj = nullptr;
+		return kNoInterface;
+	}
+	uint32 PLUGIN_API addRef() override { return 1000; }
+	uint32 PLUGIN_API release() override { return 1000; }
+
 private:
 	Vst3Plugin* m_plugin;
 };
 
-IMPLEMENT_FUNKNOWN_METHODS(Vst3ComponentHandler, IComponentHandler, IComponentHandler::iid)
-
 // IPlugFrame implementation: forwards resize requests so the host window can
-// follow the plugin editor's size changes.
+// follow the plugin editor's size changes. Same non-refcounting lifetime model
+// as Vst3ComponentHandler.
 class Vst3PlugFrame : public IPlugFrame
 {
 public:
@@ -100,12 +116,23 @@ public:
 		return kResultOk;
 	}
 
-	DECLARE_FUNKNOWN_METHODS
+	tresult PLUGIN_API queryInterface(const TUID iid, void** obj) override
+	{
+		if (FUnknownPrivate::iidEqual(iid, IPlugFrame::iid)
+			|| FUnknownPrivate::iidEqual(iid, FUnknown::iid))
+		{
+			*obj = this;
+			return kResultOk;
+		}
+		*obj = nullptr;
+		return kNoInterface;
+	}
+	uint32 PLUGIN_API addRef() override { return 1000; }
+	uint32 PLUGIN_API release() override { return 1000; }
+
 private:
 	Vst3Plugin* m_plugin;
 };
-
-IMPLEMENT_FUNKNOWN_METHODS(Vst3PlugFrame, IPlugFrame, IPlugFrame::iid)
 
 FIDString platformType()
 {
@@ -116,8 +143,6 @@ FIDString platformType()
 #endif
 }
 
-} // namespace
-
 //------------------------------------------------------------------------
 // Vst3Plugin
 //------------------------------------------------------------------------
@@ -126,6 +151,8 @@ Vst3Plugin::Vst3Plugin(const std::string& modulePath, const std::string& cid)
 	: m_factory(nullptr)
 	, m_eventList(50)
 	, m_inputParameterChanges(0)
+	, m_outputParameterChanges(0)
+	, m_outputEventList(50)
 {
 	std::string error;
 	m_module = VST3::Hosting::Module::create(modulePath, error);
@@ -136,8 +163,8 @@ Vst3Plugin::Vst3Plugin(const std::string& modulePath, const std::string& cid)
 
 	m_factory = m_module->getFactory();
 	m_hostContext = owned(new HostApplication());
-	m_componentHandler = owned(new Vst3ComponentHandler(this));
-	m_plugFrame = owned(new Vst3PlugFrame(this));
+	m_componentHandler = std::make_unique<Vst3ComponentHandler>(this);
+	m_plugFrame = std::make_unique<Vst3PlugFrame>(this);
 
 	if (!instantiate(cid))
 	{
@@ -263,7 +290,7 @@ bool Vst3Plugin::instantiate(const std::string& cid)
 		connectComponents();
 	}
 
-	m_controller->setComponentHandler(m_componentHandler);
+	m_controller->setComponentHandler(m_componentHandler.get());
 
 	// Determine whether the plugin accepts MIDI/note input.
 	m_hasEventInput = m_component->getBusCount(MediaTypes::kEvent, BusDirections::kInput) > 0;
@@ -329,10 +356,12 @@ bool Vst3Plugin::initialize(double sampleRate, int32_t blockSize)
 	m_processData.prepare(*m_component, 0, kSample32);
 	m_processData.inputEvents = &m_eventList;
 	m_processData.inputParameterChanges = &m_inputParameterChanges;
+	m_processData.outputParameterChanges = &m_outputParameterChanges;
+	m_processData.outputEvents = &m_outputEventList;
 	m_processData.processContext = &m_processContext;
 	m_inputParameterChanges.setMaxParameters(1000);
+	m_outputParameterChanges.setMaxParameters(1000);
 
-	m_active = true;
 	return true;
 }
 
@@ -430,11 +459,14 @@ void Vst3Plugin::setActive(bool active)
 
 	if (active)
 	{
-		m_component->setActive(true);
-		m_processor->setProcessing(true);
-		m_active = true;
+		if (!m_active)
+		{
+			m_component->setActive(true);
+			m_processor->setProcessing(true);
+			m_active = true;
+		}
 	}
-	else
+	else if (m_active)
 	{
 		m_processor->setProcessing(false);
 		m_component->setActive(false);
@@ -446,19 +478,23 @@ void Vst3Plugin::terminate()
 {
 	closeEditor();
 
-	if (m_valid)
+	if (m_active)
 	{
-		if (m_processor)
-		{
-			m_processor->setProcessing(false);
-		}
-		if (m_component)
-		{
-			m_component->setActive(false);
-		}
+		m_processor->setProcessing(false);
+		m_component->setActive(false);
+		m_active = false;
 	}
 
 	disconnectComponents();
+
+	// Detach the component handler before terminating the controller. Some
+	// plugins (notably JUCE-based ones) release the handler during their own
+	// terminate()/destructor; clearing it here keeps the reference count
+	// balanced so the handler survives until we release it below.
+	if (m_controller)
+	{
+		m_controller->setComponentHandler(nullptr);
+	}
 
 	bool controllerIsComponent = false;
 	if (m_component)
@@ -477,13 +513,17 @@ void Vst3Plugin::terminate()
 		}
 	}
 
+	// Release all references to the plugin while its module is still loaded.
+	// The module itself (m_module) is intentionally NOT released here: it is
+	// owned by m_factory as well, and the member destruction order (m_factory
+	// before m_module) guarantees the factory is released before the module is
+	// unloaded.
 	m_controller.reset();
 	m_processor.reset();
 	m_component.reset();
 	m_componentCP.reset();
 	m_controllerCP.reset();
 	m_plugView.reset();
-	m_module.reset();
 	m_valid = false;
 }
 
@@ -562,7 +602,9 @@ void Vst3Plugin::process(float* const* inputs, float* const* outputs,
 
 	// Reset the event and parameter queues for the next block.
 	m_eventList.clear();
+	m_outputEventList.clear();
 	m_inputParameterChanges.clearQueue();
+	m_outputParameterChanges.clearQueue();
 }
 
 void Vst3Plugin::noteOn(int32_t sampleOffset, int16_t channel, int16_t pitch, float velocity)
@@ -722,7 +764,7 @@ bool Vst3Plugin::openEditor(void* parentWindowHandle)
 		}
 	}
 
-	m_plugView->setFrame(m_plugFrame);
+	m_plugView->setFrame(m_plugFrame.get());
 
 	if (m_plugView->attached(parentWindowHandle, platformType()) != kResultTrue)
 	{
