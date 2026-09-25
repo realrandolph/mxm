@@ -25,9 +25,6 @@
 #ifndef MXM_VST3_INSTRUMENT_VIEW_H
 #define MXM_VST3_INSTRUMENT_VIEW_H
 
-#include <memory>
-#include <vector>
-
 #include "InstrumentView.h"
 
 class QPushButton;
@@ -40,7 +37,6 @@ class Vst3Instrument;
 namespace gui
 {
 
-class Control;
 class MxmPluginEditor;
 
 class Vst3InstrumentView : public InstrumentView
@@ -56,7 +52,6 @@ private:
 	Vst3Instrument* m_instrument;
 	QPushButton* m_toggleGuiButton = nullptr;
 	MxmPluginEditor* m_editor = nullptr;
-	std::vector<std::unique_ptr<Control>> m_parameterControls;
 };
 
 } // namespace gui

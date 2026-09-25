@@ -25,9 +25,6 @@
 #ifndef MXM_VST3_EFFECT_CONTROL_DIALOG_H
 #define MXM_VST3_EFFECT_CONTROL_DIALOG_H
 
-#include <memory>
-#include <vector>
-
 #include "EffectControlDialog.h"
 
 class QPushButton;
@@ -40,7 +37,6 @@ class Vst3EffectControls;
 namespace gui
 {
 
-class Control;
 class MxmPluginEditor;
 
 class Vst3EffectControlDialog : public EffectControlDialog
@@ -56,7 +52,6 @@ private:
 	Vst3EffectControls* m_controls;
 	QPushButton* m_toggleGuiButton = nullptr;
 	MxmPluginEditor* m_editor = nullptr;
-	std::vector<std::unique_ptr<Control>> m_parameterControls;
 };
 
 } // namespace gui

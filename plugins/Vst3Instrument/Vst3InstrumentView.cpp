@@ -24,14 +24,9 @@
 
 #include "Vst3InstrumentView.h"
 
-#include <QComboBox>
-#include <QLabel>
 #include <QPushButton>
-#include <QStackedWidget>
 #include <QVBoxLayout>
 
-#include "AutomatableModel.h"
-#include "Controls.h"
 #include "MxmPluginBridge.h"
 #include "MxmPluginEditor.h"
 #include "Vst3Instrument.h"
@@ -64,63 +59,7 @@ Vst3InstrumentView::Vst3InstrumentView(Vst3Instrument* instrument, QWidget* pare
 		layout->addWidget(m_toggleGuiButton);
 	}
 
-	if (bridge->parameterModelCount() > 0)
-	{
-		// Keep the control count bounded: some plugins expose thousands of parameters.
-		auto* selectorLabel = new QLabel(tr("Parameter"), this);
-		auto* selector = new QComboBox(this);
-		selector->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-		selector->setMinimumContentsLength(24);
-		for (int i = 0; i < bridge->parameterModelCount(); ++i)
-		{
-			selector->addItem(bridge->parameterName(i));
-		}
-
-		auto* controls = new QStackedWidget(this);
-		auto knob = std::make_unique<KnobControl>(QString(), controls);
-		auto lcd = std::make_unique<LcdControl>(4, controls);
-		auto check = std::make_unique<CheckControl>(controls);
-		auto* knobControl = knob.get();
-		auto* lcdControl = lcd.get();
-		auto* checkControl = check.get();
-		controls->addWidget(knobControl->topWidget());
-		controls->addWidget(lcdControl->topWidget());
-		controls->addWidget(checkControl->topWidget());
-		m_parameterControls.push_back(std::move(knob));
-		m_parameterControls.push_back(std::move(lcd));
-		m_parameterControls.push_back(std::move(check));
-
-		auto selectParameter = [bridge, controls, knobControl, lcdControl, checkControl](int index)
-		{
-			if (index < 0) { return; }
-			auto* model = bridge->parameterModel(index);
-			const QString name = bridge->parameterName(index);
-			if (dynamic_cast<FloatModel*>(model))
-			{
-				knobControl->setText(name);
-				knobControl->setModel(model);
-				controls->setCurrentWidget(knobControl->topWidget());
-			}
-			else if (dynamic_cast<IntModel*>(model))
-			{
-				lcdControl->setText(name);
-				lcdControl->setModel(model);
-				controls->setCurrentWidget(lcdControl->topWidget());
-			}
-			else if (dynamic_cast<BoolModel*>(model))
-			{
-				checkControl->setText(name);
-				checkControl->setModel(model);
-				controls->setCurrentWidget(checkControl->topWidget());
-			}
-		};
-		connect(selector, qOverload<int>(&QComboBox::currentIndexChanged), this, selectParameter);
-		selectParameter(0);
-
-		layout->addWidget(selectorLabel);
-		layout->addWidget(selector);
-		layout->addWidget(controls, 1);
-	}
+	layout->addStretch();
 }
 
 Vst3InstrumentView::~Vst3InstrumentView()
