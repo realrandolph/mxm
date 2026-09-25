@@ -68,6 +68,7 @@ private:
 	Vst3Manager() = default;
 
 	void discoverPath(const std::string& path);
+	void discoverPathOrDirectory(const std::string& path);
 
 	std::vector<Descriptor> m_descriptors;
 	bool m_discovered = false;

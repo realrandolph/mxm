@@ -30,9 +30,11 @@
 #include "public.sdk/source/vst/utility/stringconvert.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 #include <QDir>
+#include <QFileInfo>
 #include <QStringList>
 
 namespace mxm
@@ -55,17 +57,44 @@ void Vst3Manager::discover()
 		discoverPath(path);
 	}
 
-	// VST3_PATH environment variable: colon-separated extra locations.
+	// VST3_PATH environment variable: extra locations (OS list separator).
+	// Each entry may be either a .vst3 bundle or a directory to scan
+	// recursively for .vst3 bundles.
 	if (const char* extra = std::getenv("VST3_PATH"))
 	{
-		const QStringList paths = QString::fromLocal8Bit(extra).split(':', Qt::SkipEmptyParts);
+		const QStringList paths = QString::fromLocal8Bit(extra).split(QDir::listSeparator(), Qt::SkipEmptyParts);
 		for (const QString& path : paths)
 		{
-			discoverPath(path.toStdString());
+			discoverPathOrDirectory(path.toStdString());
 		}
 	}
 
 	m_discovered = true;
+}
+
+void Vst3Manager::discoverPathOrDirectory(const std::string& path)
+{
+	QFileInfo info(QString::fromStdString(path));
+	if (!info.isDir())
+	{
+		discoverPath(path);
+		return;
+	}
+
+	// A .vst3 bundle is itself a directory; treat it directly.
+	if (info.fileName().endsWith(QStringLiteral(".vst3")))
+	{
+		discoverPath(path);
+		return;
+	}
+
+	// Otherwise scan for .vst3 bundles recursively.
+	QDir dir(info.absoluteFilePath());
+	const QStringList entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+	for (const QString& entry : entries)
+	{
+		discoverPathOrDirectory(dir.absoluteFilePath(entry).toStdString());
+	}
 }
 
 void Vst3Manager::discoverPath(const std::string& path)
@@ -95,7 +124,13 @@ void Vst3Manager::discoverPath(const std::string& path)
 		desc.subCategories = QString::fromStdString(classInfo.subCategoriesString());
 		desc.isInstrument = desc.subCategories.startsWith(QStringLiteral("Instrument"));
 
-		m_descriptors.push_back(std::move(desc));
+		// Skip duplicates (the same module can appear in several locations).
+		const auto duplicate = std::any_of(m_descriptors.begin(), m_descriptors.end(),
+			[&](const Descriptor& d) { return d.modulePath == desc.modulePath && d.cid == desc.cid; });
+		if (!duplicate)
+		{
+			m_descriptors.push_back(std::move(desc));
+		}
 	}
 }
 
