@@ -44,8 +44,8 @@
 #include <QNativeInterface>
 #else
 #include <QtX11Extras/QX11Info>
-#endif
-#endif
+#endif // QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#endif // MXM_HAVE_PLUGIN_EDITOR_X11
 
 namespace mxm
 {
@@ -64,7 +64,7 @@ Display* x11Display()
 	return x11 ? x11->display() : nullptr;
 #else
 	return QX11Info::display();
-#endif
+#endif // QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 }
 
 // The plugin creates its editor window as a child of the mapped native host
@@ -205,7 +205,7 @@ bool isAncestorFrame(WId window, const std::vector<WId>& known)
 	return isFrame;
 }
 } // namespace
-#endif
+#endif // MXM_HAVE_PLUGIN_EDITOR_X11
 
 MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 	: QWidget(parent, Qt::Window)
@@ -351,7 +351,7 @@ void MxmPluginEditor::open()
 		}
 	};
 	QTimer::singleShot(100, this, [poll]() { (*poll)(); });
-#endif
+#endif // MXM_HAVE_PLUGIN_EDITOR_X11
 }
 
 void MxmPluginEditor::attach()
