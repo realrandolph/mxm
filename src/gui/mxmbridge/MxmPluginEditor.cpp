@@ -28,6 +28,7 @@
 
 #include <QCloseEvent>
 #include <QShowEvent>
+#include <QTimer>
 
 namespace mxm
 {
@@ -57,6 +58,12 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 
 MxmPluginEditor::~MxmPluginEditor()
 {
+	// Clear the resize callback first so the plugin can never invoke a
+	// callback on a half-destroyed editor.
+	if (m_plugin)
+	{
+		m_plugin->setEditorResizeCallback(nullptr);
+	}
 	detach();
 }
 
@@ -109,9 +116,19 @@ void MxmPluginEditor::showEvent(QShowEvent* event)
 
 void MxmPluginEditor::closeEvent(QCloseEvent* event)
 {
-	detach();
 	event->accept();
 	hide();
+
+	// Defer the actual detach (which destroys the plugin's editor view) to the
+	// next event loop iteration, mirroring the LV2 native-UI host. Tearing the
+	// view down synchronously inside the close event can re-enter the plugin
+	// while it is still handling the close and cause lifecycle crashes.
+	if (m_attached && m_plugin)
+	{
+		m_attached = false;
+		auto* plugin = m_plugin;
+		QTimer::singleShot(0, this, [plugin]() { plugin->closeEditor(); });
+	}
 }
 
 } // namespace gui
