@@ -66,6 +66,11 @@ Vst3InstrumentView::~Vst3InstrumentView()
 {
 	if (m_editor)
 	{
+		// Remove the destroyed() connection before the child widgets are torn
+		// down. Otherwise the connection's lambda runs while the editor child is
+		// being destroyed and touches m_toggleGuiButton, which may already have
+		// been deleted by that point.
+		disconnect(m_editor, nullptr, this, nullptr);
 		m_editor->close();
 		m_editor->deleteLater();
 	}

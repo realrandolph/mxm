@@ -148,6 +148,40 @@ bool isAncestorFrame(WId window, const std::vector<WId>& known)
 	if (children) { XFree(children); }
 	return isFrame;
 }
+
+// Returns the geometry of the largest direct child of the container. The
+// plugin's editor window is much larger than the container's own helper windows
+// (the 1x1 focus proxy and the Qt user-time window), so this reliably finds the
+// plugin window even before the container's acceptClient resizes it.
+QSize largestHostChildSize(QWidget* host)
+{
+	auto* container = qobject_cast<QX11EmbedContainer*>(host);
+	if (!container) { return QSize(); }
+
+	Display* display = QX11Info::display();
+	Window rootRet, parentRet;
+	Window* children = nullptr;
+	unsigned int count = 0;
+	QSize best;
+	if (XQueryTree(display, container->winId(), &rootRet, &parentRet, &children, &count))
+	{
+		for (unsigned int i = 0; i < count; ++i)
+		{
+			Window r2;
+			int x = 0, y = 0;
+			unsigned int cw = 0, ch = 0, b = 0, d = 0;
+			if (XGetGeometry(display, children[i], &r2, &x, &y, &cw, &ch, &b, &d))
+			{
+				if (static_cast<qint64>(cw) * ch > static_cast<qint64>(best.width()) * best.height())
+				{
+					best = QSize(static_cast<int>(cw), static_cast<int>(ch));
+				}
+			}
+		}
+		if (children) { XFree(children); }
+	}
+	return best;
+}
 } // namespace
 #endif
 
@@ -315,7 +349,19 @@ void MxmPluginEditor::attach()
 	}
 	m_attached = true;
 
-	const QSize size = m_plugin->editorSize();
+	QSize size = m_plugin->editorSize();
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	// Some plugins (u-he) report a stale/default size via IPlugView::getSize()
+	// but create their editor window at the real UI size. Prefer the plugin
+	// window's actual geometry when it is larger, so the UI is not clipped.
+	const QSize childSize = largestHostChildSize(m_editorHost);
+	if (static_cast<qint64>(childSize.width()) * childSize.height()
+		> static_cast<qint64>(size.width()) * size.height())
+	{
+		size = childSize;
+	}
+#endif
+
 	if (size.width() > 0 && size.height() > 0)
 	{
 		if (m_plugin->editorIsResizable())
