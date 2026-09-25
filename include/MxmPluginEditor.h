@@ -66,12 +66,14 @@ public:
 protected:
 	void showEvent(QShowEvent* event) override;
 	void closeEvent(QCloseEvent* event) override;
+	void resizeEvent(QResizeEvent* event) override;
 
 private:
 	void attach();
 	void detach();
 
 	bridge::IPlugin* m_plugin;
+	QWidget* m_editorHost = nullptr;
 	bool m_attached = false;
 	bool m_resizingFromPlugin = false;
 };

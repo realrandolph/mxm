@@ -27,8 +27,14 @@
 #include <cstdint>
 
 #include <QCloseEvent>
+#include <QResizeEvent>
 #include <QShowEvent>
 #include <QTimer>
+#include <QVBoxLayout>
+
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+#include "X11EmbedContainer.h"
+#endif
 
 namespace mxm
 {
@@ -42,6 +48,18 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 	setAttribute(Qt::WA_NativeWindow, true);
 	setAttribute(Qt::WA_DontCreateNativeAncestors, true);
 	setAttribute(Qt::WA_DeleteOnClose, false);
+	auto* layout = new QVBoxLayout(this);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(0);
+
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	m_editorHost = new QX11EmbedContainer(this);
+#else
+	m_editorHost = new QWidget(this);
+	m_editorHost->setAttribute(Qt::WA_NativeWindow, true);
+	m_editorHost->setAttribute(Qt::WA_DontCreateNativeAncestors, true);
+#endif
+	layout->addWidget(m_editorHost);
 
 	if (m_plugin)
 	{
@@ -69,21 +87,26 @@ MxmPluginEditor::~MxmPluginEditor()
 
 void MxmPluginEditor::open()
 {
-	show();
-	raise();
 	createWinId();
+	m_editorHost->createWinId();
 	attach();
+	if (m_attached)
+	{
+		show();
+		raise();
+		activateWindow();
+	}
 }
 
 void MxmPluginEditor::attach()
 {
 	if (m_attached || !m_plugin) { return; }
 
-	WId windowId = winId();
+	WId windowId = m_editorHost->winId();
 	if (!windowId)
 	{
-		createWinId();
-		windowId = winId();
+		m_editorHost->createWinId();
+		windowId = m_editorHost->winId();
 	}
 
 	if (!m_plugin->openEditor(reinterpret_cast<void*>(static_cast<uintptr_t>(windowId))))
@@ -111,7 +134,6 @@ void MxmPluginEditor::detach()
 void MxmPluginEditor::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
-	createWinId();
 }
 
 void MxmPluginEditor::closeEvent(QCloseEvent* event)
@@ -128,6 +150,25 @@ void MxmPluginEditor::closeEvent(QCloseEvent* event)
 		m_attached = false;
 		auto* plugin = m_plugin;
 		QTimer::singleShot(0, this, [plugin]() { plugin->closeEditor(); });
+	}
+}
+
+void MxmPluginEditor::resizeEvent(QResizeEvent* event)
+{
+	QWidget::resizeEvent(event);
+	if (!m_attached || !m_plugin || m_resizingFromPlugin)
+	{
+		return;
+	}
+
+	const QSize accepted = m_plugin->editorIsResizable()
+		? m_plugin->resizeEditor(m_editorHost->size())
+		: m_plugin->editorSize();
+	if (accepted.isValid() && accepted != m_editorHost->size())
+	{
+		m_resizingFromPlugin = true;
+		resize(accepted);
+		m_resizingFromPlugin = false;
 	}
 }
 

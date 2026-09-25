@@ -107,11 +107,30 @@ public:
 	explicit Vst3PlugFrame(Vst3Plugin* plugin) : m_plugin(plugin) {}
 	virtual ~Vst3PlugFrame() noexcept = default;
 
-	tresult PLUGIN_API resizeView(IPlugView* /*view*/, ViewRect* newSize) override
+	tresult PLUGIN_API resizeView(IPlugView* view, ViewRect* newSize) override
 	{
-		if (newSize)
+		if (!view || !newSize || m_resizing)
 		{
-			m_plugin->editorResizeRequested(newSize->getWidth(), newSize->getHeight());
+			return kInvalidArgument;
+		}
+
+		ViewRect current{};
+		auto sameSize = [](const ViewRect& lhs, const ViewRect& rhs)
+		{
+			return lhs.getWidth() == rhs.getWidth() && lhs.getHeight() == rhs.getHeight();
+		};
+		if (view->getSize(&current) == kResultTrue && sameSize(current, *newSize))
+		{
+			return kResultTrue;
+		}
+
+		m_resizing = true;
+		m_plugin->editorResizeRequested(newSize->getWidth(), newSize->getHeight());
+		m_resizing = false;
+
+		if (view->getSize(&current) != kResultTrue || !sameSize(current, *newSize))
+		{
+			view->onSize(newSize);
 		}
 		return kResultOk;
 	}
@@ -132,6 +151,7 @@ public:
 
 private:
 	Vst3Plugin* m_plugin;
+	bool m_resizing = false;
 };
 
 FIDString platformType()
@@ -805,6 +825,22 @@ bool Vst3Plugin::editorIsResizable() const
 		return m_plugView->canResize() == kResultTrue;
 	}
 	return false;
+}
+
+QSize Vst3Plugin::resizeEditor(const QSize& size)
+{
+	if (!m_plugView || size.width() <= 0 || size.height() <= 0)
+	{
+		return QSize();
+	}
+
+	ViewRect rect(0, 0, size.width(), size.height());
+	if (m_plugView->canResize() == kResultTrue)
+	{
+		m_plugView->checkSizeConstraint(&rect);
+	}
+	m_plugView->onSize(&rect);
+	return QSize(rect.getWidth(), rect.getHeight());
 }
 
 } // namespace mxm

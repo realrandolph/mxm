@@ -166,6 +166,7 @@ public:
 	virtual void closeEditor() = 0;
 	virtual QSize editorSize() const = 0;
 	virtual bool editorIsResizable() const = 0;
+	virtual QSize resizeEditor(const QSize& size) = 0;
 	//! Install a callback invoked when the plugin editor requests a resize.
 	virtual void setEditorResizeCallback(std::function<void(int32_t, int32_t)> cb) = 0;
 };

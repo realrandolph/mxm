@@ -111,6 +111,7 @@ public:
 	void closeEditor() override;
 	QSize editorSize() const override;
 	bool editorIsResizable() const override;
+	QSize resizeEditor(const QSize& size) override;
 
 private:
 	bool instantiate(const std::string& cid);

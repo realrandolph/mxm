@@ -173,6 +173,11 @@ if(MXM_HAVE_LV2)
 	list(APPEND EXTRA_LIBRARIES Lilv::lilv)
 endif()
 
+if(TARGET qx11embedcontainer)
+	list(APPEND EXTRA_LIBRARIES qx11embedcontainer)
+	target_compile_definitions(mxmobjs PRIVATE MXM_HAVE_X11_EMBED_CONTAINER)
+endif()
+
 SET(MXM_REQUIRED_LIBS ${MXM_REQUIRED_LIBS}
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
