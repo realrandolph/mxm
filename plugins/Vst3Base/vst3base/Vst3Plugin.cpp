@@ -34,8 +34,16 @@
 #include "pluginterfaces/vst/ivstprocesscontext.h"
 #include "pluginterfaces/vst/vstspeaker.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <functional>
+#include <limits>
+#include <unordered_map>
+
+#if SMTG_OS_LINUX
+#include <QSocketNotifier>
+#include <QTimer>
+#endif
 
 namespace mxm
 {
@@ -102,10 +110,18 @@ private:
 // follow the plugin editor's size changes. Same non-refcounting lifetime model
 // as Vst3ComponentHandler.
 class Vst3PlugFrame : public IPlugFrame
+#if SMTG_OS_LINUX
+	, public Linux::IRunLoop
+#endif
 {
 public:
 	explicit Vst3PlugFrame(Vst3Plugin* plugin) : m_plugin(plugin) {}
-	virtual ~Vst3PlugFrame() noexcept = default;
+	~Vst3PlugFrame() noexcept
+	{
+#if SMTG_OS_LINUX
+		clearRunLoop();
+#endif
+	}
 
 	tresult PLUGIN_API resizeView(IPlugView* view, ViewRect* newSize) override
 	{
@@ -135,17 +151,143 @@ public:
 		if (FUnknownPrivate::iidEqual(iid, IPlugFrame::iid)
 			|| FUnknownPrivate::iidEqual(iid, FUnknown::iid))
 		{
-			*obj = this;
+			*obj = static_cast<IPlugFrame*>(this);
 			return kResultOk;
 		}
+#if SMTG_OS_LINUX
+		if (FUnknownPrivate::iidEqual(iid, Linux::IRunLoop::iid))
+		{
+			*obj = static_cast<Linux::IRunLoop*>(this);
+			return kResultOk;
+		}
+#endif
 		*obj = nullptr;
 		return kNoInterface;
 	}
 	uint32 PLUGIN_API addRef() override { return 1000; }
 	uint32 PLUGIN_API release() override { return 1000; }
 
+#if SMTG_OS_LINUX
+	tresult PLUGIN_API registerEventHandler(
+		Linux::IEventHandler* handler, Linux::FileDescriptor fd) override
+	{
+		if (!handler || fd < 0)
+		{
+			return kInvalidArgument;
+		}
+
+		auto [it, inserted] = m_eventHandlers.try_emplace(fd);
+		if (inserted)
+		{
+			it->second.notifier = new QSocketNotifier(fd, QSocketNotifier::Read);
+			QObject::connect(it->second.notifier, &QSocketNotifier::activated,
+				[this](QSocketDescriptor descriptor)
+				{
+					const auto fd = static_cast<Linux::FileDescriptor>(descriptor);
+					const auto registered = m_eventHandlers.find(fd);
+					if (registered == m_eventHandlers.end()) { return; }
+
+					// A callback may unregister itself, so retain a stable copy
+					// while dispatching all handlers registered for this FD.
+					const auto handlers = registered->second.handlers;
+					for (auto* item : handlers) { item->addRef(); }
+					for (auto* item : handlers)
+					{
+						item->onFDIsSet(fd);
+						item->release();
+					}
+				});
+		}
+		handler->addRef();
+		it->second.handlers.push_back(handler);
+		return kResultOk;
+	}
+
+	tresult PLUGIN_API unregisterEventHandler(Linux::IEventHandler* handler) override
+	{
+		if (!handler) { return kInvalidArgument; }
+		for (auto it = m_eventHandlers.begin(); it != m_eventHandlers.end(); ++it)
+		{
+			auto& handlers = it->second.handlers;
+			const auto found = std::find(handlers.begin(), handlers.end(), handler);
+			if (found == handlers.end()) { continue; }
+
+			handlers.erase(found);
+			handler->release();
+			if (handlers.empty())
+			{
+				delete it->second.notifier;
+				m_eventHandlers.erase(it);
+			}
+			return kResultOk;
+		}
+		return kResultFalse;
+	}
+
+	tresult PLUGIN_API registerTimer(
+		Linux::ITimerHandler* handler, Linux::TimerInterval milliseconds) override
+	{
+		if (!handler || milliseconds == 0)
+		{
+			return kInvalidArgument;
+		}
+
+		auto* timer = new QTimer;
+		const auto interval = std::min<uint64>(
+			std::max<uint64>(milliseconds, 1), std::numeric_limits<int>::max());
+		timer->setInterval(static_cast<int>(interval));
+		QObject::connect(timer, &QTimer::timeout, [handler]() { handler->onTimer(); });
+		handler->addRef();
+		m_timerHandlers.push_back({handler, timer});
+		timer->start();
+		return kResultOk;
+	}
+
+	tresult PLUGIN_API unregisterTimer(Linux::ITimerHandler* handler) override
+	{
+		if (!handler) { return kInvalidArgument; }
+		const auto it = std::find_if(m_timerHandlers.begin(), m_timerHandlers.end(),
+			[handler](const TimerRegistration& item) { return item.handler == handler; });
+		if (it == m_timerHandlers.end()) { return kResultFalse; }
+		delete it->timer;
+		it->handler->release();
+		m_timerHandlers.erase(it);
+		return kResultOk;
+	}
+
+	void clearRunLoop()
+	{
+		for (const auto& entry : m_eventHandlers)
+		{
+			delete entry.second.notifier;
+			for (auto* handler : entry.second.handlers) { handler->release(); }
+		}
+		m_eventHandlers.clear();
+		for (const auto& entry : m_timerHandlers)
+		{
+			delete entry.timer;
+			entry.handler->release();
+		}
+		m_timerHandlers.clear();
+	}
+#endif
+
 private:
 	Vst3Plugin* m_plugin;
+#if SMTG_OS_LINUX
+	struct EventHandlers
+	{
+		QSocketNotifier* notifier = nullptr;
+		std::vector<Linux::IEventHandler*> handlers;
+	};
+	struct TimerRegistration
+	{
+		Linux::ITimerHandler* handler;
+		QTimer* timer;
+	};
+	std::unordered_map<Linux::FileDescriptor, EventHandlers> m_eventHandlers;
+	std::vector<TimerRegistration> m_timerHandlers;
+#endif
 };
 
 FIDString platformType()
@@ -795,6 +937,9 @@ void Vst3Plugin::closeEditor()
 	{
 		m_plugView->setFrame(nullptr);
 		m_plugView->removed();
+#if SMTG_OS_LINUX
+		m_plugFrame->clearRunLoop();
+#endif
 		m_plugView.reset();
 	}
 }

@@ -109,8 +109,13 @@ void mapEditorWindow(QWidget* host)
 	const WId child = editorChildWindow(host);
 	if (child)
 	{
-		XMapRaised(x11Display(), child);
-		XFlush(x11Display());
+		XWindowAttributes attributes{};
+		if (XGetWindowAttributes(x11Display(), child, &attributes)
+			&& attributes.map_state == IsUnmapped)
+		{
+			XMapWindow(x11Display(), child);
+			XFlush(x11Display());
+		}
 	}
 }
 
@@ -294,6 +299,15 @@ void MxmPluginEditor::open()
 
 		if (!*embedded)
 		{
+			// A conforming plugin has already embedded its editor directly.
+			// Stop the top-level fallback before a plugin-owned popup appears and
+			// is mistaken for an editor that needs reparenting.
+			if (editorChildWindow(m_editorHost))
+			{
+				*embedded = true;
+				return;
+			}
+
 			for (WId w : topLevelWindows())
 			{
 				if (std::find(before.begin(), before.end(), w) != before.end())
