@@ -26,6 +26,7 @@
 #define MXM_VST3_MANAGER_H
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,9 @@ public:
 	//! Returns the process-wide singleton.
 	static Vst3Manager& instance();
 
-	//! (Re)discover all installed VST3 modules.
+	//! Discover all installed VST3 modules (idempotent and thread-safe; the
+	//! first call performs the actual discovery, later calls are no-ops so the
+	//! descriptor list (and any pointers into it) remains stable).
 	void discover();
 
 	//! Discovered descriptors (instrument + effect classes).
@@ -70,6 +73,7 @@ private:
 	void discoverPath(const std::string& path);
 	void discoverPathOrDirectory(const std::string& path);
 
+	std::mutex m_mutex;
 	std::vector<Descriptor> m_descriptors;
 	bool m_discovered = false;
 };

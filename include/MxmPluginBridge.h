@@ -79,6 +79,11 @@ public:
 
 	//! Number of exposed (non-hidden, automatable) parameters.
 	int parameterModelCount() const { return static_cast<int>(m_parameters.size()); }
+	//! Upper bound for the number of generic parameter controls the views build.
+	//! Plugins such as Surge XT expose thousands of parameters; building one
+	//! widget per parameter is impractical, so the generic view is capped and
+	//! the native editor is used for the remainder.
+	static constexpr int kMaxGenericParameterControls = 256;
 	AutomatableModel* parameterModel(int index) const;
 	QString parameterName(int index) const;
 	uint32_t parameterId(int index) const;

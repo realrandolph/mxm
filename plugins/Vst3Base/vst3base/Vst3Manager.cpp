@@ -48,6 +48,15 @@ Vst3Manager& Vst3Manager::instance()
 
 void Vst3Manager::discover()
 {
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	// Discovery is performed once; plugins do not change during a session and
+	// re-discovering would invalidate descriptors handed out to other threads.
+	if (m_discovered)
+	{
+		return;
+	}
+
 	m_descriptors.clear();
 
 	// Standard locations (and the SDK's own application-level path).

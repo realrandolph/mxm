@@ -24,6 +24,8 @@
 
 #include "Vst3InstrumentView.h"
 
+#include <algorithm>
+
 #include <QGridLayout>
 #include <QPushButton>
 #include <QScrollArea>
@@ -70,7 +72,9 @@ Vst3InstrumentView::Vst3InstrumentView(Vst3Instrument* instrument, QWidget* pare
 		grid->setContentsMargins(0, 0, 0, 0);
 		grid->setSpacing(10);
 
-		for (int i = 0; i < bridge->parameterModelCount(); ++i)
+		const int controlCount = std::min(bridge->parameterModelCount(),
+			MxmPluginBridge::kMaxGenericParameterControls);
+		for (int i = 0; i < controlCount; ++i)
 		{
 			AutomatableModel* model = bridge->parameterModel(i);
 			Control* control = nullptr;
@@ -100,7 +104,7 @@ Vst3InstrumentView::Vst3InstrumentView(Vst3Instrument* instrument, QWidget* pare
 			const int col = i % 4;
 			grid->addWidget(control->topWidget(), row, col, Qt::AlignCenter);
 		}
-		grid->setRowStretch((bridge->parameterModelCount() + 3) / 4, 1);
+		grid->setRowStretch((controlCount + 3) / 4, 1);
 
 		auto* scroll = new QScrollArea(this);
 		scroll->setWidget(container);

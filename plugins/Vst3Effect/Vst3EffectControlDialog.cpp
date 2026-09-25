@@ -24,6 +24,8 @@
 
 #include "Vst3EffectControlDialog.h"
 
+#include <algorithm>
+
 #include <QGridLayout>
 #include <QPushButton>
 #include <QScrollArea>
@@ -71,7 +73,9 @@ Vst3EffectControlDialog::Vst3EffectControlDialog(Vst3EffectControls* controls)
 		grid->setContentsMargins(0, 0, 0, 0);
 		grid->setSpacing(10);
 
-		for (int i = 0; i < bridge->parameterModelCount(); ++i)
+		const int controlCount = std::min(bridge->parameterModelCount(),
+			MxmPluginBridge::kMaxGenericParameterControls);
+		for (int i = 0; i < controlCount; ++i)
 		{
 			AutomatableModel* model = bridge->parameterModel(i);
 			Control* control = nullptr;
@@ -101,7 +105,7 @@ Vst3EffectControlDialog::Vst3EffectControlDialog(Vst3EffectControls* controls)
 			const int col = i % 4;
 			grid->addWidget(control->topWidget(), row, col, Qt::AlignCenter);
 		}
-		grid->setRowStretch((bridge->parameterModelCount() + 3) / 4, 1);
+		grid->setRowStretch((controlCount + 3) / 4, 1);
 
 		auto* scroll = new QScrollArea(this);
 		scroll->setWidget(container);
