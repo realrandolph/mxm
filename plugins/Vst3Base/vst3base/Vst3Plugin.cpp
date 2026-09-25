@@ -123,10 +123,9 @@ public:
 		}
 
 		// Forward the request to the host window. The host resizes the editor
-		// window; on X11 the QX11EmbedContainer then resizes the client window,
-		// and on other platforms the editor resize handler calls onSize(). We
-		// must not call onSize() here as well, or it fights the container and
-		// causes resize feedback loops.
+		// window and its plugin child window and notifies the plugin via
+		// onSize(); we must not call onSize() here as well, or it fights the
+		// host and causes resize feedback loops.
 		m_plugin->editorResizeRequested(newSize->getWidth(), newSize->getHeight());
 		return kResultOk;
 	}

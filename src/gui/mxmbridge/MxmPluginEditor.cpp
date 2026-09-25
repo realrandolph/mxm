@@ -37,11 +37,14 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-#include "X11EmbedContainer.h"
-
-#include <QtX11Extras/QX11Info>
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
+#include <QGuiApplication>
 #include <X11/Xlib.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QNativeInterface>
+#else
+#include <QtX11Extras/QX11Info>
+#endif
 #endif
 
 namespace mxm
@@ -49,57 +52,105 @@ namespace mxm
 namespace gui
 {
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
 namespace
 {
-// Map the embedded client window so it actually renders. Some plugins (notably
-// u-he) create their X11 window as an XEmbed child but never map it or set the
-// _XEMBED_INFO mapped flag themselves; JUCE-based plugins map themselves, so
-// this is a no-op for them.
-void mapEmbeddedClient(QWidget* host)
+// Qt5 exposes the X display through Qt5X11Extras, Qt6 through the X11 native
+// interface. This keeps the editor host working on both.
+Display* x11Display()
 {
-	if (auto* container = qobject_cast<QX11EmbedContainer*>(host))
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	auto* x11 = qGuiApp ? qGuiApp->nativeInterface<QNativeInterface::QX11Application>() : nullptr;
+	return x11 ? x11->display() : nullptr;
+#else
+	return QX11Info::display();
+#endif
+}
+
+// The plugin creates its editor window as a child of the mapped native host
+// window (kPlatformTypeX11EmbedWindowID), exactly like the Suil/LV2 host. We
+// find it as the largest direct child of the host rather than reparenting it
+// into a QX11EmbedContainer, which corrupts the plugin's window lifecycle.
+WId editorChildWindow(QWidget* host)
+{
+	if (!host) { return 0; }
+	Display* display = x11Display();
+	Window rootRet, parentRet;
+	Window* children = nullptr;
+	unsigned int count = 0;
+	WId best = 0;
+	qint64 bestArea = 0;
+	if (XQueryTree(display, host->winId(), &rootRet, &parentRet, &children, &count))
 	{
-		const WId client = container->clientWinId();
-		if (client)
+		for (unsigned int i = 0; i < count; ++i)
 		{
-			XMapWindow(QX11Info::display(), client);
-			XRaiseWindow(QX11Info::display(), client);
+			Window r2;
+			int x = 0, y = 0;
+			unsigned int cw = 0, ch = 0, b = 0, d = 0;
+			if (XGetGeometry(display, children[i], &r2, &x, &y, &cw, &ch, &b, &d))
+			{
+				const qint64 area = static_cast<qint64>(cw) * ch;
+				if (area > bestArea)
+				{
+					bestArea = area;
+					best = children[i];
+				}
+			}
 		}
+		if (children) { XFree(children); }
+	}
+	return best;
+}
+
+// A plugin-managed child window is not necessarily mapped by the plugin; map it
+// explicitly, as the LV2 host does with the widget Suil returns.
+void mapEditorWindow(QWidget* host)
+{
+	const WId child = editorChildWindow(host);
+	if (child)
+	{
+		XMapRaised(x11Display(), child);
+		XFlush(x11Display());
 	}
 }
 
-// Resize the editor window to the embedded client's actual X geometry. Some
-// plugins report a stale/default size via IPlugView::getSize() (u-he reports
-// 1200x600 while its real UI is 1550x930), so the client window is the
-// authoritative size source once it has been embedded.
+// Keep the plugin's child window matched to the host window size.
+void resizeEditorWindow(QWidget* host)
+{
+	const WId child = editorChildWindow(host);
+	if (child)
+	{
+		XResizeWindow(x11Display(), child, host->width(), host->height());
+	}
+}
+
+// Resize the editor window to the plugin's actual window geometry. Some plugins
+// report a stale/default size via IPlugView::getSize() (u-he reports 1200x600
+// while its real UI is 1550x930), so the plugin window is authoritative.
 void synchronizeEditorSize(QWidget* editor, QWidget* host, bridge::IPlugin* plugin)
 {
-	auto* container = qobject_cast<QX11EmbedContainer*>(host);
-	if (!container) { return; }
-
-	const WId client = container->clientWinId();
-	if (!client) { return; }
+	const WId child = editorChildWindow(host);
+	if (!child) { return; }
 
 	Window rootRet;
 	int x = 0, y = 0;
 	unsigned int cw = 0, ch = 0, border = 0, depth = 0;
-	if (!XGetGeometry(QX11Info::display(), client, &rootRet, &x, &y, &cw, &ch, &border, &depth))
+	if (!XGetGeometry(x11Display(), child, &rootRet, &x, &y, &cw, &ch, &border, &depth))
 	{
 		return;
 	}
 	if (cw == 0 || ch == 0) { return; }
 
-	const QSize clientSize(static_cast<int>(cw), static_cast<int>(ch));
-	if (clientSize == editor->size()) { return; }
+	const QSize childSize(static_cast<int>(cw), static_cast<int>(ch));
+	if (childSize == editor->size()) { return; }
 
 	if (plugin->editorIsResizable())
 	{
-		editor->resize(clientSize);
+		editor->resize(childSize);
 	}
 	else
 	{
-		editor->setFixedSize(clientSize);
+		editor->setFixedSize(childSize);
 	}
 }
 
@@ -107,8 +158,8 @@ void synchronizeEditorSize(QWidget* editor, QWidget* host, bridge::IPlugin* plug
 std::vector<WId> topLevelWindows()
 {
 	std::vector<WId> result;
-	Display* display = QX11Info::display();
-	Window root = QX11Info::appRootWindow(QX11Info::appScreen());
+	Display* display = x11Display();
+	Window root = DefaultRootWindow(x11Display());
 	Window rootRet, parentRet;
 	Window* children = nullptr;
 	unsigned int count = 0;
@@ -128,7 +179,7 @@ std::vector<WId> topLevelWindows()
 // such a frame.
 bool isAncestorFrame(WId window, const std::vector<WId>& known)
 {
-	Display* display = QX11Info::display();
+	Display* display = x11Display();
 	Window rootRet, parentRet;
 	Window* children = nullptr;
 	unsigned int count = 0;
@@ -148,40 +199,6 @@ bool isAncestorFrame(WId window, const std::vector<WId>& known)
 	if (children) { XFree(children); }
 	return isFrame;
 }
-
-// Returns the geometry of the largest direct child of the container. The
-// plugin's editor window is much larger than the container's own helper windows
-// (the 1x1 focus proxy and the Qt user-time window), so this reliably finds the
-// plugin window even before the container's acceptClient resizes it.
-QSize largestHostChildSize(QWidget* host)
-{
-	auto* container = qobject_cast<QX11EmbedContainer*>(host);
-	if (!container) { return QSize(); }
-
-	Display* display = QX11Info::display();
-	Window rootRet, parentRet;
-	Window* children = nullptr;
-	unsigned int count = 0;
-	QSize best;
-	if (XQueryTree(display, container->winId(), &rootRet, &parentRet, &children, &count))
-	{
-		for (unsigned int i = 0; i < count; ++i)
-		{
-			Window r2;
-			int x = 0, y = 0;
-			unsigned int cw = 0, ch = 0, b = 0, d = 0;
-			if (XGetGeometry(display, children[i], &r2, &x, &y, &cw, &ch, &b, &d))
-			{
-				if (static_cast<qint64>(cw) * ch > static_cast<qint64>(best.width()) * best.height())
-				{
-					best = QSize(static_cast<int>(cw), static_cast<int>(ch));
-				}
-			}
-		}
-		if (children) { XFree(children); }
-	}
-	return best;
-}
 } // namespace
 #endif
 
@@ -196,19 +213,12 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-	m_editorHost = new QX11EmbedContainer(this);
-	connect(qobject_cast<QX11EmbedContainer*>(m_editorHost),
-		&QX11EmbedContainer::clientIsEmbedded, this, [this]()
-		{
-			mapEmbeddedClient(m_editorHost);
-			synchronizeEditorSize(this, m_editorHost, m_plugin);
-		});
-#else
+	// Plain native child window that we give to the plugin as its parent. This
+	// mirrors the LV2 native-UI host (Lv2UiHost): QX11EmbedContainer must not be
+	// used because it interferes with the plugin's window lifecycle.
 	m_editorHost = new QWidget(this);
 	m_editorHost->setAttribute(Qt::WA_NativeWindow, true);
 	m_editorHost->setAttribute(Qt::WA_DontCreateNativeAncestors, true);
-#endif
 	layout->addWidget(m_editorHost);
 
 	if (m_plugin)
@@ -244,17 +254,21 @@ MxmPluginEditor::~MxmPluginEditor()
 
 void MxmPluginEditor::open()
 {
-	createWinId();
 	m_editorHost->createWinId();
 
-	// Show (and therefore map) the window and its container before attaching
-	// the plugin. Some plugins (u-he) only create their editor as an XEmbed
-	// child when the parent window is already mapped, and otherwise fall back
-	// to a top-level window.
+	// Show (and therefore map) the window and its native host before attaching
+	// the plugin, then map the host and flush, exactly like the LV2 UI host.
 	show();
+	raise();
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
 	const std::vector<WId> before = topLevelWindows();
+	const WId parent = m_editorHost->winId();
+	if (parent)
+	{
+		XMapRaised(x11Display(), parent);
+		XSync(x11Display(), False);
+	}
 #endif
 
 	attach();
@@ -264,20 +278,19 @@ void MxmPluginEditor::open()
 		activateWindow();
 	}
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-	// Some plugins (notably u-he) create their editor as a top-level X window
-	// rather than as an XEmbed child of the container. Detect any such window
-	// and reparent it into the container via embedClient(). Retry briefly for
-	// plugins that create their window asynchronously. We track completion with
-	// our own flag rather than clientWinId(), because the container may have
-	// already adopted a Qt-internal window (the NET_WM user-time window) as a
-	// spurious client.
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
+	// Map the plugin's child window and match the editor to its real size.
+	mapEditorWindow(m_editorHost);
+	synchronizeEditorSize(this, m_editorHost, m_plugin);
+
+	// Some plugins create their editor as a top-level window instead of a child
+	// of the host. Reparent any such window into the host. Retry briefly for
+	// plugins that create their window asynchronously.
 	auto embedded = std::make_shared<bool>(false);
 	auto embedAttempt = std::make_shared<std::function<void(int)>>();
 	*embedAttempt = [this, before, embedded, embedAttempt](int attempt)
 	{
 		if (!m_attached) { return; }
-		auto* container = static_cast<QX11EmbedContainer*>(m_editorHost);
 
 		if (!*embedded)
 		{
@@ -291,14 +304,9 @@ void MxmPluginEditor::open()
 				{
 					continue;
 				}
-
-				// Discard any spurious client so the container accepts the
-				// plugin's real window instead of rejecting it.
-				if (container->clientWinId() != 0)
-				{
-					container->discardClient();
-				}
-				container->embedClient(w);
+				XReparentWindow(x11Display(), w, m_editorHost->winId(), 0, 0);
+				XMapRaised(x11Display(), w);
+				XFlush(x11Display());
 				*embedded = true;
 				return;
 			}
@@ -314,14 +322,14 @@ void MxmPluginEditor::open()
 	};
 	(*embedAttempt)(0);
 
-	// Some plugins (u-he) resize their X window asynchronously after embedding
-	// (growing from an initial 1200x600 to their real 1550x930 UI). Poll the
-	// client's geometry briefly and keep the editor window matched to it.
+	// Some plugins resize their window asynchronously after embedding. Poll the
+	// child's geometry briefly and keep the editor window matched to it.
 	auto pollCount = std::make_shared<int>(0);
 	auto poll = std::make_shared<std::function<void()>>();
 	*poll = [this, pollCount, poll]()
 	{
 		if (!m_attached) { return; }
+		mapEditorWindow(m_editorHost);
 		synchronizeEditorSize(this, m_editorHost, m_plugin);
 		if (++(*pollCount) < 50)
 		{
@@ -350,15 +358,24 @@ void MxmPluginEditor::attach()
 	m_attached = true;
 
 	QSize size = m_plugin->editorSize();
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-	// Some plugins (u-he) report a stale/default size via IPlugView::getSize()
-	// but create their editor window at the real UI size. Prefer the plugin
-	// window's actual geometry when it is larger, so the UI is not clipped.
-	const QSize childSize = largestHostChildSize(m_editorHost);
-	if (static_cast<qint64>(childSize.width()) * childSize.height()
-		> static_cast<qint64>(size.width()) * size.height())
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
+	// Prefer the plugin's actual window geometry when it is larger than the size
+	// it reports via IPlugView::getSize().
+	const WId child = editorChildWindow(m_editorHost);
+	if (child)
 	{
-		size = childSize;
+		Window rootRet;
+		int x = 0, y = 0;
+		unsigned int cw = 0, ch = 0, border = 0, depth = 0;
+		if (XGetGeometry(x11Display(), child, &rootRet, &x, &y, &cw, &ch, &border, &depth))
+		{
+			const QSize childSize(static_cast<int>(cw), static_cast<int>(ch));
+			if (static_cast<qint64>(childSize.width()) * childSize.height()
+				> static_cast<qint64>(size.width()) * size.height())
+			{
+				size = childSize;
+			}
+		}
 	}
 #endif
 
@@ -370,7 +387,7 @@ void MxmPluginEditor::attach()
 		}
 		else
 		{
-			// Fixed-size UI: prevent the window (and thus the embedded client)
+			// Fixed-size UI: prevent the window (and thus the plugin window)
 			// from being resized out from under the plugin.
 			setFixedSize(size);
 		}
@@ -389,8 +406,8 @@ void MxmPluginEditor::detach()
 void MxmPluginEditor::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-	mapEmbeddedClient(m_editorHost);
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
+	mapEditorWindow(m_editorHost);
 #endif
 }
 
@@ -419,15 +436,18 @@ void MxmPluginEditor::resizeEvent(QResizeEvent* event)
 		return;
 	}
 
+#ifdef MXM_HAVE_PLUGIN_EDITOR_X11
+	// Keep the plugin's child window matched to the host.
+	resizeEditorWindow(m_editorHost);
+#endif
+
 	if (!m_plugin->editorIsResizable())
 	{
 		return;
 	}
 
 	// Ask the plugin to constrain the requested size and notify it of the final
-	// size via onSize(). The QX11EmbedContainer also resizes the client X window,
-	// but onSize() keeps the plugin's internal view geometry in sync so that
-	// resizable UIs (e.g. Surge) reflow correctly.
+	// size via onSize() so resizable UIs (e.g. Surge) reflow correctly.
 	const QSize accepted = m_plugin->resizeEditor(m_editorHost->size());
 	if (accepted.isValid() && accepted != m_editorHost->size())
 	{
