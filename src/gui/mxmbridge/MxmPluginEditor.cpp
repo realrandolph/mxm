@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include <QCloseEvent>
+#include <QMetaObject>
 #include <QResizeEvent>
 #include <QShowEvent>
 #include <QTimer>
@@ -66,10 +67,17 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 		setWindowTitle(m_plugin->name());
 		m_plugin->setEditorResizeCallback([this](int32_t width, int32_t height)
 		{
-			if (m_resizingFromPlugin || width <= 0 || height <= 0) { return; }
-			m_resizingFromPlugin = true;
-			resize(width, height);
-			m_resizingFromPlugin = false;
+			if (width <= 0 || height <= 0) { return; }
+			// resizeView may be invoked from the plugin's own UI thread; marshal
+			// the resize back onto the Qt GUI thread so we never touch a QWidget
+			// from a foreign thread.
+			QMetaObject::invokeMethod(this, [this, width, height]()
+			{
+				if (m_resizingFromPlugin) { return; }
+				m_resizingFromPlugin = true;
+				resize(width, height);
+				m_resizingFromPlugin = false;
+			}, Qt::QueuedConnection);
 		});
 	}
 }
@@ -161,6 +169,12 @@ void MxmPluginEditor::resizeEvent(QResizeEvent* event)
 		return;
 	}
 
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	// On X11 the QX11EmbedContainer resizes the client window itself whenever
+	// the container is resized. Calling IPlugView::onSize() here as well would
+	// fight that and cause resize feedback loops / visual corruption.
+#else
+	// No native size propagation: tell the plugin about its new size explicitly.
 	const QSize accepted = m_plugin->editorIsResizable()
 		? m_plugin->resizeEditor(m_editorHost->size())
 		: m_plugin->editorSize();
@@ -170,6 +184,7 @@ void MxmPluginEditor::resizeEvent(QResizeEvent* event)
 		resize(accepted);
 		m_resizingFromPlugin = false;
 	}
+#endif
 }
 
 } // namespace gui

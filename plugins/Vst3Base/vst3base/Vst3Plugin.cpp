@@ -109,29 +109,25 @@ public:
 
 	tresult PLUGIN_API resizeView(IPlugView* view, ViewRect* newSize) override
 	{
-		if (!view || !newSize || m_resizing)
+		if (!view || !newSize)
 		{
 			return kInvalidArgument;
 		}
 
 		ViewRect current{};
-		auto sameSize = [](const ViewRect& lhs, const ViewRect& rhs)
-		{
-			return lhs.getWidth() == rhs.getWidth() && lhs.getHeight() == rhs.getHeight();
-		};
-		if (view->getSize(&current) == kResultTrue && sameSize(current, *newSize))
+		if (view->getSize(&current) == kResultTrue
+			&& current.getWidth() == newSize->getWidth()
+			&& current.getHeight() == newSize->getHeight())
 		{
 			return kResultTrue;
 		}
 
-		m_resizing = true;
+		// Forward the request to the host window. The host resizes the editor
+		// window; on X11 the QX11EmbedContainer then resizes the client window,
+		// and on other platforms the editor resize handler calls onSize(). We
+		// must not call onSize() here as well, or it fights the container and
+		// causes resize feedback loops.
 		m_plugin->editorResizeRequested(newSize->getWidth(), newSize->getHeight());
-		m_resizing = false;
-
-		if (view->getSize(&current) != kResultTrue || !sameSize(current, *newSize))
-		{
-			view->onSize(newSize);
-		}
 		return kResultOk;
 	}
 
@@ -151,7 +147,6 @@ public:
 
 private:
 	Vst3Plugin* m_plugin;
-	bool m_resizing = false;
 };
 
 FIDString platformType()
