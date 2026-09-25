@@ -5,7 +5,7 @@ ENDIF()
 INCLUDE(BuildPlugin)
 
 # Build the vendored Steinberg VST 3 SDK static libraries first (base,
-# pluginterfaces, sdk_common, sdk, sdk_hosting).
+# pluginterfaces, sdk_common, sdk_hosting).
 ADD_SUBDIRECTORY(vst3sdk)
 
 # The SDK's sdk_hosting library ships the generic Module class but not the

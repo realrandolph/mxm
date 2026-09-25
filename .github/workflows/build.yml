@@ -521,6 +521,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
+        -DWANT_VST3=OFF
         -DUSE_COMPILE_CACHE=ON
         -DCPACK_NSIS_EXECUTABLE=/clang64/bin/makensis.exe
       CCACHE_MAXSIZE: 0

@@ -15,7 +15,6 @@ TARGET_INCLUDE_DIRECTORIES(vst3base
 
 TARGET_LINK_LIBRARIES(vst3base
 	sdk_hosting
-	sdk
 )
 
 IF(MXM_BUILD_LINUX)

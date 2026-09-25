@@ -7,7 +7,7 @@
 # large documentation tree). Instead we replicate the small amount of setup it
 # performs and add only the library targets we consume as a host:
 #
-#   base, pluginterfaces, sdk_common, sdk, sdk_hosting
+#   base, pluginterfaces, sdk_common, sdk_hosting
 #
 # License: the vendored SDK components (base, pluginterfaces, public.sdk,
 # cmake) are distributed under a BSD-3-Clause style license (see the LICENSE.txt
@@ -44,3 +44,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/public.sdk")
 add_subdirectory(pluginterfaces)
 add_subdirectory(base)
 add_subdirectory(public.sdk)
+
+# public.sdk also declares the plug-in authoring library. A host does not use
+# it, and building it pulls in unsupported utility code on MinGW.
+set_target_properties(sdk PROPERTIES EXCLUDE_FROM_ALL TRUE)
