@@ -71,6 +71,11 @@ if(MXM_HAVE_VST3 AND TARGET vst3base)
 		set_tests_properties(Vst3RenderTest PROPERTIES
 			ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/plugins;$ENV{PATH}")
 	endif()
+
+	# Third-party modules may not support concurrent initialization from
+	# separate processes. Keep the tests sharing VST3_PATH from overlapping.
+	set_tests_properties(Vst3AdapterTest Vst3RenderTest PROPERTIES
+		RESOURCE_LOCK vst3_test_plugins)
 endif()
 
 add_subdirectory(integration)
