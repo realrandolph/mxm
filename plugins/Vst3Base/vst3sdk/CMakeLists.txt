@@ -24,6 +24,11 @@ set(SMTG_ENABLE_VST3_HOSTING_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SMTG_ENABLE_VSTGUI_SUPPORT OFF CACHE BOOL "" FORCE)
 set(SMTG_ADD_VST3_UTILITIES OFF CACHE BOOL "" FORCE)
 
+# Treat the SDK as third-party code so MXM's -Wall/-Werror flags (which the
+# SDK does not build cleanly under, e.g. %lld vs int64 in ustring.cpp) do not
+# apply to it.
+set_directory_properties(PROPERTIES SYSTEM TRUE)
+
 set(vst3sdk_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 smtg_enable_vst3_sdk()
 
