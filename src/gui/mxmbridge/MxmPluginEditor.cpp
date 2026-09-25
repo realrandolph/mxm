@@ -24,7 +24,11 @@
 
 #include "MxmPluginEditor.h"
 
+#include <algorithm>
 #include <cstdint>
+#include <functional>
+#include <memory>
+#include <vector>
 
 #include <QCloseEvent>
 #include <QMetaObject>
@@ -63,6 +67,52 @@ void mapEmbeddedClient(QWidget* host)
 			XRaiseWindow(QX11Info::display(), client);
 		}
 	}
+}
+
+// Enumerate the direct children of the root window (i.e. top-level windows).
+std::vector<WId> topLevelWindows()
+{
+	std::vector<WId> result;
+	Display* display = QX11Info::display();
+	Window root = QX11Info::appRootWindow(QX11Info::appScreen());
+	Window rootRet, parentRet;
+	Window* children = nullptr;
+	unsigned int count = 0;
+	if (XQueryTree(display, root, &rootRet, &parentRet, &children, &count))
+	{
+		for (unsigned int i = 0; i < count; ++i)
+		{
+			result.push_back(children[i]);
+		}
+		if (children) { XFree(children); }
+	}
+	return result;
+}
+
+// True if @p window is a window-manager frame that has reparented one of the
+// windows we already know about (e.g. the editor window). We must not embed
+// such a frame.
+bool isAncestorFrame(WId window, const std::vector<WId>& known)
+{
+	Display* display = QX11Info::display();
+	Window rootRet, parentRet;
+	Window* children = nullptr;
+	unsigned int count = 0;
+	if (!XQueryTree(display, window, &rootRet, &parentRet, &children, &count))
+	{
+		return false;
+	}
+	bool isFrame = false;
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		if (std::find(known.begin(), known.end(), children[i]) != known.end())
+		{
+			isFrame = true;
+			break;
+		}
+	}
+	if (children) { XFree(children); }
+	return isFrame;
 }
 } // namespace
 #endif
@@ -124,6 +174,11 @@ void MxmPluginEditor::open()
 {
 	createWinId();
 	m_editorHost->createWinId();
+
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	const std::vector<WId> before = topLevelWindows();
+#endif
+
 	attach();
 	if (m_attached)
 	{
@@ -131,6 +186,66 @@ void MxmPluginEditor::open()
 		raise();
 		activateWindow();
 	}
+
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	// Some plugins (notably u-he) create their editor as a top-level X window
+	// rather than as an XEmbed child of the container. Detect any such window
+	// and reparent it into the container via embedClient(). Retry briefly for
+	// plugins that create their window asynchronously.
+	auto embedAttempt = std::make_shared<std::function<void(int)>>();
+	*embedAttempt = [this, before, embedAttempt](int attempt)
+	{
+		auto* container = static_cast<QX11EmbedContainer*>(m_editorHost);
+		if (!m_attached || container->clientWinId() != 0)
+		{
+			return;
+		}
+		for (WId w : topLevelWindows())
+		{
+			if (std::find(before.begin(), before.end(), w) != before.end())
+			{
+				continue;
+			}
+			if (isAncestorFrame(w, before))
+			{
+				continue;
+			}
+
+			// Capture the plugin's intended size before reparenting resizes it.
+			Window rootRet;
+			int x = 0, y = 0;
+			unsigned int cw = 0, ch = 0, border = 0, depth = 0;
+			XGetGeometry(QX11Info::display(), w, &rootRet, &x, &y, &cw, &ch, &border, &depth);
+
+			container->embedClient(w);
+
+			if (cw > 0 && ch > 0)
+			{
+				const QSize clientSize(static_cast<int>(cw), static_cast<int>(ch));
+				if (clientSize != size())
+				{
+					if (m_plugin->editorIsResizable())
+					{
+						resize(clientSize);
+					}
+					else
+					{
+						setFixedSize(clientSize);
+					}
+				}
+			}
+			return;
+		}
+		if (attempt < 60)
+		{
+			QTimer::singleShot(50, this, [embedAttempt, attempt]()
+			{
+				(*embedAttempt)(attempt + 1);
+			});
+		}
+	};
+	(*embedAttempt)(0);
+#endif
 }
 
 void MxmPluginEditor::attach()
