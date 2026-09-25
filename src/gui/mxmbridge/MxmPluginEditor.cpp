@@ -69,6 +69,40 @@ void mapEmbeddedClient(QWidget* host)
 	}
 }
 
+// Resize the editor window to the embedded client's actual X geometry. Some
+// plugins report a stale/default size via IPlugView::getSize() (u-he reports
+// 1200x600 while its real UI is 1550x930), so the client window is the
+// authoritative size source once it has been embedded.
+void synchronizeEditorSize(QWidget* editor, QWidget* host, bridge::IPlugin* plugin)
+{
+	auto* container = qobject_cast<QX11EmbedContainer*>(host);
+	if (!container) { return; }
+
+	const WId client = container->clientWinId();
+	if (!client) { return; }
+
+	Window rootRet;
+	int x = 0, y = 0;
+	unsigned int cw = 0, ch = 0, border = 0, depth = 0;
+	if (!XGetGeometry(QX11Info::display(), client, &rootRet, &x, &y, &cw, &ch, &border, &depth))
+	{
+		return;
+	}
+	if (cw == 0 || ch == 0) { return; }
+
+	const QSize clientSize(static_cast<int>(cw), static_cast<int>(ch));
+	if (clientSize == editor->size()) { return; }
+
+	if (plugin->editorIsResizable())
+	{
+		editor->resize(clientSize);
+	}
+	else
+	{
+		editor->setFixedSize(clientSize);
+	}
+}
+
 // Enumerate the direct children of the root window (i.e. top-level windows).
 std::vector<WId> topLevelWindows()
 {
@@ -131,7 +165,11 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 #ifdef MXM_HAVE_X11_EMBED_CONTAINER
 	m_editorHost = new QX11EmbedContainer(this);
 	connect(qobject_cast<QX11EmbedContainer*>(m_editorHost),
-		&QX11EmbedContainer::clientIsEmbedded, this, [this]() { mapEmbeddedClient(m_editorHost); });
+		&QX11EmbedContainer::clientIsEmbedded, this, [this]()
+		{
+			mapEmbeddedClient(m_editorHost);
+			synchronizeEditorSize(this, m_editorHost, m_plugin);
+		});
 #else
 	m_editorHost = new QWidget(this);
 	m_editorHost->setAttribute(Qt::WA_NativeWindow, true);
@@ -175,6 +213,12 @@ void MxmPluginEditor::open()
 	createWinId();
 	m_editorHost->createWinId();
 
+	// Show (and therefore map) the window and its container before attaching
+	// the plugin. Some plugins (u-he) only create their editor as an XEmbed
+	// child when the parent window is already mapped, and otherwise fall back
+	// to a top-level window.
+	show();
+
 #ifdef MXM_HAVE_X11_EMBED_CONTAINER
 	const std::vector<WId> before = topLevelWindows();
 #endif
@@ -182,7 +226,6 @@ void MxmPluginEditor::open()
 	attach();
 	if (m_attached)
 	{
-		show();
 		raise();
 		activateWindow();
 	}
@@ -191,51 +234,42 @@ void MxmPluginEditor::open()
 	// Some plugins (notably u-he) create their editor as a top-level X window
 	// rather than as an XEmbed child of the container. Detect any such window
 	// and reparent it into the container via embedClient(). Retry briefly for
-	// plugins that create their window asynchronously.
+	// plugins that create their window asynchronously. We track completion with
+	// our own flag rather than clientWinId(), because the container may have
+	// already adopted a Qt-internal window (the NET_WM user-time window) as a
+	// spurious client.
+	auto embedded = std::make_shared<bool>(false);
 	auto embedAttempt = std::make_shared<std::function<void(int)>>();
-	*embedAttempt = [this, before, embedAttempt](int attempt)
+	*embedAttempt = [this, before, embedded, embedAttempt](int attempt)
 	{
+		if (!m_attached) { return; }
 		auto* container = static_cast<QX11EmbedContainer*>(m_editorHost);
-		if (!m_attached || container->clientWinId() != 0)
+
+		if (!*embedded)
 		{
-			return;
-		}
-		for (WId w : topLevelWindows())
-		{
-			if (std::find(before.begin(), before.end(), w) != before.end())
+			for (WId w : topLevelWindows())
 			{
-				continue;
-			}
-			if (isAncestorFrame(w, before))
-			{
-				continue;
-			}
-
-			// Capture the plugin's intended size before reparenting resizes it.
-			Window rootRet;
-			int x = 0, y = 0;
-			unsigned int cw = 0, ch = 0, border = 0, depth = 0;
-			XGetGeometry(QX11Info::display(), w, &rootRet, &x, &y, &cw, &ch, &border, &depth);
-
-			container->embedClient(w);
-
-			if (cw > 0 && ch > 0)
-			{
-				const QSize clientSize(static_cast<int>(cw), static_cast<int>(ch));
-				if (clientSize != size())
+				if (std::find(before.begin(), before.end(), w) != before.end())
 				{
-					if (m_plugin->editorIsResizable())
-					{
-						resize(clientSize);
-					}
-					else
-					{
-						setFixedSize(clientSize);
-					}
+					continue;
 				}
+				if (isAncestorFrame(w, before))
+				{
+					continue;
+				}
+
+				// Discard any spurious client so the container accepts the
+				// plugin's real window instead of rejecting it.
+				if (container->clientWinId() != 0)
+				{
+					container->discardClient();
+				}
+				container->embedClient(w);
+				*embedded = true;
+				return;
 			}
-			return;
 		}
+
 		if (attempt < 60)
 		{
 			QTimer::singleShot(50, this, [embedAttempt, attempt]()
