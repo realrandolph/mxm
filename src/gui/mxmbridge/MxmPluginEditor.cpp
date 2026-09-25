@@ -126,7 +126,16 @@ void MxmPluginEditor::attach()
 	const QSize size = m_plugin->editorSize();
 	if (size.width() > 0 && size.height() > 0)
 	{
-		resize(size);
+		if (m_plugin->editorIsResizable())
+		{
+			resize(size);
+		}
+		else
+		{
+			// Fixed-size UI: prevent the window (and thus the embedded client)
+			// from being resized out from under the plugin.
+			setFixedSize(size);
+		}
 	}
 }
 
@@ -169,22 +178,22 @@ void MxmPluginEditor::resizeEvent(QResizeEvent* event)
 		return;
 	}
 
-#ifdef MXM_HAVE_X11_EMBED_CONTAINER
-	// On X11 the QX11EmbedContainer resizes the client window itself whenever
-	// the container is resized. Calling IPlugView::onSize() here as well would
-	// fight that and cause resize feedback loops / visual corruption.
-#else
-	// No native size propagation: tell the plugin about its new size explicitly.
-	const QSize accepted = m_plugin->editorIsResizable()
-		? m_plugin->resizeEditor(m_editorHost->size())
-		: m_plugin->editorSize();
+	if (!m_plugin->editorIsResizable())
+	{
+		return;
+	}
+
+	// Ask the plugin to constrain the requested size and notify it of the final
+	// size via onSize(). The QX11EmbedContainer also resizes the client X window,
+	// but onSize() keeps the plugin's internal view geometry in sync so that
+	// resizable UIs (e.g. Surge) reflow correctly.
+	const QSize accepted = m_plugin->resizeEditor(m_editorHost->size());
 	if (accepted.isValid() && accepted != m_editorHost->size())
 	{
 		m_resizingFromPlugin = true;
 		resize(accepted);
 		m_resizingFromPlugin = false;
 	}
-#endif
 }
 
 } // namespace gui
