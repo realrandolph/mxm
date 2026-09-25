@@ -216,6 +216,17 @@ int main(int argc, char** argv)
 	const auto& descriptors = manager.descriptors();
 	std::printf("Discovered %zu VST3 audio module classes\n", descriptors.size());
 
+	if (app.arguments().contains(QStringLiteral("--list")))
+	{
+		for (const auto& desc : descriptors)
+		{
+			std::printf("%s|%s|%s|%s\n",
+				desc.modulePath.c_str(), desc.cid.c_str(),
+				qPrintable(desc.name), desc.isInstrument ? "instrument" : "effect");
+		}
+		return 0;
+	}
+
 	if (descriptors.empty())
 	{
 		std::printf("No VST3 plugins found; nothing to test.\n");

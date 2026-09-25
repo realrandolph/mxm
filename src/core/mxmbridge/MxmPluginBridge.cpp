@@ -169,9 +169,9 @@ void MxmPluginBridge::onParameterModelChanged(int index)
 
 	// Deliver the change immediately while the transport is stopped so the
 	// plugin reflects it without a process() call. Automation only runs while
-	// playing, so this branch is only taken on the UI thread.
+	// playing or exporting, so this branch is only taken on the UI thread.
 	Song* song = Engine::getSong();
-	if (!song || !song->isPlaying())
+	if (!song || song->isStopped())
 	{
 		m_plugin->setParameterValue(m_parameters[static_cast<std::size_t>(index)].id,
 			normalizedValue(index));
@@ -385,7 +385,7 @@ void MxmPluginBridge::run(f_cnt_t frames)
 		ctx.tempo = song->getTempo();
 		ctx.timeSigNumerator = song->getTimeSigModel().getNumerator();
 		ctx.timeSigDenominator = song->getTimeSigModel().getDenominator();
-		ctx.playing = song->isPlaying();
+		ctx.playing = song->isPlaying() || song->isExporting();
 		ctx.recording = song->isRecording();
 	}
 
