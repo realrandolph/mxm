@@ -35,12 +35,37 @@
 
 #ifdef MXM_HAVE_X11_EMBED_CONTAINER
 #include "X11EmbedContainer.h"
+
+#include <QtX11Extras/QX11Info>
+#include <X11/Xlib.h>
 #endif
 
 namespace mxm
 {
 namespace gui
 {
+
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+namespace
+{
+// Map the embedded client window so it actually renders. Some plugins (notably
+// u-he) create their X11 window as an XEmbed child but never map it or set the
+// _XEMBED_INFO mapped flag themselves; JUCE-based plugins map themselves, so
+// this is a no-op for them.
+void mapEmbeddedClient(QWidget* host)
+{
+	if (auto* container = qobject_cast<QX11EmbedContainer*>(host))
+	{
+		const WId client = container->clientWinId();
+		if (client)
+		{
+			XMapWindow(QX11Info::display(), client);
+			XRaiseWindow(QX11Info::display(), client);
+		}
+	}
+}
+} // namespace
+#endif
 
 MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 	: QWidget(parent, Qt::Window)
@@ -55,6 +80,8 @@ MxmPluginEditor::MxmPluginEditor(bridge::IPlugin* plugin, QWidget* parent)
 
 #ifdef MXM_HAVE_X11_EMBED_CONTAINER
 	m_editorHost = new QX11EmbedContainer(this);
+	connect(qobject_cast<QX11EmbedContainer*>(m_editorHost),
+		&QX11EmbedContainer::clientIsEmbedded, this, [this]() { mapEmbeddedClient(m_editorHost); });
 #else
 	m_editorHost = new QWidget(this);
 	m_editorHost->setAttribute(Qt::WA_NativeWindow, true);
@@ -151,6 +178,9 @@ void MxmPluginEditor::detach()
 void MxmPluginEditor::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
+#ifdef MXM_HAVE_X11_EMBED_CONTAINER
+	mapEmbeddedClient(m_editorHost);
+#endif
 }
 
 void MxmPluginEditor::closeEvent(QCloseEvent* event)
