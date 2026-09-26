@@ -1,9 +1,23 @@
 ---
 name: build
-'on': [push, pull_request]
+
+'on':
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  CCACHE_MAXSIZE: 1G
+  CCACHE_COMPILERCHECK: content
+  CCACHE_BASEDIR: ${{ github.workspace }}
+
 jobs:
   linux-x86_64:
     name: linux-x86_64
@@ -15,26 +29,19 @@ jobs:
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
     steps:
       - name: Configure git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Set up environment
         run: |
           echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" | tee -a "$GITHUB_ENV"
-      - name: Clone fltk
-        uses: actions/checkout@v7
-        with:
-          repository: fltk/fltk
-          path: fltk
-          ref: 27d991f046bdebb12bfd58f7c05a19f135979c29
-          fetch-depth: 1
+          echo "CMAKE_PREFIX_PATH=$HOME/.local/mxm-fltk${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$HOME/.local/mxm-fltk/lib:$HOME/.local/mxm-fltk/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
       - name: Configure winehq
         run: |
           sudo dpkg --add-architecture i386
@@ -51,22 +58,39 @@ jobs:
           sudo apt-get install -y --install-recommends g++-multilib gcc-multilib winehq-devel wine-devel-dev
           sudo apt-get install -y --install-recommends \
             $(xargs < .github/workflows/deps-ubuntu-24.04-fltk.txt)
+      - name: Cache FLTK
+        id: cache-fltk
+        uses: actions/cache@v6
+        with:
+          key: fltk-${{ runner.os }}-${{ runner.arch }}-27d991f046bdebb12bfd58f7c05a19f135979c29
+          path: ~/.local/mxm-fltk
+      - name: Clone FLTK
+        if: steps.cache-fltk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: fltk/fltk
+          path: fltk
+          ref: 27d991f046bdebb12bfd58f7c05a19f135979c29
+          fetch-depth: 1
+      - name: Build and install FLTK
+        if: steps.cache-fltk.outputs.cache-hit != 'true'
+        run: |
+          cmake -S fltk -B fltk/build \
+            -DCMAKE_INSTALL_PREFIX="$HOME/.local/mxm-fltk" \
+            -DFLTK_BUILD_SHARED_LIBS=ON \
+            -DFLTK_BACKEND_WAYLAND=ON \
+            -DFLTK_USE_LIBDECOR_GTK=OFF \
+            -DFLTK_BUILD_TEST=OFF \
+            -DFLTK_BUILD_GL=OFF
+          cmake --build fltk/build
+          cmake --install fltk/build
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          key: ccache-${{ github.job }}-${{ github.ref }}-${{ github.run_id }}
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-${{ github.ref }}-
-            ccache-${{ github.job }}-
+            ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
           path: ~/.cache/ccache
-      - name: Configure fltk
-        run: |
-          cmake -S fltk -B fltk/build -DFLTK_BUILD_SHARED_LIBS=ON -DFLTK_BACKEND_WAYLAND=ON \
-            -DFLTK_USE_LIBDECOR_GTK=OFF -DFLTK_BUILD_TEST=OFF -DFLTK_BUILD_GL=OFF
-      - name: Install fltk
-        run: |
-          cmake --build fltk/build
-          sudo cmake --install fltk/build --prefix /usr
       - name: Configure
         run: |
           ccache --zero-stats
@@ -92,22 +116,23 @@ jobs:
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
       - name: Package
-        run: |
-          cmake --build build --target package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build/mxm-*.AppImage
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           ccache --cleanup
           echo "[ccache config]"
           ccache --show-config
           echo "[ccache stats]"
           ccache --show-stats
-        env:
-          CCACHE_MAXSIZE: 500M
+
   linux-arm64:
     name: linux-arm64
     runs-on: ubuntu-24.04-arm
@@ -118,8 +143,6 @@ jobs:
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
       DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Configure git
@@ -127,18 +150,13 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Set up environment
         run: |
           echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" | tee -a "$GITHUB_ENV"
-      - name: Clone fltk
-        uses: actions/checkout@v7
-        with:
-          repository: fltk/fltk
-          path: fltk
-          ref: 27d991f046bdebb12bfd58f7c05a19f135979c29
-          fetch-depth: 1
+          echo "CMAKE_PREFIX_PATH=$HOME/.local/mxm-fltk${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$HOME/.local/mxm-fltk/lib:$HOME/.local/mxm-fltk/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
       - name: Install system packages
         run: |
           sudo apt-get update -y
@@ -146,22 +164,39 @@ jobs:
             $(xargs < .github/workflows/deps-ubuntu-24.04-gcc.txt)
           sudo apt-get install -y --install-recommends \
             $(xargs < .github/workflows/deps-ubuntu-24.04-fltk.txt)
+      - name: Cache FLTK
+        id: cache-fltk
+        uses: actions/cache@v6
+        with:
+          key: fltk-${{ runner.os }}-${{ runner.arch }}-27d991f046bdebb12bfd58f7c05a19f135979c29
+          path: ~/.local/mxm-fltk
+      - name: Clone FLTK
+        if: steps.cache-fltk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: fltk/fltk
+          path: fltk
+          ref: 27d991f046bdebb12bfd58f7c05a19f135979c29
+          fetch-depth: 1
+      - name: Build and install FLTK
+        if: steps.cache-fltk.outputs.cache-hit != 'true'
+        run: |
+          cmake -S fltk -B fltk/build \
+            -DCMAKE_INSTALL_PREFIX="$HOME/.local/mxm-fltk" \
+            -DFLTK_BUILD_SHARED_LIBS=ON \
+            -DFLTK_BACKEND_WAYLAND=ON \
+            -DFLTK_USE_LIBDECOR_GTK=OFF \
+            -DFLTK_BUILD_TEST=OFF \
+            -DFLTK_BUILD_GL=OFF
+          cmake --build fltk/build
+          cmake --install fltk/build
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          key: ccache-${{ github.job }}-${{ github.ref }}-${{ github.run_id }}
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-${{ github.ref }}-
-            ccache-${{ github.job }}-
+            ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
           path: ~/.cache/ccache
-      - name: Configure fltk
-        run: |
-          cmake -S fltk -B fltk/build -DFLTK_BUILD_SHARED_LIBS=ON -DFLTK_BACKEND_WAYLAND=ON \
-            -DFLTK_USE_LIBDECOR_GTK=OFF -DFLTK_BUILD_TEST=OFF -DFLTK_BUILD_GL=OFF
-      - name: Install fltk
-        run: |
-          cmake --build fltk/build
-          sudo cmake --install fltk/build --prefix /usr
       - name: Configure
         run: |
           ccache --zero-stats
@@ -186,27 +221,28 @@ jobs:
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
       - name: Package
-        run: |
-          cmake --build build --target package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build/mxm-*.AppImage
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           ccache --cleanup
           echo "[ccache config]"
           ccache --show-config
           echo "[ccache stats]"
           ccache --show-stats
-        env:
-          CCACHE_MAXSIZE: 500M
+
   macos:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ x86_64, arm64 ]
+        arch: [x86_64, arm64]
         include:
           - arch: x86_64
             os: macos-15-intel
@@ -226,14 +262,12 @@ jobs:
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Set up environment
         run: |
@@ -244,28 +278,28 @@ jobs:
         id: cache-homebrew
         uses: actions/cache/restore@v6
         with:
-          key: n/a - only restore from restore-keys
+          key: n/a-only-restore-from-prefix
           restore-keys: |
             homebrew-${{ matrix.arch }}-
           path: ~/Library/Caches/Homebrew/downloads
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          key: "ccache-${{ github.job }}-${{ matrix.arch }}-${{ github.ref }}\
-            -${{ github.run_id }}"
+          key: ccache-${{ runner.os }}-${{ matrix.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-${{ matrix.arch }}-${{ github.ref }}-
-            ccache-${{ github.job }}-${{ matrix.arch }}-
+            ccache-${{ runner.os }}-${{ matrix.arch }}-${{ github.job }}-
           path: ~/Library/Caches/ccache
-      - name: Install dependencies
-        run: |
-          brew bundle install --verbose
-          pipx install dmgbuild
-          pipx ensurepath
+      - name: Install build dependencies
+        run: brew bundle install --verbose
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
           HOMEBREW_NO_INSTALL_UPGRADE: 1
           HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+      - name: Install packaging dependencies
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          pipx install dmgbuild
+          pipx ensurepath
       - name: Configure
         run: |
           ccache --zero-stats
@@ -293,31 +327,31 @@ jobs:
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
       - name: Package
-        run: |
-          cmake --build build --target package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build/mxm-*.dmg
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           ccache --cleanup
           echo "[ccache config]"
           ccache --show-config
           echo "[ccache stats]"
           ccache --show-stats --verbose
-        env:
-          CCACHE_MAXSIZE: 500MB
       - name: Save Homebrew download cache
-        if: ${{ steps.cache-homebrew.outputs.cache-matched-key != env.key }}
+        if: ${{ always() && steps.cache-homebrew.outputs.cache-matched-key != env.key }}
         uses: actions/cache/save@v6
         with:
           key: ${{ env.key }}
           path: ~/Library/Caches/Homebrew/downloads
         env:
-          key: "homebrew-${{ matrix.arch }}\
-            -${{ hashFiles('Brewfile.lock.json') }}"
+          key: homebrew-${{ matrix.arch }}-${{ hashFiles('Brewfile.lock.json') }}
+
   mingw:
     name: mingw64
     runs-on: ubuntu-latest
@@ -328,15 +362,13 @@ jobs:
         -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
     steps:
       - name: Configure git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Set up environment
         run: |
@@ -345,18 +377,16 @@ jobs:
         id: cache-deps
         uses: actions/cache@v6
         with:
-          key: vcpkg-mingw${{ matrix.arch }}-${{ hashFiles('vcpkg.json') }}
+          key: vcpkg-mingw-x86_64-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
-            vcpkg-mingw${{ matrix.arch }}-
+            vcpkg-mingw-x86_64-
           path: build/vcpkg_installed
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          key: "ccache-${{ github.job }}-64-${{ github.ref }}\
-            -${{ github.run_id }}"
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-64-${{ github.ref }}-
-            ccache-${{ github.job }}-64-
+            ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
           path: ~/.cache/ccache
       - name: Install dependencies
         run: |
@@ -379,33 +409,33 @@ jobs:
       - name: Build
         run: cmake --build build
       - name: Package
+        if: startsWith(github.ref, 'refs/tags/')
         run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build/mxm-*.exe
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           ccache --cleanup
           echo "[ccache config]"
           ccache --show-config
           echo "[ccache stats]"
           ccache --show-stats
-        env:
-          CCACHE_MAXSIZE: 500M
+
   msvc:
     name: msvc-x64
     runs-on: windows-2025-vs2026
     env:
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Cache vcpkg dependencies
         id: cache-deps
@@ -418,21 +448,20 @@ jobs:
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          # yamllint disable rule:line-length
-          key: "ccache-${{ github.job }}-x64-${{ github.ref }}\
-            -${{ github.run_id }}"
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-x64-${{ github.ref }}-
-            ccache-${{ github.job }}-x64-
+            ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
           path: ~\AppData\Local\ccache
-          # yamllint enable rule:line-length
-      - name: Install tools
-        run: choco install ccache nsis
+      - name: Install build tools
+        run: choco install ccache
+      - name: Install packaging tools
+        if: startsWith(github.ref, 'refs/tags/')
+        run: choco install nsis
       - name: Install Qt
         uses: jurplel/install-qt-action@bcb88e3bed2e992f5f9e24c0f9e364a231d278eb
         with:
           version: '6.8.*'
-          arch: "win64_msvc2022_64"
+          arch: win64_msvc2022_64
           archives: qtbase qtsvg qttools
           cache: true
       - name: Set up build environment
@@ -477,21 +506,23 @@ jobs:
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
       - name: Package
+        if: startsWith(github.ref, 'refs/tags/')
         run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build\mxm-*.exe
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           ccache --cleanup
           echo "[ccache config]"
           ccache --show-config
           echo "[ccache stats]"
           ccache --show-stats --verbose
-        env:
-          CCACHE_MAXSIZE: 500MB
+
   msys2:
     name: windows-arm64
     runs-on: windows-11-arm
@@ -505,14 +536,12 @@ jobs:
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
         -DCPACK_NSIS_EXECUTABLE=/clang64/bin/makensis.exe
-      CCACHE_MAXSIZE: 0
-      CCACHE_NOCOMPRESS: 1
       CMAKE_BUILD_PARALLEL_LEVEL: 4
     steps:
       - name: Check out
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
           submodules: recursive
       - name: Cache msys2 dependencies
         id: cache-deps
@@ -526,16 +555,21 @@ jobs:
         uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884
         with:
           msystem: CLANGARM64
-          update: true
-      - name: Install dependencies
-        run: pacman --needed --noconfirm -S - < .github/workflows/deps-msys2-clangarm64.txt
+          update: false
+          cache: true
+      - name: Install build dependencies
+        run: |
+          grep -v '^mingw-w64-clang-x86_64-nsis$' .github/workflows/deps-msys2-clangarm64.txt \
+            | pacman --needed --noconfirm -S -
+      - name: Install packaging dependencies
+        if: startsWith(github.ref, 'refs/tags/')
+        run: pacman --needed --noconfirm -S mingw-w64-clang-x86_64-nsis
       - name: Cache ccache data
         uses: actions/cache@v6
         with:
-          key: ccache-${{ github.job }}-${{ github.ref }}-${{ github.run_id }}
+          key: ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}
           restore-keys: |
-            ccache-${{ github.job }}-${{ github.ref }}-
-            ccache-${{ github.job }}-
+            ccache-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
           path: ~\AppData\Local\ccache
       - name: Configure
         run: |
@@ -559,18 +593,19 @@ jobs:
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
       - name: Package
+        if: startsWith(github.ref, 'refs/tags/')
         run: cmake --build build --target package
       - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v7
         with:
           archive: false
           path: build\mxm-*.exe
       - name: Trim ccache and print statistics
+        if: always()
         run: |
           /clang64/bin/ccache.exe --cleanup
           echo "[ccache config]"
           /clang64/bin/ccache.exe --show-config
           echo "[ccache stats]"
           /clang64/bin/ccache.exe --show-stats --verbose
-        env:
-          CCACHE_MAXSIZE: 500MB
