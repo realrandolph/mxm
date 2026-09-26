@@ -37,8 +37,40 @@
 #include <QFileInfo>
 #include <QStringList>
 
+#ifdef MXM_BUILD_WIN32
+#include <objbase.h>
+#endif
+
 namespace mxm
 {
+
+#ifdef MXM_BUILD_WIN32
+namespace
+{
+
+class ComApartment
+{
+public:
+	ComApartment() : m_initialized(SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED))) {}
+	~ComApartment()
+	{
+		if (m_initialized)
+		{
+			CoUninitialize();
+		}
+	}
+
+private:
+	bool m_initialized;
+};
+
+void ensureComInitialized()
+{
+	static thread_local ComApartment apartment;
+}
+
+} // namespace
+#endif
 
 Vst3Manager& Vst3Manager::instance()
 {
@@ -48,6 +80,11 @@ Vst3Manager& Vst3Manager::instance()
 
 void Vst3Manager::discover()
 {
+#ifdef MXM_BUILD_WIN32
+	// VST3 modules may use COM while their DLL and factory are initialized.
+	ensureComInitialized();
+#endif
+
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	// Discovery is performed once; plugins do not change during a session and
@@ -150,6 +187,10 @@ void Vst3Manager::discoverPath(const std::string& path)
 
 std::unique_ptr<bridge::IPlugin> Vst3Manager::createPlugin(const Descriptor& desc) const
 {
+#ifdef MXM_BUILD_WIN32
+	ensureComInitialized();
+#endif
+
 	auto plugin = std::make_unique<Vst3Plugin>(desc.modulePath, desc.cid);
 	if (!plugin->isValid())
 	{
