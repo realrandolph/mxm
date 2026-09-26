@@ -40,8 +40,9 @@ jobs:
       - name: Set up environment
         run: |
           echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" | tee -a "$GITHUB_ENV"
-          echo "CMAKE_PREFIX_PATH=$HOME/.local/mxm-fltk${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
-          echo "LD_LIBRARY_PATH=$HOME/.local/mxm-fltk/lib:$HOME/.local/mxm-fltk/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          fltk_prefix="$HOME/.local/mxm-fltk"
+          echo "CMAKE_PREFIX_PATH=$fltk_prefix${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$fltk_prefix/lib:$fltk_prefix/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
       - name: Configure winehq
         run: |
           sudo dpkg --add-architecture i386
@@ -155,8 +156,9 @@ jobs:
       - name: Set up environment
         run: |
           echo "CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)" | tee -a "$GITHUB_ENV"
-          echo "CMAKE_PREFIX_PATH=$HOME/.local/mxm-fltk${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
-          echo "LD_LIBRARY_PATH=$HOME/.local/mxm-fltk/lib:$HOME/.local/mxm-fltk/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          fltk_prefix="$HOME/.local/mxm-fltk"
+          echo "CMAKE_PREFIX_PATH=$fltk_prefix${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$fltk_prefix/lib:$fltk_prefix/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
       - name: Install system packages
         run: |
           sudo apt-get update -y
