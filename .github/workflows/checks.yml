@@ -1,11 +1,21 @@
 ---
 name: checks
-'on': [push, pull_request]
+
+'on':
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+
 permissions:
   contents: read
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
 jobs:
   scripted-checks:
     runs-on: ubuntu-latest
@@ -23,6 +33,7 @@ jobs:
         run: tests/scripted/check-strings
       - name: Run check-namespace
         run: tests/scripted/check-namespace
+
   shellcheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -36,6 +47,7 @@ jobs:
             $(find "./cmake/" -type f -name '*.sh' -o -name "*.sh.in") \
             doc/bash-completion/mxm \
             buildtools/update_locales
+
   yamllint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
