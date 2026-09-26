@@ -517,6 +517,7 @@ jobs:
           tar -xf surge-xt.zip -C vst3-plugins
       - name: Run tests
         run: |
+          $env:PATH = "${{ github.workspace }}\build\plugins;$env:PATH"
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
         env:
