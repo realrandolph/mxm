@@ -24,7 +24,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
 
 #include <QCoreApplication>
@@ -41,21 +40,6 @@ constexpr double kPi = 3.14159265358979323846;
 
 int g_failures = 0;
 int g_nonFinitePlugins = 0;
-
-void trace(const char* event)
-{
-	const char* path = std::getenv("MXM_VST3_TEST_TRACE");
-	if (!path)
-	{
-		return;
-	}
-
-	if (std::FILE* file = std::fopen(path, "a"))
-	{
-		std::fprintf(file, "%s\n", event);
-		std::fclose(file);
-	}
-}
 
 void check(bool condition, const char* what)
 {
@@ -83,17 +67,13 @@ void testPlugin(const mxm::Vst3Manager::Descriptor& desc)
 
 	std::printf("  testing %s (%s)\n", qPrintable(desc.name), qPrintable(desc.vendor));
 
-	trace("creating plugin");
 	auto plugin = Vst3Manager::instance().createPlugin(desc);
-	trace("created plugin");
 	check(plugin && plugin->isValid(), "createPlugin yields a valid plugin");
 	if (!plugin || !plugin->isValid()) { return; }
 
 	check(!plugin->name().isEmpty(), "name is non-empty");
 
-	trace("initializing plugin");
 	const bool ok = plugin->initialize(kSampleRate, kBlockSize);
-	trace("initialized plugin");
 	check(ok, "initialize succeeds");
 	if (!ok) { return; }
 
@@ -144,7 +124,6 @@ void testPlugin(const mxm::Vst3Manager::Descriptor& desc)
 
 	for (int block = 0; block < 8; ++block)
 	{
-		trace("processing block");
 		ctx.projectTimeSamples += kBlockSize;
 		ctx.continousTimeSamples += kBlockSize;
 		ctx.playing = true;
@@ -190,9 +169,7 @@ void testPlugin(const mxm::Vst3Manager::Descriptor& desc)
 
 	// State round-trip: save, then restore into a fresh instance.
 	QByteArray state;
-	trace("saving state");
 	const bool saved = plugin->saveState(state);
-	trace("saved state");
 	if (saved && !state.isEmpty())
 	{
 		// NOTE: temporarily disabled for debugging.
@@ -221,26 +198,20 @@ void testPlugin(const mxm::Vst3Manager::Descriptor& desc)
 	}
 
 	// Clean shutdown.
-	trace("terminating plugin");
 	plugin->terminate();
-	trace("terminated plugin");
 }
 
 } // namespace
 
 int main(int argc, char** argv)
 {
-	trace("entering main");
 	QCoreApplication app(argc, argv);
 	std::setvbuf(stdout, nullptr, _IONBF, 0);
-	trace("created application");
 
 	using namespace mxm;
 
 	Vst3Manager& manager = Vst3Manager::instance();
-	trace("discovering plugins");
 	manager.discover();
-	trace("discovered plugins");
 
 	const auto& descriptors = manager.descriptors();
 	std::printf("Discovered %zu VST3 audio module classes\n", descriptors.size());
