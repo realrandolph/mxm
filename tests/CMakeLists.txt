@@ -41,7 +41,7 @@ if(MXM_HAVE_VST3 AND TARGET vst3base)
 	add_test(NAME Vst3AdapterTest COMMAND Vst3AdapterTest)
 	set_tests_properties(Vst3AdapterTest PROPERTIES
 		LABELS "unit;vst3"
-		TIMEOUT 300
+		TIMEOUT 60
 	)
 	target_include_directories(Vst3AdapterTest PRIVATE ${CMAKE_SOURCE_DIR}/include)
 	target_link_libraries(Vst3AdapterTest PRIVATE vst3base Qt${QT_VERSION_MAJOR}::Core)
@@ -51,7 +51,7 @@ if(MXM_HAVE_VST3 AND TARGET vst3base)
 	add_test(NAME Vst3RenderTest COMMAND Vst3RenderTest $<TARGET_FILE:mxm>)
 	set_tests_properties(Vst3RenderTest PROPERTIES
 		LABELS "integration;render;vst3"
-		TIMEOUT 300
+		TIMEOUT 60
 	)
 	target_include_directories(Vst3RenderTest PRIVATE ${CMAKE_SOURCE_DIR}/include)
 	target_link_libraries(Vst3RenderTest PRIVATE vst3base Qt${QT_VERSION_MAJOR}::Core)
