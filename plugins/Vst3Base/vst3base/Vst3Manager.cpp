@@ -59,11 +59,16 @@ void Vst3Manager::discover()
 
 	m_descriptors.clear();
 
-	// Standard locations (and the SDK's own application-level path).
-	auto modulePaths = VST3::Hosting::Module::getModulePaths();
-	for (const auto& path : modulePaths)
+	// CI and other controlled environments can restrict discovery to VST3_PATH
+	// so host-installed plugins cannot make the scan non-deterministic.
+	if (!std::getenv("MXM_VST3_PATH_ONLY"))
 	{
-		discoverPath(path);
+		// Standard locations (and the SDK's own application-level path).
+		auto modulePaths = VST3::Hosting::Module::getModulePaths();
+		for (const auto& path : modulePaths)
+		{
+			discoverPath(path);
+		}
 	}
 
 	// VST3_PATH environment variable: extra locations (OS list separator).

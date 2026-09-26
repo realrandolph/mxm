@@ -102,10 +102,19 @@ jobs:
                 $CMAKE_OPTS
       - name: Build
         run: cmake --build build
+      - name: Install test VST3 plugin (Surge XT)
+        run: |
+          mkdir -p vst3-plugins
+          curl -fsSL -o surge-xt.deb \
+            https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.4/surge-xt-linux-x64-1.3.4.deb
+          dpkg-deb -x surge-xt.deb vst3-plugins
       - name: Run tests
         run: |
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
+          VST3_PATH: ${{ github.workspace }}/vst3-plugins
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -500,10 +509,19 @@ jobs:
           path: build\vcpkg_installed
       - name: Build
         run: cmake --build build
+      - name: Install test VST3 plugin (Surge XT)
+        run: |
+          New-Item -ItemType Directory -Force vst3-plugins | Out-Null
+          curl.exe -fsSL -o surge-xt.zip `
+            https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.4/surge-xt-win64-1.3.4-pluginsonly.zip
+          tar -xf surge-xt.zip -C vst3-plugins
       - name: Run tests
         run: |
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
+          VST3_PATH: ${{ github.workspace }}\vst3-plugins
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -610,6 +628,8 @@ jobs:
         run: |
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
