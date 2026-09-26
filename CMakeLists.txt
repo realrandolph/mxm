@@ -100,6 +100,7 @@ OPTION(WANT_TAP		"Include Tom's Audio Processing LADSPA plugins" ON)
 OPTION(WANT_VST		"Include VST support" ON)
 OPTION(WANT_VST_32	"Include 32-bit Windows VST support" ON)
 OPTION(WANT_VST_64	"Include 64-bit Windows VST support" ON)
+OPTION(WANT_VST3		"Include native VST3 support" ON)
 OPTION(WANT_WINMM	"Include WinMM MIDI support" OFF)
 OPTION(WANT_DEBUG_FPE	"Debug floating point exceptions" OFF)
 option(WANT_DEBUG_ASAN	"Enable AddressSanitizer" OFF)
@@ -295,7 +296,7 @@ set(QT_LIBRARIES
 	Qt${QT_VERSION_MAJOR}::Svg
 )
 
-IF(MXM_BUILD_LINUX AND NOT WANT_QT6 AND (WANT_VST OR WANT_SUIL))
+IF(MXM_BUILD_LINUX AND NOT WANT_QT6 AND (WANT_VST OR WANT_SUIL OR WANT_VST3))
 	IF(WANT_VST)
 		FIND_PACKAGE(Qt5 COMPONENTS X11Extras REQUIRED)
 	ELSE()
@@ -303,6 +304,16 @@ IF(MXM_BUILD_LINUX AND NOT WANT_QT6 AND (WANT_VST OR WANT_SUIL))
 	ENDIF()
 	IF(Qt5X11Extras_FOUND)
 		LIST(APPEND QT_LIBRARIES Qt5::X11Extras)
+	ENDIF()
+ENDIF()
+
+# X11 support for the native plugin editor window (VST3 on Linux). Qt5 uses
+# Qt5X11Extras; Qt6 uses QNativeInterface::QX11Application.
+SET(MXM_HAVE_PLUGIN_EDITOR_X11 FALSE)
+IF(MXM_BUILD_LINUX AND WANT_VST3 AND (WANT_QT6 OR Qt5X11Extras_FOUND))
+	FIND_PACKAGE(X11)
+	IF(X11_FOUND)
+		SET(MXM_HAVE_PLUGIN_EDITOR_X11 TRUE)
 	ENDIF()
 ENDIF()
 
@@ -687,6 +698,18 @@ if(WANT_VST)
 	endif()
 endif()
 
+# check for native VST3 hosting
+if(WANT_VST3)
+	if(MXM_BUILD_LINUX OR MXM_BUILD_WIN32)
+		set(MXM_HAVE_VST3 TRUE)
+		set(STATUS_VST3 "OK")
+	else()
+		set(STATUS_VST3 "<not supported on this platform>")
+	endif()
+else()
+	set(STATUS_VST3 "Not built, as requested")
+endif()
+
 IF(WANT_DEBUG_FPE)
 	IF(MXM_BUILD_LINUX OR MXM_BUILD_APPLE)
 		SET(MXM_DEBUG_FPE TRUE)
@@ -946,6 +969,7 @@ MESSAGE(
 "* VST plugin host             : ${STATUS_VST}\n"
 "  * 32-bit Windows host       : ${STATUS_VST_32}\n"
 "  * 64-bit Windows host       : ${STATUS_VST_64}\n"
+"* VST3 plugin host            : ${STATUS_VST3}\n"
 "* CALF LADSPA plugins         : ${STATUS_CALF}\n"
 "* CAPS LADSPA plugins         : ${STATUS_CAPS}\n"
 "* CMT LADSPA plugins          : ${STATUS_CMT}\n"

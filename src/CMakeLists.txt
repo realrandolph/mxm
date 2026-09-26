@@ -173,6 +173,10 @@ if(MXM_HAVE_LV2)
 	list(APPEND EXTRA_LIBRARIES Lilv::lilv)
 endif()
 
+if(MXM_HAVE_PLUGIN_EDITOR_X11)
+	target_compile_definitions(mxmobjs PRIVATE MXM_HAVE_PLUGIN_EDITOR_X11)
+endif()
+
 SET(MXM_REQUIRED_LIBS ${MXM_REQUIRED_LIBS}
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
@@ -193,7 +197,7 @@ target_link_libraries(mxmobjs
 	${MXM_REQUIRED_LIBS}
 )
 target_static_libraries(mxmobjs ringbuffer)
-if(MXM_HAVE_LV2_UI)
+if(MXM_HAVE_LV2_UI OR MXM_HAVE_PLUGIN_EDITOR_X11)
 	target_include_directories(mxmobjs SYSTEM PRIVATE ${X11_INCLUDE_DIR})
 	target_link_libraries(mxmobjs ${X11_LIBRARIES})
 endif()

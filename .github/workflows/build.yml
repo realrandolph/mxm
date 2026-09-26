@@ -102,10 +102,19 @@ jobs:
                 $CMAKE_OPTS
       - name: Build
         run: cmake --build build
+      - name: Install test VST3 plugin (Surge XT)
+        run: |
+          mkdir -p vst3-plugins
+          curl -fsSL -o surge-xt.deb \
+            https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.4/surge-xt-linux-x64-1.3.4.deb
+          dpkg-deb -x surge-xt.deb vst3-plugins
       - name: Run tests
         run: |
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
+          VST3_PATH: ${{ github.workspace }}/vst3-plugins
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -500,10 +509,21 @@ jobs:
           path: build\vcpkg_installed
       - name: Build
         run: cmake --build build
+      - name: Install test VST3 plugin (Surge XT)
+        run: |
+          New-Item -ItemType Directory -Force vst3-plugins | Out-Null
+          curl.exe -fsSL -o surge-xt.zip `
+            https://github.com/surge-synthesizer/releases-xt/releases/download/1.3.4/surge-xt-win64-1.3.4-pluginsonly.zip
+          tar -xf surge-xt.zip -C vst3-plugins
       - name: Run tests
         run: |
+          $env:PATH = "${{ github.workspace }}\build\plugins;$env:PATH"
+          & build/tests/Vst3AdapterTest.exe --list
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
+          VST3_PATH: ${{ github.workspace }}\vst3-plugins
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -571,18 +591,20 @@ jobs:
         id: cache-msys2-env
         uses: actions/cache/restore@v6
         with:
-          key: msys2-env-windows-arm64-v1-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
+          key: msys2-env-windows-arm64-v2-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
           path: C:\msys64
       - name: Install build dependencies
-        if: steps.cache-msys2-env.outputs.cache-hit != 'true'
         run: |
-          grep -v '^mingw-w64-clang-x86_64-nsis$' .github/workflows/deps-msys2-clangarm64.txt \
-            | pacman --needed --noconfirm -S -
+          if [[ "${{ steps.cache-msys2-env.outputs.cache-hit }}" != "true" \
+            || ! -x /clang64/bin/ccache.exe ]]; then
+            grep -v '^mingw-w64-clang-x86_64-nsis$' .github/workflows/deps-msys2-clangarm64.txt \
+              | pacman --needed --noconfirm -S -
+          fi
       - name: Save prepared msys2 environment
         if: steps.cache-msys2-env.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
-          key: msys2-env-windows-arm64-v1-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
+          key: msys2-env-windows-arm64-v2-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
           path: C:\msys64
       - name: Save pacman package cache
         if: steps.cache-pacman.outputs.cache-hit != 'true'
@@ -610,6 +632,8 @@ jobs:
         run: |
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
+        env:
+          MXM_VST3_PATH_ONLY: 1
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7

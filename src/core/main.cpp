@@ -125,7 +125,6 @@ void consoleMessageHandler(QtMsgType type,
 }
 #endif // MXM_BUILD_WIN32
 
-
 inline void loadTranslation( const QString & tname,
 	const QString & dir = mxm::ConfigManager::inst()->localeDir() )
 {

@@ -118,6 +118,8 @@ set(MXM_SRCS
 	core/lv2/Lv2UridMap.cpp
 	core/lv2/Lv2Worker.cpp
 
+	core/mxmbridge/MxmPluginBridge.cpp
+
 	core/midi/MidiAlsaRaw.cpp
 	core/midi/MidiAlsaSeq.cpp
 	core/midi/MidiClient.cpp
