@@ -518,10 +518,18 @@ jobs:
       - name: Run tests
         run: |
           $env:PATH = "${{ github.workspace }}\build\plugins;$env:PATH"
+          $probe = Start-Process -FilePath build/tests/Vst3AdapterTest.exe `
+            -ArgumentList "--list" -NoNewWindow -PassThru
+          if (-not $probe.WaitForExit(60000)) {
+            Stop-Process -Id $probe.Id -Force
+            Get-Content vst3-trace.log -ErrorAction SilentlyContinue
+            throw "VST3 discovery probe timed out"
+          }
           cd build/tests
           ctest --output-on-failure --no-tests=error -j2
         env:
           MXM_VST3_PATH_ONLY: 1
+          MXM_VST3_TRACE: ${{ github.workspace }}\vst3-trace.log
           VST3_PATH: ${{ github.workspace }}\vst3-plugins
       - name: Upload test diagnostics
         if: failure()
@@ -534,6 +542,7 @@ jobs:
             build/tests/Testing/Temporary/LastTest.log
             build/tests/Testing/Temporary/LastTestsFailed.log
             build/tests/integration/artifacts/**
+            vst3-trace.log
       - name: Package
         if: startsWith(github.ref, 'refs/tags/')
         run: cmake --build build --target package
