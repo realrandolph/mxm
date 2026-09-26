@@ -589,18 +589,20 @@ jobs:
         id: cache-msys2-env
         uses: actions/cache/restore@v6
         with:
-          key: msys2-env-windows-arm64-v1-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
+          key: msys2-env-windows-arm64-v2-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
           path: C:\msys64
       - name: Install build dependencies
-        if: steps.cache-msys2-env.outputs.cache-hit != 'true'
         run: |
-          grep -v '^mingw-w64-clang-x86_64-nsis$' .github/workflows/deps-msys2-clangarm64.txt \
-            | pacman --needed --noconfirm -S -
+          if [[ "${{ steps.cache-msys2-env.outputs.cache-hit }}" != "true" \
+            || ! -x /clang64/bin/ccache.exe ]]; then
+            grep -v '^mingw-w64-clang-x86_64-nsis$' .github/workflows/deps-msys2-clangarm64.txt \
+              | pacman --needed --noconfirm -S -
+          fi
       - name: Save prepared msys2 environment
         if: steps.cache-msys2-env.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
-          key: msys2-env-windows-arm64-v1-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
+          key: msys2-env-windows-arm64-v2-${{ hashFiles('.github/workflows/deps-msys2-clangarm64.txt') }}
           path: C:\msys64
       - name: Save pacman package cache
         if: steps.cache-pacman.outputs.cache-hit != 'true'
