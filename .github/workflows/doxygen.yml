@@ -1,49 +1,67 @@
 ---
 name: doxygen
+
 on:
-  workflow_dispatch: # allow manual run
+  workflow_dispatch:
   push:
-    branches: # only auto-run on pushing to main|master branch
+    branches:
       - main
       - master
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
-    name: Deploy Doxygen docs to Github Pages
+  build:
+    name: Build Doxygen documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+
     steps:
       - name: Check out
         uses: actions/checkout@v6
         with:
           submodules: recursive
+
       - name: Install packages
         run: |
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends --no-install-suggests graphviz
-      - name: Install doxygen
+
+      - name: Install Doxygen
         uses: ssciwr/doxygen-install@v2
         with:
           version: "1.18.0"
+
       - name: Configure
-        run: |
-          cmake -S doc -B build
+        run: cmake -S doc -B build
+
       - name: Build docs
         run: cmake --build build --target doc
-      - name: Setup Pages
-        id: setup_pages
-        continue-on-error: true
+
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+
       - name: Upload generated website
-        if: ${{ steps.setup_pages.outcome == 'success' }}
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
-          path: 'build/doc/html'
+          path: build/doc/html
+
+  deploy:
+    name: Deploy Doxygen docs to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
-        if: ${{ steps.setup_pages.outcome == 'success' }}
+        id: deployment
         uses: actions/deploy-pages@v5
