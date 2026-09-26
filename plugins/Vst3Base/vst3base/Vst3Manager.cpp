@@ -31,7 +31,6 @@
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstdlib>
 
 #include <QDir>
@@ -44,26 +43,6 @@
 
 namespace mxm
 {
-
-namespace
-{
-
-void traceDiscovery(const char* event, const std::string& path = {})
-{
-	const char* tracePath = std::getenv("MXM_VST3_TRACE");
-	if (!tracePath)
-	{
-		return;
-	}
-
-	if (std::FILE* trace = std::fopen(tracePath, "a"))
-	{
-		std::fprintf(trace, "%s%s%s\n", event, path.empty() ? "" : ": ", path.c_str());
-		std::fclose(trace);
-	}
-}
-
-} // namespace
 
 #ifdef MXM_BUILD_WIN32
 namespace
@@ -101,8 +80,6 @@ Vst3Manager& Vst3Manager::instance()
 
 void Vst3Manager::discover()
 {
-	traceDiscovery("begin discovery");
-
 #ifdef MXM_BUILD_WIN32
 	// VST3 modules may use COM while their DLL and factory are initialized.
 	ensureComInitialized();
@@ -144,7 +121,6 @@ void Vst3Manager::discover()
 	}
 
 	m_discovered = true;
-	traceDiscovery("finished discovery");
 }
 
 void Vst3Manager::discoverPathOrDirectory(const std::string& path)
@@ -174,16 +150,13 @@ void Vst3Manager::discoverPathOrDirectory(const std::string& path)
 
 void Vst3Manager::discoverPath(const std::string& path)
 {
-	traceDiscovery("loading module", path);
 	std::string error;
 	auto module = VST3::Hosting::Module::create(path, error);
 	if (!module)
 	{
-		traceDiscovery("failed module", path);
 		return;
 	}
 
-	traceDiscovery("loaded module", path);
 	auto factory = module->getFactory();
 	for (auto& classInfo : factory.classInfos())
 	{
@@ -210,7 +183,6 @@ void Vst3Manager::discoverPath(const std::string& path)
 			m_descriptors.push_back(std::move(desc));
 		}
 	}
-	traceDiscovery("read module classes", path);
 }
 
 std::unique_ptr<bridge::IPlugin> Vst3Manager::createPlugin(const Descriptor& desc) const

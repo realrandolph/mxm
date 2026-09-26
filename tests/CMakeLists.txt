@@ -60,10 +60,12 @@ if(MXM_HAVE_VST3 AND TARGET vst3base)
 		set_tests_properties(Vst3AdapterTest Vst3RenderTest PROPERTIES
 			ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/plugins:$ENV{LD_LIBRARY_PATH}")
 	elseif(MXM_BUILD_WIN32)
-		# ENVIRONMENT is a CMake list, so preserve the semicolons in Windows PATH.
-		string(REPLACE ";" "\\;" MXM_VST3_TEST_PATH "$ENV{PATH}")
-		set_tests_properties(Vst3AdapterTest Vst3RenderTest PROPERTIES
-			ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}/plugins\\;${MXM_VST3_TEST_PATH}")
+		add_custom_command(TARGET Vst3AdapterTest POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				$<TARGET_FILE:vst3base> $<TARGET_FILE_DIR:Vst3AdapterTest>)
+		add_custom_command(TARGET Vst3RenderTest POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				$<TARGET_FILE:vst3base> $<TARGET_FILE_DIR:Vst3RenderTest>)
 	endif()
 
 	# Third-party modules may not support concurrent initialization from
