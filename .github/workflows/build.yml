@@ -25,7 +25,7 @@ jobs:
     env:
       CMAKE_OPTS: >-
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
@@ -150,7 +150,7 @@ jobs:
     env:
       CMAKE_OPTS: >-
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
@@ -271,7 +271,7 @@ jobs:
       CMAKE_OPTS: >-
         -Werror=dev
         -DUSE_WERROR=OFF
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
@@ -370,7 +370,7 @@ jobs:
       CMAKE_OPTS: >-
         -Werror=dev
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
     steps:
@@ -490,13 +490,14 @@ jobs:
             -G Ninja `
             --toolchain C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
             -Werror=dev `
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo `
+            -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }} `
             -DTARGET_UARCH=official `
             -DWANT_QT6=ON `
             -DUSE_COMPILE_CACHE=ON `
             -DUSE_WERROR=ON `
             -DVCPKG_TARGET_TRIPLET="x64-windows" `
             -DVCPKG_HOST_TRIPLET="x64-windows" `
+            -DX_VCPKG_APPLOCAL_DEPS_SERIALIZED=ON `
             -DVCPKG_MANIFEST_INSTALL="${{ env.should_install_manifest }}"
         env:
           should_install_manifest:
@@ -561,7 +562,7 @@ jobs:
         shell: msys2 {0}
     env:
       CMAKE_OPTS: >-
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
