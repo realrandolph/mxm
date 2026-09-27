@@ -5,6 +5,16 @@ name: release
   workflow_run:
     workflows: [build]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful build workflow run ID to publish
+        required: true
+        type: string
+      tag:
+        description: Existing version tag to publish (for example v1.0.0-alpha.1)
+        required: true
+        type: string
 
 # The build workflow already produces native packages on Linux, Windows, and
 # macOS. This workflow deliberately publishes those exact tested artifacts
@@ -14,33 +24,65 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.event.workflow_run.head_sha }}
+  group: release-${{ github.event.workflow_run.head_sha || inputs.tag || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish tagged release
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
-      - name: Check out triggering commit
+      - name: Check out release commit
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      - name: Resolve release tag
+      - name: Resolve release context
         id: release_tag
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_RUN_ID: ${{ inputs.run_id }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+          TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
 
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ ! "$DISPATCH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+              echo "Invalid release tag: $DISPATCH_TAG" >&2
+              exit 1
+            fi
+
+            tag_sha=$(git rev-list -n 1 "$DISPATCH_TAG")
+            run_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$DISPATCH_RUN_ID" --jq '.head_sha')
+            run_conclusion=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$DISPATCH_RUN_ID" --jq '.conclusion')
+            run_event=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$DISPATCH_RUN_ID" --jq '.event')
+
+            if [[ "$run_conclusion" != "success" || "$run_event" != "push" ]]; then
+              echo "Build run $DISPATCH_RUN_ID is not a successful push build." >&2
+              exit 1
+            fi
+
+            if [[ "$tag_sha" != "$run_sha" ]]; then
+              echo "Refusing release: tag $DISPATCH_TAG points to $tag_sha but build run $DISPATCH_RUN_ID built $run_sha." >&2
+              exit 1
+            fi
+
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$DISPATCH_TAG" >> "$GITHUB_OUTPUT"
+            echo "run_id=$DISPATCH_RUN_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           mapfile -t tags < <(
-            git tag --points-at HEAD \
-              | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$' \
-              || true
+            git tag --points-at HEAD               | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$'               || true
           )
 
           if (( ${#tags[@]} == 0 )); then
@@ -57,18 +99,15 @@ jobs:
 
           echo "publish=true" >> "$GITHUB_OUTPUT"
           echo "tag=${tags[0]}" >> "$GITHUB_OUTPUT"
+          echo "run_id=$TRIGGER_RUN_ID" >> "$GITHUB_OUTPUT"
 
       - name: Download packaged build artifacts
         if: steps.release_tag.outputs.publish == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts
-          gh run download "$RUN_ID" \
-            --repo "$GITHUB_REPOSITORY" \
-            --dir artifacts
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ steps.release_tag.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: artifacts
 
       - name: Select canonical release assets
         if: steps.release_tag.outputs.publish == 'true'
@@ -90,10 +129,7 @@ jobs:
           while IFS= read -r -d '' file; do
             copy_asset "$file"
           done < <(
-            find artifacts -type f \
-              \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \) \
-              ! -name '*mingw*' \
-              -print0
+            find artifacts -type f               \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \)               ! -name '*mingw*'               -print0
           )
 
           appimages=$(find release -maxdepth 1 -type f -name 'mxm-*.AppImage' | wc -l)
@@ -148,9 +184,7 @@ jobs:
 
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release $RELEASE_TAG already exists; replacing its assets."
-            gh release upload "$RELEASE_TAG" release/* \
-              --repo "$GITHUB_REPOSITORY" \
-              --clobber
+            gh release upload "$RELEASE_TAG" release/*               --repo "$GITHUB_REPOSITORY"               --clobber
           else
             gh release create "$RELEASE_TAG" release/* "${release_args[@]}"
           fi
