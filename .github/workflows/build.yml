@@ -17,7 +17,6 @@ env:
   CCACHE_MAXSIZE: 1G
   CCACHE_COMPILERCHECK: content
   CCACHE_BASEDIR: ${{ github.workspace }}
-  MXM_BUILD_TYPE: ${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
 
 jobs:
   linux-x86_64:
@@ -26,7 +25,7 @@ jobs:
     env:
       CMAKE_OPTS: >-
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }}
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
@@ -151,7 +150,7 @@ jobs:
     env:
       CMAKE_OPTS: >-
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }}
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
         -DWANT_DEBUG_CPACK=ON
@@ -272,7 +271,7 @@ jobs:
       CMAKE_OPTS: >-
         -Werror=dev
         -DUSE_WERROR=OFF
-        -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }}
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
@@ -371,7 +370,7 @@ jobs:
       CMAKE_OPTS: >-
         -Werror=dev
         -DUSE_WERROR=ON
-        -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }}
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DUSE_COMPILE_CACHE=ON
     steps:
@@ -491,7 +490,7 @@ jobs:
             -G Ninja `
             --toolchain C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
             -Werror=dev `
-            -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }} `
+            -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }} `
             -DTARGET_UARCH=official `
             -DWANT_QT6=ON `
             -DUSE_COMPILE_CACHE=ON `
@@ -563,7 +562,7 @@ jobs:
         shell: msys2 {0}
     env:
       CMAKE_OPTS: >-
-        -DCMAKE_BUILD_TYPE=${{ env.MXM_BUILD_TYPE }}
+        -DCMAKE_BUILD_TYPE=${{ startsWith(github.ref, 'refs/tags/') && 'Release' || 'RelWithDebInfo' }}
         -DTARGET_UARCH=official
         -DWANT_QT6=ON
         -DUSE_COMPILE_CACHE=ON
