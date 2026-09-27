@@ -1,7 +1,7 @@
 # Thin build glue for the Steinberg VST 3 SDK.
 #
 # The SDK is vendored as four git submodules (base, pluginterfaces, public.sdk,
-# cmake) pinned to the exact commits referenced by the v3.7.13_build_42 release.
+# cmake) pinned to the exact commits tagged as the v3.8.1_build_84 release.
 # We intentionally do not add the SDK's own top-level CMakeLists.txt (which
 # would also build the example plug-ins, validator, utilities, VSTGUI and the
 # large documentation tree). Instead we replicate the small amount of setup it
@@ -10,8 +10,8 @@
 #   base, pluginterfaces, sdk_common, sdk_hosting
 #
 # License: the vendored SDK components (base, pluginterfaces, public.sdk,
-# cmake) are distributed under a BSD-3-Clause style license (see the LICENSE.txt
-# in each submodule). This is compatible with MXM's GPL-2.0-or-later license.
+# cmake) are distributed under the MIT License (see LICENSE.txt in each
+# submodule). This is compatible with MXM's GPL-2.0-or-later license.
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
@@ -30,6 +30,7 @@ set(SMTG_ADD_VST3_UTILITIES OFF CACHE BOOL "" FORCE)
 set_directory_properties(PROPERTIES SYSTEM TRUE)
 
 set(vst3sdk_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 smtg_enable_vst3_sdk()
 
 # Enable the VST3 interface subset of pluginterfaces/public.sdk.
@@ -41,9 +42,11 @@ set(pluginterfaces_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/pluginterfaces")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/public.sdk")
 
-add_subdirectory(pluginterfaces)
-add_subdirectory(base)
-add_subdirectory(public.sdk)
+smtg_create_lib_base_target()
+smtg_create_pluginterfaces_target()
+smtg_create_public_sdk_common_target()
+smtg_create_public_sdk_target()
+smtg_create_public_sdk_hosting_target()
 
 # public.sdk also declares the plug-in authoring library. A host does not use
 # it, and building it pulls in unsupported utility code on MinGW.
