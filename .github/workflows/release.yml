@@ -71,7 +71,8 @@ jobs:
             fi
 
             if [[ "$tag_sha" != "$run_sha" ]]; then
-              echo "Refusing release: tag $DISPATCH_TAG points to $tag_sha but build run $DISPATCH_RUN_ID built $run_sha." >&2
+              echo "Refusing release: tag $DISPATCH_TAG points to $tag_sha" >&2
+              echo "but build run $DISPATCH_RUN_ID built $run_sha." >&2
               exit 1
             fi
 
@@ -129,7 +130,10 @@ jobs:
           while IFS= read -r -d '' file; do
             copy_asset "$file"
           done < <(
-            find artifacts -type f               \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \)               ! -name '*mingw*'               -print0
+            find artifacts -type f \
+              \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \) \
+              ! -name '*mingw*' \
+              -print0
           )
 
           appimages=$(find release -maxdepth 1 -type f -name 'mxm-*.AppImage' | wc -l)
