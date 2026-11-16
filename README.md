@@ -20,6 +20,8 @@ MXM (Musica ex Machina) is an independent, open-source, cross-platform digital
 audio workstation designed for music production. It descends from
 [LMMS](https://lmms.io/) and retains full compatibility with existing `.mmp`
 and `.mmpz` project files.
+Older project formats remain supported; required migrations run when a project is
+opened, and saving writes the current format.
 
 MXM includes an advanced Piano Roll, Beat Sequencer, Song Editor, and Mixer for
 composing, arranging, and mixing music. It ships with 15+ synthesizer plugins by
@@ -43,6 +45,9 @@ Building
 See [Compiling](https://github.com/realrandolph/mxm/blob/master/INSTALL.txt).
 
 The build produces the `mxm` executable.
+
+Run the test suite in parallel with
+`ctest --test-dir build/tests --output-on-failure -j4`.
 
 Join development
 ----------------

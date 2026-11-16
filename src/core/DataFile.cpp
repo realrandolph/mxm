@@ -2154,12 +2154,15 @@ void DataFile::loadData( const QByteArray & _data, const QString & _sourceFile )
 	{
 		using gui::SongEditor;
 
-		// compareType defaults to All, so it doesn't have to be set here
+		// Older projects remain readable and are migrated by upgrade() below, so
+		// only warn when a project comes from a newer major/minor release. Bundled
+		// templates are maintained with MXM and are not user project migrations.
 		ProjectVersion createdWith = root.attribute("creatorversion");
 		ProjectVersion openedWith = MXM_VERSION;
 
 		if (createdWith.setCompareType(ProjectVersion::CompareType::Minor)
-		 !=  openedWith.setCompareType(ProjectVersion::CompareType::Minor)
+		 >  openedWith.setCompareType(ProjectVersion::CompareType::Minor)
+		 && !_sourceFile.endsWith(".mpt", Qt::CaseInsensitive)
 		 && gui::getGUI() != nullptr && root.attribute("type") == "song"
 		){
 			auto projectType = _sourceFile.endsWith(".mpt") ?

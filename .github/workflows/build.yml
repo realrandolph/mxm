@@ -111,7 +111,7 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure --no-tests=error -j2
+          ctest --output-on-failure --no-tests=error -j4
         env:
           MXM_VST3_PATH_ONLY: 1
           VST3_PATH: ${{ github.workspace }}/vst3-plugins
@@ -221,7 +221,7 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure --no-tests=error -j2
+          ctest --output-on-failure --no-tests=error -j4
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -333,7 +333,7 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure --no-tests=error -j3
+          ctest --output-on-failure --no-tests=error -j4
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
@@ -521,7 +521,7 @@ jobs:
           $env:PATH = "${{ github.workspace }}\build\plugins;$env:PATH"
           & build/tests/Vst3AdapterTest.exe --list
           cd build/tests
-          ctest --output-on-failure --no-tests=error -j2
+          ctest --output-on-failure --no-tests=error -j4
         env:
           MXM_VST3_PATH_ONLY: 1
           VST3_PATH: ${{ github.workspace }}\vst3-plugins
@@ -632,7 +632,7 @@ jobs:
       - name: Run tests
         run: |
           cd build/tests
-          ctest --output-on-failure --no-tests=error -j2
+          ctest --output-on-failure --no-tests=error -j4
         env:
           MXM_VST3_PATH_ONLY: 1
       - name: Upload test diagnostics
