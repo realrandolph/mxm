@@ -187,6 +187,7 @@ public:
 	}
 
 	sample_rate_t baseSampleRate() const { return m_baseSampleRate; }
+	void setBaseSampleRate(sample_rate_t sampleRate) { m_baseSampleRate = sampleRate; }
 
 
 	sample_rate_t outputSampleRate() const

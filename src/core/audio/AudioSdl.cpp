@@ -52,6 +52,62 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 		return;
 	}
 
+	const auto playbackDevice = ConfigManager::inst()->value(SectionSDL, PlaybackDeviceSDL).toStdString();
+	if (ConfigManager::inst()->value("audioengine", "samplerateauto", "1").toInt())
+	{
+#if SDL_VERSION_ATLEAST(2, 0, 16)
+		SDL_AudioSpec preferredSpec{};
+		bool havePreferredSpec = false;
+		if (playbackDevice.empty())
+		{
+	#if SDL_VERSION_ATLEAST(2, 24, 0)
+			havePreferredSpec = SDL_GetDefaultAudioInfo(nullptr, &preferredSpec, 0) == 0 && preferredSpec.freq > 0;
+	#endif
+		}
+
+		if (!havePreferredSpec)
+		{
+			const auto numPlaybackDevices = SDL_GetNumAudioDevices(0);
+			int preferredDevice = -1;
+			if (playbackDevice.empty() && numPlaybackDevices > 0)
+			{
+				preferredDevice = 0;
+			}
+			else
+			{
+				for (int i = 0; i < numPlaybackDevices; ++i)
+				{
+					const auto* deviceName = SDL_GetAudioDeviceName(i, 0);
+					if (deviceName && playbackDevice == deviceName)
+					{
+						preferredDevice = i;
+						break;
+					}
+				}
+			}
+			if (preferredDevice < 0)
+			{
+	#if SDL_VERSION_ATLEAST(2, 24, 0)
+				havePreferredSpec = SDL_GetDefaultAudioInfo(nullptr, &preferredSpec, 0) == 0 &&
+					preferredSpec.freq > 0;
+			#endif
+				if (!havePreferredSpec && numPlaybackDevices > 0) { preferredDevice = 0; }
+			}
+			if (preferredDevice >= 0)
+			{
+				havePreferredSpec = SDL_GetAudioDeviceSpec(preferredDevice, 0, &preferredSpec) == 0;
+			}
+		}
+
+		if (havePreferredSpec && preferredSpec.freq > 0)
+		{
+			_audioEngine->setBaseSampleRate(preferredSpec.freq);
+			setSampleRate(preferredSpec.freq);
+			ConfigManager::inst()->setValue("audioengine", "samplerate", QString::number(preferredSpec.freq));
+		}
+#endif
+	}
+
 	m_audioHandle.freq = sampleRate();
 	m_audioHandle.format = AUDIO_F32SYS;	// we want it in byte-order
 						// of system, so we don't have
@@ -65,7 +121,6 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 
   	SDL_AudioSpec actual; 
 
-	const auto playbackDevice = ConfigManager::inst()->value(SectionSDL, PlaybackDeviceSDL).toStdString();
 	const bool isDefaultPlayback = playbackDevice.empty();
 
 	// Try with the configured device
@@ -281,4 +336,3 @@ void AudioSdl::setupWidget::populateInputDeviceComboBox()
 } // namespace mxm
 
 #endif // MXM_HAVE_SDL
-
