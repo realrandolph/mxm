@@ -117,9 +117,39 @@ jobs:
           set -euo pipefail
           mkdir -p release
 
+          user_facing_name() {
+            local filename="$1"
+            case "$filename" in
+              mxm-*-linux-x86_64.AppImage)
+                printf '%s-Linux-x86_64.AppImage' "${filename%-linux-x86_64.AppImage}"
+                ;;
+              mxm-*-linux-aarch64.AppImage|mxm-*-linux-arm64.AppImage)
+                printf '%s-Linux-ARM64.AppImage' "${filename%-linux-*AppImage}"
+                ;;
+              mxm-*-mac*-x86_64.dmg)
+                [[ "$filename" =~ ^(mxm-.*)-mac[^-]+-x86_64\.dmg$ ]] || return 1
+                printf '%s-macOS-Intel.dmg' "${BASH_REMATCH[1]}"
+                ;;
+              mxm-*-mac*-arm64.dmg)
+                [[ "$filename" =~ ^(mxm-.*)-mac[^-]+-arm64\.dmg$ ]] || return 1
+                printf '%s-macOS-Apple-Silicon.dmg' "${BASH_REMATCH[1]}"
+                ;;
+              mxm-*-msvc*-win64.exe)
+                printf '%s-Windows-x64.exe' "${filename%-msvc*-win64.exe}"
+                ;;
+              mxm-*-clangarm64-arm64.exe)
+                printf '%s-Windows-ARM64.exe' "${filename%-clangarm64-arm64.exe}"
+                ;;
+              *)
+                echo "Unrecognized release package: $filename" >&2
+                return 1
+                ;;
+            esac
+          }
+
           copy_asset() {
             local source="$1"
-            local target="release/$(basename "$source")"
+            local target="release/$(user_facing_name "$(basename "$source")")"
             if [[ -e "$target" ]]; then
               echo "Duplicate release filename: $target" >&2
               exit 1
@@ -132,7 +162,6 @@ jobs:
           done < <(
             find artifacts -type f \
               \( -name 'mxm-*.AppImage' -o -name 'mxm-*.dmg' -o -name 'mxm-*.exe' \) \
-              ! -name '*mingw*' \
               -print0
           )
 
@@ -144,13 +173,6 @@ jobs:
             echo "Expected 2 AppImages, 2 DMGs, and 2 canonical Windows installers." >&2
             echo "Found: AppImage=$appimages dmg=$dmgs exe=$exes" >&2
             find artifacts -type f -print >&2
-            exit 1
-          fi
-
-          # MinGW remains a CI compatibility build. The MSVC x64 package is
-          # the canonical Windows x64 release artifact.
-          if find release -maxdepth 1 -type f -iname '*mingw*' | grep -q .; then
-            echo "MinGW artifact unexpectedly selected for release." >&2
             exit 1
           fi
 
