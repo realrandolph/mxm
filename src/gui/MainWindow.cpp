@@ -83,6 +83,7 @@ namespace mxm::gui
 MainWindow::MainWindow() :
 	m_workspace( nullptr ),
 	m_toolsMenu( nullptr ),
+	m_pluginBrowser(nullptr),
 	m_autoSaveTimer( this ),
 	m_viewMenu( nullptr ),
 	m_metronomeToggle( 0 ),
@@ -109,7 +110,8 @@ MainWindow::MainWindow() :
 	bool sideBarOnRight = confMgr->value("ui", "sidebaronright").toInt();
 
 	emit initProgress(tr("Preparing plugin browser"));
-	sideBar->appendTab( new PluginBrowser( splitter ) );
+	m_pluginBrowser = new PluginBrowser(splitter);
+	sideBar->appendTab(m_pluginBrowser);
 	emit initProgress(tr("Preparing file browsers"));
 
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Favorites, ConfigManager::inst()->favoriteItems().join("*"), FileItem::defaultFilters(), "My Favorites",
@@ -353,18 +355,6 @@ void MainWindow::finalize()
 
 
 	m_toolsMenu = new QMenu( this );
-	for( const Plugin::Descriptor* desc : getPluginFactory()->descriptors(Plugin::Type::Tool) )
-	{
-		m_toolsMenu->addAction( desc->logo->pixmap(), desc->displayName );
-		m_tools.push_back( ToolPlugin::instantiate( desc->name, /*this*/nullptr )
-						   ->createView(this) );
-	}
-	if( !m_toolsMenu->isEmpty() )
-	{
-		menuBar()->addMenu( m_toolsMenu )->setText( tr( "&Tools" ) );
-		connect( m_toolsMenu, SIGNAL(triggered(QAction*)),
-					this, SLOT(showTool(QAction*)));
-	}
 
 
 	// help-popup-menu
@@ -507,6 +497,22 @@ void MainWindow::finalize()
 	for( const QMdiSubWindow * subWindow : workspace()->subWindowList() )
 	{
 		connect( subWindow, SIGNAL(windowStateChanged(Qt::WindowStates,Qt::WindowStates)), this, SLOT(resetWindowTitle()));
+	}
+}
+
+
+void MainWindow::initializePluginCatalog()
+{
+	m_pluginBrowser->populatePlugins();
+	for (const Plugin::Descriptor* desc : getPluginFactory()->descriptors(Plugin::Type::Tool))
+	{
+		m_toolsMenu->addAction(desc->logo->pixmap(), desc->displayName);
+		m_tools.push_back(ToolPlugin::instantiate(desc->name, nullptr)->createView(this));
+	}
+	if (!m_toolsMenu->isEmpty())
+	{
+		menuBar()->addMenu(m_toolsMenu)->setText(tr("&Tools"));
+		connect(m_toolsMenu, SIGNAL(triggered(QAction*)), this, SLOT(showTool(QAction*)));
 	}
 }
 

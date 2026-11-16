@@ -44,6 +44,7 @@ namespace gui
 {
 
 class PluginView;
+class PluginBrowser;
 class SubWindow;
 class ToolButton;
 
@@ -70,6 +71,7 @@ public:
 
 
 	void refocus();
+	void initializePluginCatalog();
 
 	///
 	/// \brief	Asks whether changes made to the project are to be saved.
@@ -232,6 +234,7 @@ private:
 	} m_keyMods;
 
 	QMenu * m_toolsMenu;
+	PluginBrowser * m_pluginBrowser;
 	QAction * m_undoAction;
 	QAction * m_redoAction;
 	QList<PluginView *> m_tools;

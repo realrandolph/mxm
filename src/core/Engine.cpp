@@ -74,7 +74,7 @@ void Engine::init( bool renderOnly )
 
 #ifdef MXM_HAVE_LV2
 	s_lv2Manager = new Lv2Manager;
-	s_lv2Manager->initPlugins();
+	if (renderOnly) { s_lv2Manager->initPlugins(); }
 #endif
 	s_ladspaManager = new Ladspa2MXM;
 
@@ -87,6 +87,14 @@ void Engine::init( bool renderOnly )
 
 	emit engine->initProgress(tr("Launching audio engine threads"));
 	s_audioEngine->startProcessing();
+}
+
+
+void Engine::initPluginCatalog()
+{
+#ifdef MXM_HAVE_LV2
+	if (s_lv2Manager) { s_lv2Manager->initPlugins(); }
+#endif
 }
 
 

@@ -857,6 +857,10 @@ int main( int argc, char * * argv )
 		{
 			getGUI()->mainWindow()->showMaximized();
 		}
+		getGUI()->mainWindow()->repaint();
+		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+		Engine::initPluginCatalog();
+		getGUI()->mainWindow()->initializePluginCatalog();
 
 		// Handle macOS-style FileOpen QEvents
 		QString queuedFile = static_cast<MainApplication *>( app )->queuedFile();
