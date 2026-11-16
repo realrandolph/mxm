@@ -857,6 +857,9 @@ int main( int argc, char * * argv )
 		{
 			getGUI()->mainWindow()->showMaximized();
 		}
+		getGUI()->mainWindow()->repaint();
+		QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+		Engine::startPluginCatalogInitialization();
 
 		// Handle macOS-style FileOpen QEvents
 		QString queuedFile = static_cast<MainApplication *>( app )->queuedFile();
@@ -864,59 +867,64 @@ int main( int argc, char * * argv )
 			fileToLoad = queuedFile;
 		}
 
-		if( !fileToLoad.isEmpty() )
+		auto finishStartup = [&, recoveryFile, recoveryFilePresent, autoSaveEnabled]
 		{
-			if( fileToLoad == recoveryFile )
+			getGUI()->mainWindow()->initializePluginCatalog();
+			const QString latestQueuedFile = static_cast<MainApplication *>(QCoreApplication::instance())->queuedFile();
+			if (!latestQueuedFile.isEmpty()) { fileToLoad = latestQueuedFile; }
+			if( !fileToLoad.isEmpty() )
 			{
-				Engine::getSong()->createNewProjectFromTemplate( fileToLoad );
+				if( fileToLoad == recoveryFile )
+				{
+					Engine::getSong()->createNewProjectFromTemplate(fileToLoad);
+				}
+				else
+				{
+					Engine::getSong()->loadProject(fileToLoad);
+				}
 			}
-			else
+			else if( !fileToImport.isEmpty() )
 			{
-				Engine::getSong()->loadProject( fileToLoad );
+				ImportFilter::import(fileToImport, Engine::getSong());
+				if( exitAfterImport)
+				{
+					QCoreApplication::quit();
+					return;
+				}
 			}
-		}
-		else if( !fileToImport.isEmpty() )
-		{
-			ImportFilter::import( fileToImport, Engine::getSong() );
-			if( exitAfterImport )
-			{
-				return EXIT_SUCCESS;
-			}
-		}
-		// If enabled, open last project if there is one. Else, create
-		// a new one.
-		else if( ConfigManager::inst()->
-				value( "app", "openlastproject" ).toInt() &&
-			!ConfigManager::inst()->
-				recentlyOpenedProjects().isEmpty() &&
+			else if( ConfigManager::inst()->value("app", "openlastproject").toInt() &&
+				!ConfigManager::inst()->recentlyOpenedProjects().isEmpty() &&
 				!recoveryFilePresent )
-		{
-			QString f = ConfigManager::inst()->
-					recentlyOpenedProjects().first();
-			QFileInfo recentFile( f );
-
-			if ( recentFile.exists() &&
-				recentFile.suffix().toLower() != "mpt" )
 			{
-				Engine::getSong()->loadProject( f );
+				QString recent = ConfigManager::inst()->recentlyOpenedProjects().first();
+				QFileInfo recentFile(recent);
+				if (recentFile.exists() && recentFile.suffix().toLower() != "mpt")
+				{
+					Engine::getSong()->loadProject(recent);
+				}
+				else
+				{
+					Engine::getSong()->createNewProject();
+				}
 			}
 			else
 			{
 				Engine::getSong()->createNewProject();
 			}
-		}
-		else
-		{
-			Engine::getSong()->createNewProject();
-		}
 
-		// Finally we start the auto save timer and also trigger the
-		// autosave one time as recover.mmp is a signal to possible other
-		// instances of MXM.
-		if( autoSaveEnabled )
-		{
-			gui::getGUI()->mainWindow()->autoSaveTimerReset();
-		}
+			if (autoSaveEnabled) { getGUI()->mainWindow()->autoSaveTimerReset(); }
+		};
+
+		auto catalogTimer = new QTimer(getGUI()->mainWindow());
+		catalogTimer->setInterval(10);
+		QObject::connect(catalogTimer, &QTimer::timeout, getGUI()->mainWindow(),
+			[ catalogTimer, finishStartup ]
+			{
+				if (!Engine::processPluginCatalogInitialization()) { return; }
+				catalogTimer->stop();
+				finishStartup();
+			});
+		catalogTimer->start();
 	}
 
 	const int ret = app->exec();

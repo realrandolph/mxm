@@ -74,7 +74,7 @@ void Engine::init( bool renderOnly )
 
 #ifdef MXM_HAVE_LV2
 	s_lv2Manager = new Lv2Manager;
-	s_lv2Manager->initPlugins();
+	if (renderOnly) { s_lv2Manager->initPlugins(); }
 #endif
 	s_ladspaManager = new Ladspa2MXM;
 
@@ -90,6 +90,32 @@ void Engine::init( bool renderOnly )
 }
 
 
+void Engine::startPluginCatalogInitialization()
+{
+#ifdef MXM_HAVE_LV2
+	if (s_lv2Manager) { s_lv2Manager->startPluginIndexing(); }
+#endif
+}
+
+
+bool Engine::processPluginCatalogInitialization()
+{
+#ifdef MXM_HAVE_LV2
+	return !s_lv2Manager || s_lv2Manager->indexPluginBatch(8);
+#else
+	return true;
+#endif
+}
+
+
+bool Engine::isPluginCatalogReady()
+{
+#ifdef MXM_HAVE_LV2
+	return !s_lv2Manager || s_lv2Manager->isPluginIndexReady();
+#else
+	return true;
+#endif
+}
 
 
 void Engine::destroy()

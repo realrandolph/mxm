@@ -32,6 +32,8 @@
 #include <QLineEdit>
 #include <QScrollArea>
 
+#include <vector>
+
 #include "AudioEngine.h"
 #include "embed.h"
 #include "Engine.h"
@@ -143,6 +145,8 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 			"audioengine", "framesperaudiobuffer", QString::number(DEFAULT_BUFFER_SIZE)).toInt()),
 	m_mixSanitization(ConfigManager::inst()->value(
 			"audioengine", "sanitizemix", "1").toInt()),
+	m_sampleRateAuto(ConfigManager::inst()->value(
+			"audioengine", "samplerateauto", "1").toInt()),
 	m_sampleRate(ConfigManager::inst()->value(
 			"audioengine", "samplerate").toInt()),
 	m_midiAutoQuantize(ConfigManager::inst()->value(
@@ -569,29 +573,41 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	auto sampleRateBox = new QGroupBox{tr("Sample rate"), audio_w};
 
 	m_sampleRateSlider = new QSlider{Qt::Horizontal};
-	m_sampleRateSlider->setRange(0, SUPPORTED_SAMPLERATES.size() - 1);
 	m_sampleRateSlider->setTickPosition(QSlider::TicksBelow);
 
-	auto sampleRateResetButton = new QPushButton{embed::getIconPixmap("reload"), ""};
-	sampleRateResetButton->setFixedSize(32, 32);
-
-	auto sampleRateSubLayout = new QHBoxLayout{};
-	sampleRateSubLayout->addWidget(m_sampleRateSlider);
-	sampleRateSubLayout->addWidget(sampleRateResetButton);
+	auto sampleRateAutoCheckBox = new QCheckBox{tr("Use system sample rate"), sampleRateBox};
+	sampleRateAutoCheckBox->setChecked(m_sampleRateAuto);
 
 	auto sampleRateLabel = new QLabel{sampleRateBox};
 	auto sampleRateLayout = new QVBoxLayout{sampleRateBox};
-	sampleRateLayout->addLayout(sampleRateSubLayout);
+	sampleRateLayout->addWidget(sampleRateAutoCheckBox);
+	sampleRateLayout->addWidget(m_sampleRateSlider);
 	sampleRateLayout->addWidget(sampleRateLabel);
 
-	auto setSampleRate = [this, sampleRateLabel](int sampleRate)
-	{	
-		const auto it = std::find(SUPPORTED_SAMPLERATES.begin(), SUPPORTED_SAMPLERATES.end(), sampleRate);
-		const auto index = it == SUPPORTED_SAMPLERATES.end() ? 0 : std::distance(SUPPORTED_SAMPLERATES.begin(), it);
+	std::vector<int> sampleRates(SUPPORTED_SAMPLERATES.begin(), SUPPORTED_SAMPLERATES.end());
+	if (m_sampleRate > 0 && std::find(sampleRates.begin(), sampleRates.end(), m_sampleRate) == sampleRates.end())
+	{
+		sampleRates.push_back(m_sampleRate);
+		std::sort(sampleRates.begin(), sampleRates.end());
+	}
+	m_sampleRateSlider->setRange(0, static_cast<int>(sampleRates.size()) - 1);
+	m_sampleRateSlider->setEnabled(!m_sampleRateAuto);
 
-		m_sampleRate = SUPPORTED_SAMPLERATES[index];
+	auto updateSampleRateLabel = [this, sampleRateLabel]
+	{
+		sampleRateLabel->setText(m_sampleRateAuto
+			? tr("System sample rate will be detected at startup")
+			: tr("Sample rate: %1").arg(m_sampleRate));
+	};
+
+	auto setSampleRate = [this, sampleRates, updateSampleRateLabel](int sampleRate)
+	{
+		const auto it = std::find(sampleRates.begin(), sampleRates.end(), sampleRate);
+		const auto index = it == sampleRates.end() ? 0 : std::distance(sampleRates.begin(), it);
+
+		m_sampleRate = sampleRates[index];
 		m_sampleRateSlider->setValue(index);
-		sampleRateLabel->setText(tr("Sample rate: %1").arg(m_sampleRate));
+		updateSampleRateLabel();
 	};
 
 	setSampleRate(m_sampleRate);
@@ -599,10 +615,16 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	connect(m_sampleRateSlider, &QSlider::valueChanged, this, &SetupDialog::showRestartWarning);
 
 	connect(m_sampleRateSlider, &QSlider::valueChanged, this,
-		[setSampleRate](int value) { setSampleRate(SUPPORTED_SAMPLERATES[value]); });
+		[setSampleRate, sampleRates](int value) { setSampleRate(sampleRates[value]); });
 
-	connect(sampleRateResetButton, &QPushButton::clicked, this,
-		[setSampleRate] { setSampleRate(SUPPORTED_SAMPLERATES.front()); });
+	connect(sampleRateAutoCheckBox, &QCheckBox::toggled, this,
+		[this, updateSampleRateLabel](bool enabled)
+	{
+		m_sampleRateAuto = enabled;
+		m_sampleRateSlider->setEnabled(!enabled);
+		updateSampleRateLabel();
+		showRestartWarning();
+	});
 
 	// Buffer size group
 	QGroupBox * bufferSizeBox = new QGroupBox(tr("Buffer size"), audio_w);
@@ -1015,6 +1037,8 @@ void SetupDialog::accept()
 					QString::number(m_mixSanitization));
 	ConfigManager::inst()->setValue("audioengine", "samplerate",
 					QString::number(m_sampleRate));
+	ConfigManager::inst()->setValue("audioengine", "samplerateauto",
+					QString::number(m_sampleRateAuto));
 	ConfigManager::inst()->setValue("audioengine", "framesperaudiobuffer",
 					QString::number(m_bufferSize));
 	ConfigManager::inst()->setValue("audioengine", "mididev",

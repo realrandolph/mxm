@@ -53,6 +53,9 @@ class MXM_EXPORT Engine : public QObject
 	Q_OBJECT
 public:
 	static void init( bool renderOnly );
+	static void startPluginCatalogInitialization();
+	static bool processPluginCatalogInitialization();
+	static bool isPluginCatalogReady();
 	static void destroy();
 
 	// core

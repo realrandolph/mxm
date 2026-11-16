@@ -78,6 +78,9 @@ PluginBrowser::PluginBrowser( QWidget * _parent ) :
 	m_descTree->header()->setVisible( false );
 	m_descTree->setIndentation( 10 );
 	m_descTree->setSelectionMode( QAbstractItemView::NoSelection );
+	auto loadingItem = new QTreeWidgetItem(m_descTree);
+	loadingItem->setText(0, tr("Loading plugins…"));
+	loadingItem->setFlags(Qt::NoItemFlags);
 
 	connect( searchBar, SIGNAL( textEdited( const QString& ) ),
 			this, SLOT( onFilterChanged( const QString& ) ) );
@@ -86,13 +89,12 @@ PluginBrowser::PluginBrowser( QWidget * _parent ) :
 	view_layout->addWidget( searchBar );
 	view_layout->addWidget( m_descTree );
 
-	// Add plugins to the tree
+}
+
+void PluginBrowser::populatePlugins()
+{
 	addPlugins();
-
-	// Resize
-	m_descTree->header()->setSectionResizeMode( QHeaderView::ResizeToContents );
-
-	// Hide empty roots
+	m_descTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	updateRootVisibilities();
 }
 
