@@ -503,6 +503,9 @@ void MainWindow::finalize()
 
 void MainWindow::initializePluginCatalog()
 {
+	// PluginFactory can be created before LV2 indexing completes (for example by
+	// file-browser startup). Refresh it now that the complete LV2 catalog exists.
+	getPluginFactory()->refreshForLv2Catalog();
 	m_pluginBrowser->populatePlugins();
 	for (const Plugin::Descriptor* desc : getPluginFactory()->descriptors(Plugin::Type::Tool))
 	{

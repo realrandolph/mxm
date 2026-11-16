@@ -38,6 +38,15 @@
 #include <lv2/worker/worker.h>
 #include <QDebug>
 #include <QElapsedTimer>
+#include <QCryptographicHash>
+#include <QDir>
+#include <QDirIterator>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
+#include <QStandardPaths>
 
 #include "AudioEngine.h"
 #include "ConfigManager.h"
@@ -50,6 +59,56 @@
 
 namespace mxm
 {
+
+struct Lv2Manager::PluginIndexState
+{
+	std::vector<const LilvPlugin*> plugins;
+	std::size_t nextPlugin = 0;
+	std::size_t pluginsLoaded = 0;
+	std::size_t cacheHits = 0;
+	unsigned blocked = 0;
+	QElapsedTimer timer;
+	QString cachePath;
+	QString hostFingerprint;
+	QJsonObject cachedPlugins;
+	QJsonObject updatedPlugins;
+	std::map<QString, QString> bundleFingerprints;
+};
+
+namespace
+{
+
+constexpr int PluginIndexSchema = 1;
+
+QString bundleMetadataFingerprint(const LilvPlugin* plugin)
+{
+	const LilvNode* bundleUri = lilv_plugin_get_bundle_uri(plugin);
+	char* path = lilv_file_uri_parse(lilv_node_as_uri(bundleUri), nullptr);
+	if (!path) { return {}; }
+
+	const QString bundlePath = QString::fromLocal8Bit(path);
+	lilv_free(path);
+	QDir bundleDir(bundlePath);
+	if (!bundleDir.exists()) { return {}; }
+
+	QStringList metadataFiles;
+	QDirIterator it(bundlePath, {"*.ttl"}, QDir::Files, QDirIterator::Subdirectories);
+	while (it.hasNext()) { metadataFiles.push_back(it.next()); }
+	std::sort(metadataFiles.begin(), metadataFiles.end());
+	if (metadataFiles.isEmpty()) { return {}; }
+
+	QCryptographicHash hash(QCryptographicHash::Sha256);
+	for (const QString& filePath : metadataFiles)
+	{
+		QFile file(filePath);
+		if (!file.open(QIODevice::ReadOnly)) { return {}; }
+		hash.addData(QDir(bundlePath).relativeFilePath(filePath).toUtf8());
+		hash.addData(file.readAll());
+	}
+	return QString::fromLatin1(hash.result().toHex());
+}
+
+} // namespace
 
 
 const std::set<std::string_view> Lv2Manager::unstablePlugins =
@@ -170,6 +229,7 @@ const std::set<std::string_view> Lv2Manager::unstablePluginsBuffersizeLessEqual3
 
 
 Lv2Manager::Lv2Manager() :
+	m_wantUi(wantUi()),
 	m_uridCache(m_uridMap)
 {
 	const char* dbgStr = getenv("MXM_LV2_DEBUG");
@@ -224,7 +284,10 @@ AutoLilvNode Lv2Manager::uri(const char *uriStr)
 const LilvPlugin *Lv2Manager::getPlugin(const std::string &uri)
 {
 	auto itr = m_lv2InfoMap.find(uri);
-	return itr == m_lv2InfoMap.end() ? nullptr : itr->second.plugin();
+	if (itr != m_lv2InfoMap.end()) { return itr->second.plugin(); }
+	if (m_pluginsReady) { return nullptr; }
+	AutoLilvNode pluginUri = this->uri(uri.c_str());
+	return lilv_plugins_get_by_uri(lilv_world_get_all_plugins(m_world), pluginUri.get());
 }
 
 
@@ -240,52 +303,148 @@ const LilvPlugin *Lv2Manager::getPlugin(const QString &uri)
 
 void Lv2Manager::initPlugins()
 {
-	const LilvPlugins* plugins = lilv_world_get_all_plugins(m_world);
-	std::size_t pluginCount = 0, pluginsLoaded = 0;
-	QElapsedTimer timer;
-	timer.start();
+	if (m_pluginsReady) { return; }
+	beginPluginIndexing();
+	while (!indexPluginBatch(64)) {}
+}
 
-	unsigned blocked = 0;
+
+void Lv2Manager::startPluginIndexing()
+{
+	if (!m_pluginsReady) { beginPluginIndexing(); }
+}
+
+
+void Lv2Manager::beginPluginIndexing()
+{
+	if (m_pluginsReady || m_pluginIndexState) { return; }
+	m_lv2InfoMap.clear();
+	m_pluginIndexState = std::make_unique<PluginIndexState>();
+	PluginIndexState& state = *m_pluginIndexState;
+	state.timer.start();
+	const LilvPlugins* plugins = lilv_world_get_all_plugins(m_world);
 	LILV_FOREACH(plugins, itr, plugins)
 	{
-		const LilvPlugin* curPlug = lilv_plugins_get(plugins, itr);
-
-		std::vector<PluginIssue> issues;
-		Plugin::Type type = Lv2ControlBase::check(curPlug, issues);
-		std::sort(issues.begin(), issues.end());
-		auto last = std::unique(issues.begin(), issues.end());
-		issues.erase(last, issues.end());
-		if (m_debug && issues.size())
+		state.plugins.push_back(lilv_plugins_get(plugins, itr));
+	}
+	const QString cacheDirectory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+	state.cachePath = cacheDirectory.isEmpty() ? QString() : cacheDirectory + "/lv2-plugin-index.json";
+	state.hostFingerprint = QString("schema=%1;ui=%2;period=%3;blocked=%4")
+		.arg(PluginIndexSchema)
+		.arg(m_wantUi)
+		.arg(Engine::audioEngine()->framesPerPeriod())
+		.arg(ConfigManager::enableBlockedPlugins());
+	for (const auto& feature : m_supportedFeatureURIs)
+	{
+		state.hostFingerprint += ";" + QString::fromUtf8(feature.data(), feature.size());
+	}
+	if (!m_debug && !state.cachePath.isEmpty())
+	{
+		QFile cacheFile(state.cachePath);
+		if (cacheFile.open(QIODevice::ReadOnly))
 		{
-			qDebug() << "Lv2 plugin"
-				<< qStringFromPluginNode(curPlug, lilv_plugin_get_name)
-				<< "(URI:"
-				<< lilv_node_as_uri(lilv_plugin_get_uri(curPlug))
-				<< ") can not be loaded:";
-			for (const PluginIssue& iss : issues) { qDebug() << "  - " << iss; }
-		}
-
-		Lv2Info info(curPlug, type, issues.empty());
-
-		m_lv2InfoMap[lilv_node_as_uri(lilv_plugin_get_uri(curPlug))]
-			= std::move(info);
-		if(issues.empty()) { ++pluginsLoaded; }
-		else
-		{
-			if(std::any_of(issues.begin(), issues.end(),
-				[](const PluginIssue& iss) {
-				return iss.type() == PluginIssueType::Blocked; }))
+			const QJsonObject root = QJsonDocument::fromJson(cacheFile.readAll()).object();
+			if (root.value("host").toString() == state.hostFingerprint)
 			{
-				++blocked;
+				state.cachedPlugins = root.value("plugins").toObject();
 			}
 		}
-		++pluginCount;
+	}
+}
+
+
+bool Lv2Manager::indexPluginBatch(std::size_t maxPlugins)
+{
+	if (m_pluginsReady) { return true; }
+	if (!m_pluginIndexState) { beginPluginIndexing(); }
+	PluginIndexState& state = *m_pluginIndexState;
+	const std::size_t end = std::min(state.nextPlugin + maxPlugins, state.plugins.size());
+	for (; state.nextPlugin < end; ++state.nextPlugin)
+	{
+		const LilvPlugin* curPlug = state.plugins[state.nextPlugin];
+		const std::string pluginUri = lilv_node_as_uri(lilv_plugin_get_uri(curPlug));
+		const LilvNode* bundleUri = lilv_plugin_get_bundle_uri(curPlug);
+		const QString bundle = QString::fromUtf8(lilv_node_as_uri(bundleUri));
+		auto fingerprintIt = state.bundleFingerprints.find(bundle);
+		if (fingerprintIt == state.bundleFingerprints.end())
+		{
+			fingerprintIt = state.bundleFingerprints.emplace(bundle,
+				bundleMetadataFingerprint(curPlug)).first;
+		}
+		const QString fingerprint = fingerprintIt->second;
+		const QJsonObject cached = state.cachedPlugins.value(QString::fromStdString(pluginUri)).toObject();
+		const int cachedType = cached.value("type").toInt(-1);
+		const bool cachedTypeIsValid = cachedType == static_cast<int>(Plugin::Type::Instrument) ||
+			cachedType == static_cast<int>(Plugin::Type::Effect) ||
+			cachedType == static_cast<int>(Plugin::Type::Undefined);
+		const bool cacheHit = !fingerprint.isEmpty() &&
+			cached.value("bundle").toString() == fingerprint &&
+			cachedTypeIsValid && cached.value("valid").isBool() &&
+			cached.value("blocked").isBool();
+		if (cacheHit) { ++state.cacheHits; }
+
+		Plugin::Type type;
+		bool valid;
+		bool isBlocked;
+		if (cacheHit)
+		{
+			type = static_cast<Plugin::Type>(cachedType);
+			valid = cached.value("valid").toBool();
+			isBlocked = cached.value("blocked").toBool();
+		}
+		else
+		{
+			std::vector<PluginIssue> issues;
+			type = Lv2ControlBase::check(curPlug, issues);
+			std::sort(issues.begin(), issues.end());
+			auto last = std::unique(issues.begin(), issues.end());
+			issues.erase(last, issues.end());
+			valid = issues.empty();
+			isBlocked = std::any_of(issues.begin(), issues.end(),
+				[](const PluginIssue& issue) { return issue.type() == PluginIssueType::Blocked; });
+			if (m_debug && !issues.empty())
+			{
+				qDebug() << "Lv2 plugin" << qStringFromPluginNode(curPlug, lilv_plugin_get_name)
+					<< "(URI:" << pluginUri.c_str() << ") can not be loaded:";
+				for (const PluginIssue& issue : issues) { qDebug() << "  - " << issue; }
+			}
+		}
+		if (!fingerprint.isEmpty())
+		{
+			QJsonObject record;
+			record.insert("bundle", fingerprint);
+			record.insert("type", static_cast<int>(type));
+			record.insert("valid", valid);
+			record.insert("blocked", isBlocked);
+			state.updatedPlugins.insert(QString::fromStdString(pluginUri), record);
+		}
+
+		Lv2Info info(curPlug, type, valid);
+
+		m_lv2InfoMap[pluginUri] = std::move(info);
+		if (valid) { ++state.pluginsLoaded; }
+		if (isBlocked) { ++state.blocked; }
+	}
+	if (state.nextPlugin < state.plugins.size()) { return false; }
+
+	if (!m_debug && !state.cachePath.isEmpty())
+	{
+		QDir().mkpath(QFileInfo(state.cachePath).absolutePath());
+		QSaveFile cacheFile(state.cachePath);
+		if (cacheFile.open(QIODevice::WriteOnly))
+		{
+			QJsonObject root;
+			root.insert("host", state.hostFingerprint);
+			root.insert("plugins", state.updatedPlugins);
+			cacheFile.write(QJsonDocument(root).toJson(QJsonDocument::Compact));
+			cacheFile.commit();
+		}
 	}
 
 	qDebug() << "Lv2 plugin SUMMARY:"
-		<< pluginsLoaded << "of" << pluginCount << " loaded in"
-		<< timer.elapsed() << "msecs.";
-	if(pluginsLoaded != pluginCount)
+		<< state.pluginsLoaded << "of" << state.plugins.size() << " loaded in"
+		<< state.timer.elapsed() << "msecs (" << state.cacheHits << " cached).";
+	if(state.pluginsLoaded != state.plugins.size())
 	{
 		if (m_debug)
 		{
@@ -310,13 +469,22 @@ void Lv2Manager::initPlugins()
 			"  please set environment variable \"MXM_ENABLE_BLOCKED_PLUGINS\" to empty or\n"
 			"  do not set it.";
 	}
-	else if(blocked > 0)
+	else if(state.blocked > 0)
 	{
 		qDebug() <<
-			"Blocked Lv2 Plugins:" << blocked << "of" << pluginCount << "\n"
+			"Blocked Lv2 Plugins:" << state.blocked << "of" << state.plugins.size() << "\n"
 			"  If you want to enable them (dangerous!), please set\n"
 			"  environment variable \"MXM_ENABLE_BLOCKED_PLUGINS\" to nonempty.";
 	}
+	finishPluginIndexing();
+	return true;
+}
+
+
+void Lv2Manager::finishPluginIndexing()
+{
+	m_pluginsReady = true;
+	m_pluginIndexState.reset();
 }
 
 

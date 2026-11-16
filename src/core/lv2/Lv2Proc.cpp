@@ -169,7 +169,7 @@ Plugin::Type Lv2Proc::check(const LilvPlugin *plugin,
 		if( // plugin unstable?
 			Lv2Manager::pluginIsUnstable(pluginUri) ||
 			// plugins only useful with UI?
-			(!Lv2Manager::wantUi() &&
+			(!Engine::getLv2Manager()->supportsUi() &&
 			Lv2Manager::pluginIsOnlyUsefulWithUi(pluginUri)) ||
 			// plugin unstable with 32 or less fpp?
 			(Engine::audioEngine()->framesPerPeriod() <= 32 &&

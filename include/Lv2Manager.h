@@ -30,6 +30,7 @@
 #ifdef MXM_HAVE_LV2
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string_view>
 #include <lilv/lilv.h>
@@ -82,6 +83,9 @@ class Lv2Manager
 {
 public:
 	void initPlugins();
+	void startPluginIndexing();
+	bool indexPluginBatch(std::size_t maxPlugins);
+	bool isPluginIndexReady() const { return m_pluginsReady; }
 
 	Lv2Manager();
 	~Lv2Manager();
@@ -148,13 +152,21 @@ public:
 	}
 
 	//! Whether native LV2 UI support was built into this MXM instance.
+	bool supportsUi() const { return m_wantUi; }
 	static bool wantUi();
 
 private:
+	struct PluginIndexState;
+	void beginPluginIndexing();
+	void finishPluginIndexing();
+
 	// general data
 	bool m_debug; //!< if set, debug output will be printed
+	bool m_wantUi;
 	LilvWorld* m_world;
 	Lv2InfoMap m_lv2InfoMap;
+	bool m_pluginsReady = false;
+	std::unique_ptr<PluginIndexState> m_pluginIndexState;
 	std::set<std::string_view> m_supportedFeatureURIs;
 
 	// feature data that are common for all Lv2Proc

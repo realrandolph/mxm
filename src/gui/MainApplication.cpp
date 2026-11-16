@@ -68,6 +68,11 @@ bool MainApplication::event(QEvent* event)
 			m_queuedFile = fileEvent->file();
 			if(Engine::getSong())
 			{
+				if (!Engine::isPluginCatalogReady())
+				{
+					qDebug() << "Queuing file until the plugin catalog is ready:" << m_queuedFile;
+					return true;
+				}
 				if(getGUI()->mainWindow()->mayChangeProject(true))
 				{
 					qDebug() << "Loading file " << m_queuedFile;

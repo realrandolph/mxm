@@ -93,6 +93,7 @@ public:
 
 public slots:
 	void discoverPlugins();
+	void refreshForLv2Catalog();
 
 private:
 	DescriptorMap m_descriptors;
@@ -102,6 +103,7 @@ private:
 	std::vector<std::string> m_garbage; //!< cleaned up at destruction
 
 	QHash<QString, QString> m_errors;
+	bool m_discoveredWithLv2Catalog = false;
 
 	static std::unique_ptr<PluginFactory> s_instance;
 

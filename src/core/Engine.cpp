@@ -90,14 +90,32 @@ void Engine::init( bool renderOnly )
 }
 
 
-void Engine::initPluginCatalog()
+void Engine::startPluginCatalogInitialization()
 {
 #ifdef MXM_HAVE_LV2
-	if (s_lv2Manager) { s_lv2Manager->initPlugins(); }
+	if (s_lv2Manager) { s_lv2Manager->startPluginIndexing(); }
 #endif
 }
 
 
+bool Engine::processPluginCatalogInitialization()
+{
+#ifdef MXM_HAVE_LV2
+	return !s_lv2Manager || s_lv2Manager->indexPluginBatch(8);
+#else
+	return true;
+#endif
+}
+
+
+bool Engine::isPluginCatalogReady()
+{
+#ifdef MXM_HAVE_LV2
+	return !s_lv2Manager || s_lv2Manager->isPluginIndexReady();
+#else
+	return true;
+#endif
+}
 
 
 void Engine::destroy()

@@ -33,6 +33,7 @@
 #include "mxmconfig.h"
 
 #include "ConfigManager.h"
+#include "Engine.h"
 #include "Plugin.h"
 
 // QT qHash specialization, needs to be in global namespace
@@ -243,6 +244,22 @@ void PluginFactory::discoverPlugins()
 
 	m_pluginInfos = pluginInfos;
 	m_descriptors = descriptors;
+#ifdef MXM_HAVE_LV2
+	m_discoveredWithLv2Catalog = Engine::getLv2Manager() && Engine::isPluginCatalogReady();
+#else
+	m_discoveredWithLv2Catalog = true;
+#endif
+}
+
+
+void PluginFactory::refreshForLv2Catalog()
+{
+#ifdef MXM_HAVE_LV2
+	if (!m_discoveredWithLv2Catalog && Engine::getLv2Manager() && Engine::isPluginCatalogReady())
+	{
+		discoverPlugins();
+	}
+#endif
 }
 
 // Builds QList<QRegularExpression> based on environment variable envVar
