@@ -930,8 +930,8 @@ SongEditorWindow::SongEditorWindow(Song* song) :
 
 	// Set up buttons
 	m_playAction->setToolTip(tr("Play song (Space)"));
-	m_recordAction->setToolTip(tr("Record samples from Audio-device"));
-	m_recordAccompanyAction->setToolTip(tr("Record samples from Audio-device while playing song or pattern track"));
+	m_recordAction->setToolTip(tr("Record audio into armed sample tracks"));
+	m_recordAccompanyAction->setToolTip(tr("Record audio into armed sample tracks while playing"));
 	m_stopAction->setToolTip(tr( "Stop song (Space)" ));
 
 
@@ -1147,5 +1147,4 @@ void SongEditorWindow::adjustUiAfterProjectLoad()
 
 
 } // namespace mxm::gui
-
 

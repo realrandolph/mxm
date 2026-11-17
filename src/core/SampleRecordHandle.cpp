@@ -33,6 +33,7 @@
 #include "SampleBuffer.h"
 #include "SampleClip.h"
 #include "SampleTrack.h"
+#include "Song.h"
 
 
 namespace mxm
@@ -40,7 +41,7 @@ namespace mxm
 
 
 SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
-	PlayHandle( Type::SamplePlayHandle ),
+	PlayHandle( Type::SampleRecordPlayHandle ),
 	m_track( clip->getTrack() ),
 	m_clip( clip ),
 	m_recordInput(0),
@@ -65,7 +66,6 @@ SampleRecordHandle::~SampleRecordHandle()
 		m_clip->setSampleBuffer(std::make_shared<const SampleBuffer>(std::move(m_recordedFrames),
 			Engine::audioEngine()->inputSampleRate()));
 	}
-	m_clip->setRecord( false );
 }
 
 
@@ -73,19 +73,17 @@ SampleRecordHandle::~SampleRecordHandle()
 
 void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
-	const SampleFrame* recbuf = Engine::audioEngine()->inputBuffer();
-	auto frames = Engine::audioEngine()->inputBufferFrames();
-	const auto firstFrame = m_started ? 0 : std::min(offset(), frames);
-	m_started = m_started || frames > 0;
-	recbuf += firstFrame;
-	frames -= firstFrame;
+	if (!Engine::getSong()->isRecording()) { return; }
+
+	const auto recbuf = Engine::audioEngine()->inputBuffer();
+	const auto frames = Engine::audioEngine()->inputBufferFrames();
 	if (m_inputMonitoring && workingBuffer)
 	{
-		const auto outputFrames = std::min(frames, Engine::audioEngine()->framesPerPeriod() - firstFrame);
+		const auto outputFrames = std::min(frames, Engine::audioEngine()->framesPerPeriod());
 		for (f_cnt_t frame = 0; frame < outputFrames; ++frame)
 		{
 			const auto& input = recbuf[frame];
-			auto& output = workingBuffer[firstFrame + frame];
+			auto& output = workingBuffer[frame];
 			if (m_recordInput == 1) { output[0] = output[1] = input[0]; }
 			else if (m_recordInput == 2) { output[0] = output[1] = input[1]; }
 			else { output = input; }

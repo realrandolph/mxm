@@ -45,7 +45,6 @@ class SampleClipView;
 class SampleClip : public Clip
 {
 	Q_OBJECT
-	mapPropertyFromModel(bool,isRecord,setRecord,m_recordModel);
 public:
 	SampleClip(Track* track, Sample sample, bool isPlaying);
 	SampleClip(Track* track);
@@ -98,7 +97,6 @@ protected:
 
 private:
 	Sample m_sample;
-	BoolModel m_recordModel;
 	bool m_isPlaying;
 	int m_startFrameOffset;
 

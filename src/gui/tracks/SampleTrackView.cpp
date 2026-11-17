@@ -47,6 +47,7 @@
 #include "GuiApplication.h"
 #include "Knob.h"
 #include "SampleClip.h"
+#include "Song.h"
 #include "SampleTrackWindow.h"
 #include "SongEditor.h"
 #include "StringPairDrag.h"

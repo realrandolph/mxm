@@ -51,7 +51,7 @@ public:
 	bool isFromTrack( const Track * _track ) const override;
 
 private:
-	virtual void writeBuffer( const SampleFrame* _ab,
+	void writeBuffer(const SampleFrame* _ab,
 						const f_cnt_t _frames );
 
 	std::vector<SampleFrame> m_recordedFrames;
@@ -60,7 +60,6 @@ private:
 	SampleClip * m_clip;
 	int m_recordInput;
 	bool m_inputMonitoring;
-	bool m_started = false;
 
 } ;
 

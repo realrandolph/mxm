@@ -102,7 +102,6 @@ set(MXM_SRCS
 	core/audio/AudioSndio.cpp
 	core/audio/AudioPortAudio.cpp
 	core/audio/AudioPulseAudio.cpp
-	core/audio/AudioSampleRecorder.cpp
 	core/audio/AudioSdl.cpp
 
 	core/lv2/Lv2Basics.cpp
