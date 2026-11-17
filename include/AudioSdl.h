@@ -30,9 +30,11 @@
 #ifdef MXM_HAVE_SDL
 
 #include <SDL2/SDL_audio.h>
+#include <vector>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
+#include "SampleFrame.h"
 
 class QComboBox;
 
@@ -87,6 +89,8 @@ private:
 
 	SDL_AudioSpec m_inputAudioHandle;
 	SDL_AudioDeviceID m_inputDevice;
+	ch_cnt_t m_inputChannels = 0;
+	std::vector<SampleFrame> m_inputBuffer;
 } ;
 
 

@@ -25,18 +25,15 @@
 #ifndef MXM_SAMPLE_RECORD_HANDLE_H
 #define MXM_SAMPLE_RECORD_HANDLE_H
 
-#include <QList>
-#include <QPair>
 #include <memory>
+#include <vector>
 
 #include "PlayHandle.h"
-#include "TimePos.h"
 
 namespace mxm
 {
 
 
-class PatternTrack;
 class SampleBuffer;
 class SampleClip;
 class Track;
@@ -53,22 +50,17 @@ public:
 
 	bool isFromTrack( const Track * _track ) const override;
 
-	f_cnt_t framesRecorded() const;
-	std::shared_ptr<const SampleBuffer> createSampleBuffer();
-
-
 private:
 	virtual void writeBuffer( const SampleFrame* _ab,
 						const f_cnt_t _frames );
 
-	using bufferList = QList<QPair<SampleFrame*, f_cnt_t>>;
-	bufferList m_buffers;
-	f_cnt_t m_framesRecorded;
-	TimePos m_minLength;
+	std::vector<SampleFrame> m_recordedFrames;
 
 	Track * m_track;
-	PatternTrack* m_patternTrack;
 	SampleClip * m_clip;
+	int m_recordInput;
+	bool m_inputMonitoring;
+	bool m_started = false;
 
 } ;
 

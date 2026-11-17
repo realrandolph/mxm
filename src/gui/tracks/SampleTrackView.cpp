@@ -24,10 +24,16 @@
 
 #include "SampleTrackView.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QProgressBar>
+#include <QSignalBlocker>
 #include <QSpacerItem>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "ConfigManager.h"
@@ -37,7 +43,6 @@
 #include "Engine.h"
 #include "FadeButton.h"
 #include "Mixer.h"
-#include "MixerChannelLcdSpinBox.h"
 #include "MixerView.h"
 #include "GuiApplication.h"
 #include "Knob.h"
@@ -65,9 +70,6 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 	m_tlb->setIcon(embed::getIconPixmap("sample_track"));
 	m_tlb->show();
 
-	m_mixerChannelNumber = new MixerChannelLcdSpinBox(2, getTrackSettingsWidget(), tr("Mixer channel"), this);
-	m_mixerChannelNumber->show();
-
 	m_volumeKnob = new VolumeKnob(KnobType::Small17, tr("VOL"), getTrackSettingsWidget(), Knob::LabelRendering::LegacyFixedFontSize, tr("Track volume"));
 	m_volumeKnob->setModel( &_t->m_volumeModel );
 	m_volumeKnob->setHintText(tr("Volume:"), "%");
@@ -82,13 +84,47 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 	m_activityIndicator->setFixedSize(8, 28);
 	m_activityIndicator->show();
 
+	auto recordControls = new QWidget(getTrackSettingsWidget());
+	auto recordControlsLayout = new QVBoxLayout(recordControls);
+	recordControlsLayout->setContentsMargins(0, 0, 0, 0);
+	recordControlsLayout->setSpacing(1);
+
+	m_recordArmButton = new QToolButton(recordControls);
+	m_recordArmButton->setObjectName("recordArmButton");
+	m_recordArmButton->setText(tr("ARM"));
+	m_recordArmButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_recordArmButton->setCheckable(true);
+	m_recordArmButton->setFixedSize(30, 18);
+	m_recordArmButton->setToolTip(tr("Arm this sample track for recording"));
+	m_recordArmButton->setStyleSheet(
+		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; font-size: 8px; }"
+		"QToolButton:checked { background-color: #d32f2f; color: white; }");
+	m_recordArmButton->setChecked(_t->isRecordArmed());
+	connect(m_recordArmButton, &QToolButton::toggled, this, [this](bool armed) {
+		model()->setRecordArmed(armed);
+	});
+	recordControlsLayout->addWidget(m_recordArmButton);
+
+	m_inputLevelMeter = new QProgressBar(recordControls);
+	m_inputLevelMeter->setObjectName("inputLevelMeter");
+	m_inputLevelMeter->setRange(0, 100);
+	m_inputLevelMeter->setValue(0);
+	m_inputLevelMeter->setTextVisible(false);
+	m_inputLevelMeter->setFixedSize(30, 7);
+	m_inputLevelMeter->setToolTip(tr("Audio input level"));
+	m_inputLevelMeter->setAccessibleName(tr("Audio input level"));
+	m_inputLevelMeter->setStyleSheet(
+		"QProgressBar { border: 1px solid palette(mid); border-radius: 2px; background: palette(base); }"
+		"QProgressBar::chunk { background-color: #55b86a; }");
+	recordControlsLayout->addWidget(m_inputLevelMeter);
+
 	auto masterLayout = new QVBoxLayout(getTrackSettingsWidget());
 	masterLayout->setContentsMargins(0, 1, 0, 0);
 	auto layout = new QHBoxLayout();
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 	layout->addWidget(m_tlb);
-	layout->addWidget(m_mixerChannelNumber);
+	layout->addWidget(recordControls, 0, Qt::AlignVCenter);
 	layout->addWidget(m_activityIndicator);
 	layout->addWidget(m_volumeKnob);
 	layout->addWidget(m_panningKnob);
@@ -97,11 +133,13 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 
 	connect(_t, SIGNAL(playingChanged()), this, SLOT(updateIndicator()));
 	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &SampleTrackView::corruptStateUpdate);
+	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &SampleTrackView::updateRecordingControls);
 
 	setModel( _t );
 
 	m_window = new SampleTrackWindow(this);
 	m_window->toggleVisibility(false);
+	updateRecordingControls();
 }
 
 
@@ -177,7 +215,7 @@ void SampleTrackView::modelChanged()
 {
 	auto st = castModel<SampleTrack>();
 	m_volumeKnob->setModel(&st->m_volumeModel);
-	m_mixerChannelNumber->setModel(&st->m_mixerChannelModel);
+	updateRecordingControls();
 
 	TrackView::modelChanged();
 }
@@ -257,6 +295,23 @@ void SampleTrackView::corruptStateUpdate()
 		m_activityIndicator->setState(FadeButton::State::Normal);
 		m_activityIndicator->setToolTip(QString{});
 	}
+}
+
+void SampleTrackView::updateRecordingControls()
+{
+	auto track = model();
+	if (m_recordArmButton->isChecked() != track->isRecordArmed())
+	{
+		const QSignalBlocker blocker(m_recordArmButton);
+		m_recordArmButton->setChecked(track->isRecordArmed());
+	}
+	const bool recording = Engine::getSong()->isRecording() && track->isRecordArmed();
+	m_recordArmButton->setText(recording ? tr("REC") : tr("ARM"));
+	m_recordArmButton->setToolTip(recording ? tr("Recording this sample track") :
+		tr("Arm this sample track for recording"));
+
+	const auto inputLevel = std::clamp(track->takeInputLevel(), 0.f, 1.f);
+	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));
 }
 
 

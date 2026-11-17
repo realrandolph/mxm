@@ -34,6 +34,7 @@
 
 #include "AutomationTrack.h"
 #include "AutomationEditor.h"
+#include "AudioEngine.h"
 #include "ConfigManager.h"
 #include "ControllerRackView.h"
 #include "ControllerConnection.h"
@@ -53,6 +54,7 @@
 #include "ProjectJournal.h"
 #include "ProjectNotes.h"
 #include "Scale.h"
+#include "SampleTrack.h"
 #include "SongEditor.h"
 #include "PeakController.h"
 
@@ -80,6 +82,7 @@ Song::Song() :
 	m_modified( false ),
 	m_loadOnLaunch( true ),
 	m_recording( false ),
+	m_recordingOnly( false ),
 	m_exporting( false ),
 	m_exportLoop( false ),
 	m_renderBetweenMarkers( false ),
@@ -223,6 +226,14 @@ void Song::processNextBuffer()
 	{
 		case PlayMode::Song:
 			trackList = tracks();
+			if (m_recordingOnly)
+			{
+				std::erase_if(trackList, [](Track* track)
+				{
+					auto sampleTrack = dynamic_cast<SampleTrack*>(track);
+					return !sampleTrack || !sampleTrack->isRecordArmed();
+				});
+			}
 			break;
 
 		case PlayMode::Pattern:
@@ -499,6 +510,7 @@ int Song::getExportProgress() const
 void Song::playSong()
 {
 	m_recording = false;
+	m_recordingOnly = false;
 
 	if( isStopped() == false )
 	{
@@ -521,8 +533,7 @@ void Song::playSong()
 
 void Song::record()
 {
-	m_recording = true;
-	// TODO: Implement
+	startRecording(false);
 }
 
 
@@ -530,8 +541,47 @@ void Song::record()
 
 void Song::playAndRecord()
 {
-	playSong();
-	m_recording = true;
+	startRecording(true);
+}
+
+
+void Song::startRecording(bool withPlayback)
+{
+	if (Engine::audioEngine()->audioDev() == nullptr ||
+		!Engine::audioEngine()->audioDev()->supportsCapture())
+	{
+		return;
+	}
+	const auto& sampleTracks = tracks();
+	if (std::none_of(sampleTracks.begin(), sampleTracks.end(), [](Track* track)
+		{ auto sampleTrack = dynamic_cast<SampleTrack*>(track); return sampleTrack && sampleTrack->isRecordArmed(); }))
+	{
+		return;
+	}
+
+	const TimePos startPosition = getPlayPos(PlayMode::Song);
+	if (!isStopped()) { stop(); }
+
+	getTimeline(PlayMode::Song).setTicks(startPosition.getTicks());
+	for (Track* track : tracks())
+	{
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track))
+		{
+			sampleTrack->prepareRecording(startPosition);
+		}
+	}
+
+	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
+		m_playMode = PlayMode::Song;
+		m_playing = true;
+		m_paused = false;
+		m_recording = true;
+		m_recordingOnly = !withPlayback;
+		m_vstSyncController.setPlaybackState(withPlayback);
+		savePlayStartPosition();
+	}
+	emit playbackStateChanged();
 }
 
 
@@ -653,7 +703,8 @@ void Song::stop()
 
 	auto& timeline = getTimeline();
 	m_paused = false;
-	m_recording = true;
+	m_recording = false;
+	m_recordingOnly = false;
 	m_playing = false;
 
 	switch (timeline.stopBehaviour())

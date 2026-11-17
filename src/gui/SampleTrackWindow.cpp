@@ -25,13 +25,19 @@
 #include "SampleTrackWindow.h"
 
 #include <QCloseEvent>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
+#include "AudioEngine.h"
+#include "Engine.h"
 #include "EffectRackView.h"
 #include "embed.h"
 #include "GuiApplication.h"
@@ -147,6 +153,36 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 
 	generalSettingsLayout->addLayout(basicControlsLayout);
 
+	auto recordingControlsLayout = new QFormLayout;
+	recordingControlsLayout->setContentsMargins(0, 2, 0, 0);
+	recordingControlsLayout->setHorizontalSpacing(6);
+	recordingControlsLayout->setVerticalSpacing(2);
+
+	m_recordInputComboBox = new QComboBox(this);
+	m_recordInputComboBox->setObjectName("recordInputComboBox");
+	m_recordInputComboBox->addItem(tr("Stereo"), 0);
+	m_recordInputComboBox->addItem(tr("Mono input 1 (left)"), 1);
+	const auto audioDevice = Engine::audioEngine()->audioDev();
+	if (!audioDevice || audioDevice->captureChannels() > 1)
+	{
+		m_recordInputComboBox->addItem(tr("Mono input 2 (right)"), 2);
+	}
+	m_recordInputComboBox->setToolTip(tr("Audio input mode for recording this track"));
+	recordingControlsLayout->addRow(tr("Record input"), m_recordInputComboBox);
+
+	m_inputMonitoringCheckBox = new QCheckBox(tr("Monitor input"), this);
+	m_inputMonitoringCheckBox->setObjectName("inputMonitoringCheckBox");
+	m_inputMonitoringCheckBox->setToolTip(tr("Send live input to this track while recording"));
+	recordingControlsLayout->addRow(QString{}, m_inputMonitoringCheckBox);
+	generalSettingsLayout->addLayout(recordingControlsLayout);
+
+	connect(m_recordInputComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+		m_track->setRecordInput(m_recordInputComboBox->itemData(index).toInt());
+	});
+	connect(m_inputMonitoringCheckBox, &QCheckBox::toggled, this, [this](bool enabled) {
+		m_track->setInputMonitoring(enabled);
+	});
+
 	m_effectRack = new EffectRackView(stv->model()->audioBusHandle()->effects());
 	m_effectRack->setFixedSize(EffectRackView::DEFAULT_WIDTH, 242);
 
@@ -196,6 +232,20 @@ void SampleTrackWindow::modelChanged()
 	m_volumeKnob->setModel(&m_track->m_volumeModel);
 	m_panningKnob->setModel(&m_track->m_panningModel);
 	m_mixerChannelNumber->setModel(&m_track->m_mixerChannelModel);
+	{
+		const QSignalBlocker blocker(m_recordInputComboBox);
+		auto inputIndex = m_recordInputComboBox->findData(m_track->recordInput());
+		if (inputIndex < 0)
+		{
+			m_track->setRecordInput(0);
+			inputIndex = m_recordInputComboBox->findData(0);
+		}
+		m_recordInputComboBox->setCurrentIndex(inputIndex);
+	}
+	{
+		const QSignalBlocker blocker(m_inputMonitoringCheckBox);
+		m_inputMonitoringCheckBox->setChecked(m_track->isInputMonitoring());
+	}
 
 	updateName();
 }

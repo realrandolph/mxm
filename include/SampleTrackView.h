@@ -29,6 +29,9 @@
 #include "SampleTrack.h"
 #include "TrackView.h"
 
+class QProgressBar;
+class QToolButton;
+
 namespace mxm
 {
 
@@ -36,7 +39,6 @@ namespace gui
 {
 
 class Knob;
-class MixerChannelLcdSpinBox;
 class SampleTrackWindow;
 class TrackLabelButton;
 
@@ -89,14 +91,16 @@ private slots:
 	//! @brief Create and assign a new mixer Channel for this track.
 	void createMixerLine();
 	void corruptStateUpdate();
+	void updateRecordingControls();
 
 
 private:
 	SampleTrackWindow * m_window;
-	MixerChannelLcdSpinBox* m_mixerChannelNumber;
 	Knob * m_volumeKnob;
 	Knob * m_panningKnob;
 	FadeButton * m_activityIndicator;
+	QToolButton* m_recordArmButton;
+	QProgressBar* m_inputLevelMeter;
 
 	TrackLabelButton * m_tlb;
 

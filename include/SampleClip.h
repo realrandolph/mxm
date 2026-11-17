@@ -89,7 +89,6 @@ public:
 
 public slots:
 	void setSampleFile(const QString& sf);
-	void toggleRecord();
 	void playbackPositionChanged();
 	void updateTrackClips();
 	void tempoChanged();

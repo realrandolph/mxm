@@ -25,6 +25,8 @@
 
 #include "SampleTrack.h"
 
+#include <algorithm>
+
 #include <QDomElement>
 
 #include "EffectChain.h"
@@ -108,20 +110,29 @@ bool SampleTrack::play( const TimePos & _start, const f_cnt_t _frames,
 		{
 			Clip * clip = getClip( i );
 			auto sClip = dynamic_cast<SampleClip*>(clip);
+			const bool recordingClip = sClip->isRecord() && Engine::getSong()->isRecording();
+			if (Engine::getSong()->isRecordingOnly() && !recordingClip)
+			{
+				sClip->setIsPlaying(false);
+				continue;
+			}
 
 			if( _start >= sClip->startPosition() && _start < sClip->endPosition() )
 			{
-				if( sClip->isPlaying() == false && _start >= (sClip->startPosition() + sClip->startTimeOffset()) )
+				if (sClip->isPlaying() == false &&
+					(recordingClip || _start >= (sClip->startPosition() + sClip->startTimeOffset())))
 				{
 					auto bufferFramesPerTick = Engine::framesPerTick(sClip->sample().sampleRate());
-					f_cnt_t sampleStart = bufferFramesPerTick * ( _start - sClip->startPosition() - sClip->startTimeOffset() );
+					f_cnt_t sampleStart = recordingClip ? 0 :
+						bufferFramesPerTick * (_start - sClip->startPosition() - sClip->startTimeOffset());
 					f_cnt_t clipFrameLength = bufferFramesPerTick * ( sClip->endPosition() - sClip->startPosition() - sClip->startTimeOffset() );
 					f_cnt_t sampleBufferLength = sClip->sample().sampleSize();
 					//if the Clip smaller than the sample length we play only until Clip end
 					//else we play the sample to the end but nothing more
-					f_cnt_t samplePlayLength = clipFrameLength > sampleBufferLength ? sampleBufferLength : clipFrameLength;
-					//we only play within the sampleBuffer limits
-					if( sampleStart < sampleBufferLength )
+					f_cnt_t samplePlayLength = recordingClip ? clipFrameLength :
+						(clipFrameLength > sampleBufferLength ? sampleBufferLength : clipFrameLength);
+					// Empty armed clips still need a handle to capture input.
+					if (recordingClip || sampleStart < sampleBufferLength)
 					{
 						sClip->setSampleStartFrame( sampleStart );
 						sClip->setSamplePlayLength( samplePlayLength );
@@ -143,7 +154,8 @@ bool SampleTrack::play( const TimePos & _start, const f_cnt_t _frames,
 	for (const auto& clip : clips)
 	{
 		auto st = dynamic_cast<SampleClip*>(clip);
-		if( !st->isMuted() )
+		const bool recordingClip = st->isRecord() && Engine::getSong()->isRecording();
+		if (!st->isMuted() || recordingClip)
 		{
 			PlayHandle* handle;
 			if( st->isRecord() )
@@ -198,6 +210,8 @@ void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& this
 	m_volumeModel.saveSettings(doc, thisElem, "vol");
 	m_panningModel.saveSettings(doc, thisElem, "pan");
 	m_mixerChannelModel.saveSettings(doc, thisElem, "mixch");
+	thisElem.setAttribute("recordinput", recordInput());
+	thisElem.setAttribute("inputmonitor", isInputMonitoring());
 }
 
 
@@ -222,6 +236,33 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	m_panningModel.loadSettings(thisElem, "pan");
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
+	setRecordInput(thisElem.attribute("recordinput", "0").toInt());
+	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
+}
+
+
+void SampleTrack::setRecordInput(int input)
+{
+	m_recordInput.store(std::clamp(input, 0, 2), std::memory_order_relaxed);
+}
+
+
+void SampleTrack::prepareRecording(const TimePos& position)
+{
+	if (!isRecordArmed()) { return; }
+
+	auto clip = static_cast<SampleClip*>(createClip(position));
+	clip->setRecord(true);
+}
+
+
+void SampleTrack::updateInputLevel(float level)
+{
+	float current = m_inputLevel.load(std::memory_order_relaxed);
+	while (current < level &&
+		!m_inputLevel.compare_exchange_weak(current, level, std::memory_order_relaxed))
+	{
+	}
 }
 
 

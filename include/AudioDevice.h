@@ -59,6 +59,11 @@ public:
 		return m_supportsCapture;
 	}
 
+	inline ch_cnt_t captureChannels() const
+	{
+		return m_captureChannels;
+	}
+
 	inline sample_rate_t sampleRate() const
 	{
 		return m_sampleRate;
@@ -85,10 +90,12 @@ protected:
 
 	void setSampleRate(const sample_rate_t _new_sr) { m_sampleRate = _new_sr; }
 	void setChannels(const ch_cnt_t channels) { m_channels = channels; }
+	void setCaptureChannels(const ch_cnt_t channels) { m_captureChannels = channels; }
 
 	static void stopProcessingThread( QThread * thread );
 protected:
 	bool m_supportsCapture;
+	ch_cnt_t m_captureChannels;
 
 private:
 	virtual void startProcessingImpl() = 0;

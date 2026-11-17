@@ -178,6 +178,11 @@ public:
 	{
 		return m_recording;
 	}
+
+	inline bool isRecordingOnly() const
+	{
+		return m_recordingOnly;
+	}
 	
 	inline void setLoopRenderCount(int count)
 	{
@@ -399,6 +404,7 @@ private:
 
 	void processAutomations(const TrackList& tracks, TimePos timeStart, f_cnt_t frames);
 	void processMetronome(size_t bufferOffset);
+	void startRecording(bool withPlayback);
 
 	void setModified(bool value);
 
@@ -422,6 +428,7 @@ private:
 	bool m_loadOnLaunch;
 
 	volatile bool m_recording;
+	bool m_recordingOnly;
 	volatile bool m_exporting;
 	volatile bool m_exportLoop;
 	volatile bool m_renderBetweenMarkers;

@@ -31,6 +31,8 @@
 #include "SampleTrack.h"
 #include "SerializingObject.h"
 
+class QCheckBox;
+class QComboBox;
 class QLineEdit;
 
 namespace mxm::gui
@@ -94,6 +96,8 @@ private:
 	AutomatableButton* m_muteBtn;
 	AutomatableButton* m_soloBtn;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
+	QComboBox* m_recordInputComboBox;
+	QCheckBox* m_inputMonitoringCheckBox;
 
 	EffectRackView * m_effectRack;
 } ;

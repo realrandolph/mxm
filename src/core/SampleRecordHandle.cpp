@@ -24,11 +24,15 @@
 
 
 #include "SampleRecordHandle.h"
+
+#include <algorithm>
+#include <cmath>
+
 #include "AudioEngine.h"
 #include "Engine.h"
-#include "PatternTrack.h"
 #include "SampleBuffer.h"
 #include "SampleClip.h"
+#include "SampleTrack.h"
 
 
 namespace mxm
@@ -37,12 +41,18 @@ namespace mxm
 
 SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
 	PlayHandle( Type::SamplePlayHandle ),
-	m_framesRecorded( 0 ),
-	m_minLength( clip->length() ),
 	m_track( clip->getTrack() ),
-	m_patternTrack( nullptr ),
-	m_clip( clip )
+	m_clip( clip ),
+	m_recordInput(0),
+	m_inputMonitoring(false)
 {
+	if (auto sampleTrack = dynamic_cast<SampleTrack*>(m_track))
+	{
+		m_recordInput = sampleTrack->recordInput();
+		m_inputMonitoring = sampleTrack->isInputMonitoring();
+		if (m_inputMonitoring) { setAudioBusHandle(sampleTrack->audioBusHandle()); }
+	}
+	m_recordedFrames.reserve(Engine::audioEngine()->outputSampleRate());
 }
 
 
@@ -50,12 +60,10 @@ SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
 
 SampleRecordHandle::~SampleRecordHandle()
 {
-	if (!m_buffers.empty()) { m_clip->setSampleBuffer(createSampleBuffer()); }
-
-	while( !m_buffers.empty() )
+	if (!m_recordedFrames.empty())
 	{
-		delete[] m_buffers.front().first;
-		m_buffers.erase( m_buffers.begin() );
+		m_clip->setSampleBuffer(std::make_shared<const SampleBuffer>(std::move(m_recordedFrames),
+			Engine::audioEngine()->inputSampleRate()));
 	}
 	m_clip->setRecord( false );
 }
@@ -63,19 +71,27 @@ SampleRecordHandle::~SampleRecordHandle()
 
 
 
-void SampleRecordHandle::play( SampleFrame* /*_working_buffer*/ )
+void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
 	const SampleFrame* recbuf = Engine::audioEngine()->inputBuffer();
-	const f_cnt_t frames = Engine::audioEngine()->inputBufferFrames();
-	writeBuffer( recbuf, frames );
-	m_framesRecorded += frames;
-
-	TimePos len = (tick_t)( m_framesRecorded / Engine::framesPerTick() );
-	if( len > m_minLength )
+	auto frames = Engine::audioEngine()->inputBufferFrames();
+	const auto firstFrame = m_started ? 0 : std::min(offset(), frames);
+	m_started = m_started || frames > 0;
+	recbuf += firstFrame;
+	frames -= firstFrame;
+	if (m_inputMonitoring && workingBuffer)
 	{
-//		m_clip->changeLength( len );
-		m_minLength = len;
+		const auto outputFrames = std::min(frames, Engine::audioEngine()->framesPerPeriod() - firstFrame);
+		for (f_cnt_t frame = 0; frame < outputFrames; ++frame)
+		{
+			const auto& input = recbuf[frame];
+			auto& output = workingBuffer[firstFrame + frame];
+			if (m_recordInput == 1) { output[0] = output[1] = input[0]; }
+			else if (m_recordInput == 2) { output[0] = output[1] = input[1]; }
+			else { output = input; }
+		}
 	}
+	writeBuffer(recbuf, frames);
 }
 
 
@@ -91,36 +107,7 @@ bool SampleRecordHandle::isFinished() const
 
 bool SampleRecordHandle::isFromTrack( const Track * _track ) const
 {
-	return (m_track == _track || m_patternTrack == _track);
-}
-
-
-
-
-f_cnt_t SampleRecordHandle::framesRecorded() const
-{
-	return( m_framesRecorded );
-}
-
-
-
-
-std::shared_ptr<const SampleBuffer> SampleRecordHandle::createSampleBuffer()
-{
-	const f_cnt_t frames = framesRecorded();
-	// create buffer to store all recorded buffers in
-	auto bigBuffer = std::vector<SampleFrame>(frames);
-
-	// now copy all buffers into big buffer
-	auto framesCopied = 0;
-	for (const auto& [buf, numFrames] : m_buffers)
-	{
-		std::copy_n(buf, numFrames, bigBuffer.begin() + framesCopied);
-		framesCopied += numFrames;
-	}
-
-	// create according sample-buffer out of big buffer
-	return std::make_shared<const SampleBuffer>(std::move(bigBuffer), Engine::audioEngine()->inputSampleRate());
+	return m_track == _track;
 }
 
 
@@ -128,15 +115,27 @@ std::shared_ptr<const SampleBuffer> SampleRecordHandle::createSampleBuffer()
 
 void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _frames )
 {
-	auto buf = new SampleFrame[_frames];
+	if (_frames == 0) { return; }
+	float peak = 0.f;
 	for( f_cnt_t frame = 0; frame < _frames; ++frame )
 	{
-		for( ch_cnt_t chnl = 0; chnl < DEFAULT_CHANNELS; ++chnl )
+		SampleFrame recorded;
+		if (m_recordInput == 1)
 		{
-			buf[frame][chnl] = _ab[frame][chnl];
+			recorded[0] = recorded[1] = _ab[frame][0];
 		}
+		else if (m_recordInput == 2)
+		{
+			recorded[0] = recorded[1] = _ab[frame][1];
+		}
+		else
+		{
+			recorded = _ab[frame];
+		}
+		peak = std::max({peak, std::abs(recorded[0]), std::abs(recorded[1])});
+		m_recordedFrames.push_back(recorded);
 	}
-	m_buffers.push_back( qMakePair( buf, _frames ) );
+	if (auto sampleTrack = dynamic_cast<SampleTrack*>(m_track)) { sampleTrack->updateInputLevel(peak); }
 }
 
 

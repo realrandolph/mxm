@@ -175,15 +175,6 @@ void SampleClip::setSampleFile(const QString& sf)
 
 
 
-void SampleClip::toggleRecord()
-{
-	m_recordModel.setValue( !m_recordModel.value() );
-	emit dataChanged();
-}
-
-
-
-
 void SampleClip::playbackPositionChanged()
 {
 	Engine::audioEngine()->removePlayHandlesOfTypes( getTrack(), PlayHandle::Type::SamplePlayHandle );

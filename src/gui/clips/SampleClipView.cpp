@@ -83,10 +83,6 @@ void SampleClipView::constructContextMenu(QMenu* cm)
 {
 	cm->addSeparator();
 
-	/*contextMenu.addAction( embed::getIconPixmap( "record" ),
-				tr( "Set/clear record" ),
-						m_clip, SLOT(toggleRecord()));*/
-
 	cm->addAction(
 		embed::getIconPixmap("flip_x"),
 		tr("Reverse sample"),
@@ -145,24 +141,15 @@ void SampleClipView::dropEvent( QDropEvent * _de )
 
 void SampleClipView::mousePressEvent( QMouseEvent * _me )
 {
-	if( _me->button() == Qt::LeftButton &&
-		_me->modifiers() & Qt::ControlModifier &&
-		_me->modifiers() & Qt::ShiftModifier )
+	if( _me->button() == Qt::MiddleButton && _me->modifiers() == Qt::ControlModifier )
 	{
-		m_clip->toggleRecord();
-	}
-	else
-	{
-		if( _me->button() == Qt::MiddleButton && _me->modifiers() == Qt::ControlModifier )
+		auto sClip = dynamic_cast<SampleClip*>(getClip());
+		if( sClip )
 		{
-			auto sClip = dynamic_cast<SampleClip*>(getClip());
-			if( sClip )
-			{
-				sClip->updateTrackClips();
-			}
+			sClip->updateTrackClips();
 		}
-		ClipView::mousePressEvent( _me );
 	}
+	ClipView::mousePressEvent( _me );
 }
 
 
@@ -330,21 +317,6 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		p.setPen(markerColor());
 		p.drawLine(m_markerPos, rect().bottom(), m_markerPos, rect().top());
 	}
-	// recording sample tracks is not possible at the moment
-
-	/* if( m_clip->isRecord() )
-	{
-		p.setFont( pointSize<7>( p.font() ) );
-
-		p.setPen( textShadowColor() );
-		p.drawText( 10, p.fontMetrics().height()+1, "Rec" );
-		p.setPen( textColor() );
-		p.drawText( 9, p.fontMetrics().height(), "Rec" );
-
-		p.setBrush( QBrush( textColor() ) );
-		p.drawEllipse( 4, 5, 4, 4 );
-	}*/
-
 	p.end();
 
 	painter.drawPixmap(m_paintPixmapXPosition, 0, m_paintPixmap);

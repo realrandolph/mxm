@@ -26,6 +26,8 @@
 
 #ifdef MXM_HAVE_JACK
 
+#include <algorithm>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -105,7 +107,10 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 		connect(this, SIGNAL(zombified()), this, SLOT(restartAfterZombified()), Qt::QueuedConnection);
 	}
 
-	m_supportsCapture = true;
+	const auto inputChannels = std::count_if(m_inputPorts.begin(), m_inputPorts.end(),
+		[](jack_port_t* port) { return port != nullptr; });
+	m_supportsCapture = successful && inputChannels > 0;
+	setCaptureChannels(m_supportsCapture ? static_cast<ch_cnt_t>(inputChannels) : 0);
 }
 
 
@@ -266,7 +271,7 @@ void AudioJack::attemptToReconnectOutput(size_t outputIndex, const QString& targ
 
 void AudioJack::attemptToReconnectInput(size_t inputIndex, const QString& sourcePort)
 {
-	if (inputIndex >= m_inputPorts.size()) { return; }
+	if (inputIndex >= m_inputPorts.size() || m_inputPorts[inputIndex] == nullptr) { return; }
 
 	if (sourcePort == disconnectedRepresentation)
 	{
@@ -422,11 +427,14 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 
 	for (int c = 0; c < channels(); ++c)
 	{
-		jack_default_audio_sample_t* jack_input_buffer = (jack_default_audio_sample_t*) jack_port_get_buffer(m_inputPorts[c], nframes);
+		jack_default_audio_sample_t* jack_input_buffer = m_inputPorts[c]
+			? static_cast<jack_default_audio_sample_t*>(jack_port_get_buffer(m_inputPorts[c], nframes))
+			: nullptr;
 
 		for (jack_nframes_t frame = 0; frame < nframes; frame++)
 		{
-			m_inputFrameBuffer[frame][c] = static_cast<sample_t>(jack_input_buffer[frame]);
+			m_inputFrameBuffer[frame][c] = jack_input_buffer
+				? static_cast<sample_t>(jack_input_buffer[frame]) : 0.f;
 		}
 	}
 	audioEngine()->pushInputFrames (m_inputFrameBuffer.data(), nframes);

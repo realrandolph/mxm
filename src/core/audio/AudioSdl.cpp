@@ -27,6 +27,8 @@
 
 #ifdef MXM_HAVE_SDL
 
+#include <algorithm>
+
 #include <QFormLayout>
 #include <QComboBox>
 #include <SDL.h>
@@ -43,6 +45,8 @@ constexpr auto InputDeviceSDL = "inputdevice";
 
 AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 	: AudioDevice(DEFAULT_CHANNELS, _audioEngine)
+	, m_outputDevice(0)
+	, m_inputDevice(0)
 {
 	_success_ful = false;
 
@@ -151,19 +155,32 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 
 	// Try with the configured device
 	const auto inputDeviceCStr = isDefaultInput ? nullptr : inputDevice.c_str();
-	m_inputDevice = SDL_OpenAudioDevice (inputDeviceCStr, 1, &m_inputAudioHandle, &actual, 0);
+	m_inputDevice = SDL_OpenAudioDevice(inputDeviceCStr, 1, &m_inputAudioHandle, &actual,
+		SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
 
 	// If we did not get a device ID try again with the default device if we did not try that before
 	if (m_inputDevice == 0 && !isDefaultInput)
 	{
-		m_inputDevice = SDL_OpenAudioDevice(nullptr, 1, &m_inputAudioHandle, &actual, 0);
+		m_inputDevice = SDL_OpenAudioDevice(nullptr, 1, &m_inputAudioHandle, &actual,
+			SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
 	}
 
-	if (m_inputDevice != 0) {
+	if (m_inputDevice != 0 && actual.format == AUDIO_F32SYS && actual.channels > 0)
+	{
+		m_inputChannels = actual.channels;
+		setCaptureChannels(std::min<ch_cnt_t>(m_inputChannels, 2));
+		m_inputBuffer.resize(std::max<std::size_t>(actual.samples, _audioEngine->framesPerAudioBuffer()));
 		m_supportsCapture = true;
-	} else {
+	}
+	else
+	{
+		if (m_inputDevice != 0)
+		{
+			SDL_CloseAudioDevice(m_inputDevice);
+			m_inputDevice = 0;
+		}
 		m_supportsCapture = false;
-		qWarning ( "Couldn't open SDL capture device: %s\n", SDL_GetError ());
+		qWarning("Couldn't open SDL capture device: %s\n", SDL_GetError());
 	}
 }
 
@@ -185,8 +202,8 @@ AudioSdl::~AudioSdl()
 
 void AudioSdl::startProcessingImpl()
 {
-	SDL_PauseAudioDevice (m_outputDevice, 0);
-	SDL_PauseAudioDevice (m_inputDevice, 0);
+	if (m_outputDevice != 0) { SDL_PauseAudioDevice(m_outputDevice, 0); }
+	if (m_inputDevice != 0) { SDL_PauseAudioDevice(m_inputDevice, 0); }
 }
 
 
@@ -194,16 +211,14 @@ void AudioSdl::startProcessingImpl()
 
 void AudioSdl::stopProcessingImpl()
 {
-	if( SDL_GetAudioDeviceStatus(m_outputDevice) == SDL_AUDIO_PLAYING )
+	if (m_outputDevice != 0 && SDL_GetAudioDeviceStatus(m_outputDevice) == SDL_AUDIO_PLAYING)
 	{
-		SDL_LockAudioDevice (m_inputDevice);
-		SDL_LockAudioDevice (m_outputDevice);
-
-		SDL_PauseAudioDevice (m_inputDevice,	1);
-		SDL_PauseAudioDevice (m_outputDevice,	1);
-
-		SDL_UnlockAudioDevice (m_inputDevice);
-		SDL_UnlockAudioDevice (m_outputDevice);
+		if (m_inputDevice != 0) { SDL_LockAudioDevice(m_inputDevice); }
+		SDL_LockAudioDevice(m_outputDevice);
+		if (m_inputDevice != 0) { SDL_PauseAudioDevice(m_inputDevice, 1); }
+		SDL_PauseAudioDevice(m_outputDevice, 1);
+		SDL_UnlockAudioDevice(m_outputDevice);
+		if (m_inputDevice != 0) { SDL_UnlockAudioDevice(m_inputDevice); }
 	}
 }
 
@@ -236,10 +251,17 @@ void AudioSdl::sdlInputAudioCallback(void *_udata, Uint8 *_buf, int _len) {
 }
 
 void AudioSdl::sdlInputAudioCallback(Uint8 *_buf, int _len) {
-	auto samples_buffer = (SampleFrame*)_buf;
-	f_cnt_t frames = _len / sizeof ( SampleFrame );
-
-	audioEngine()->pushInputFrames (samples_buffer, frames);
+	if (m_inputChannels == 0 || _len <= 0) { return; }
+	const auto frames = static_cast<f_cnt_t>(_len) / (sizeof(float) * m_inputChannels);
+	if (frames > m_inputBuffer.size()) { return; }
+	const auto samples = reinterpret_cast<const float*>(_buf);
+	for (f_cnt_t frame = 0; frame < frames; ++frame)
+	{
+		const auto source = frame * m_inputChannels;
+		m_inputBuffer[frame][0] = samples[source];
+		m_inputBuffer[frame][1] = samples[source + std::min<ch_cnt_t>(1, m_inputChannels - 1)];
+	}
+	audioEngine()->pushInputFrames(m_inputBuffer.data(), frames);
 }
 
 QString AudioSdl::setupWidget::s_systemDefaultDevice = AudioDeviceSetupWidget::tr("[System Default]");
