@@ -395,6 +395,7 @@ private:
 
 	void processAutomations(const TrackList& tracks, TimePos timeStart, f_cnt_t frames);
 	void processMetronome(size_t bufferOffset);
+	void stopImpl(bool preserveRecordingPosition);
 	void startTrackRecordingTransport(const TimePos& position);
 	void trackRecordingStarted() { m_recordingTracks.fetch_add(1, std::memory_order_relaxed); }
 	void trackRecordingStopped(bool stopTransport);

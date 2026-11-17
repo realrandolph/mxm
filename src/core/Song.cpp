@@ -551,7 +551,7 @@ void Song::trackRecordingStopped(bool stopTransport)
 		stopTransport && m_playMode != PlayMode::None)
 	{
 		m_recordingOnly = true;
-		stop();
+		stopImpl(true);
 	}
 }
 
@@ -661,9 +661,16 @@ void Song::togglePause()
 
 void Song::stop()
 {
+	stopImpl(false);
+}
+
+
+void Song::stopImpl(bool preserveRecordingPosition)
+{
 	if (m_playMode == PlayMode::None)
 	{
-		if (!isRecording()) { return; }
+		const bool wasRecording = isRecording();
+		if (wasRecording)
 		{
 			const auto guard = Engine::audioEngine()->requestChangesGuard();
 			for (auto track : tracks())
@@ -672,8 +679,35 @@ void Song::stop()
 			}
 			Engine::audioEngine()->clear();
 		}
-		emit stopped();
-		emit playbackStateChanged();
+		m_recordingOnly = false;
+		bool positionChanged = false;
+		if (!preserveRecordingPosition)
+		{
+			auto& timeline = getTimeline(PlayMode::Song);
+			const auto oldTicks = timeline.pos().getTicks();
+			switch (timeline.stopBehaviour())
+			{
+				case Timeline::StopBehaviour::BackToZero:
+					timeline.setTicks(0);
+					break;
+				case Timeline::StopBehaviour::BackToStart:
+					if (timeline.playStartPosition() >= 0)
+					{
+						timeline.setTicks(timeline.playStartPosition().getTicks());
+						timeline.setPlayStartPosition(-1);
+					}
+					break;
+				case Timeline::StopBehaviour::KeepPosition:
+					break;
+			}
+			getTimeline(PlayMode::None).setTicks(timeline.pos().getTicks());
+			positionChanged = oldTicks != timeline.pos().getTicks();
+		}
+		if (wasRecording || positionChanged)
+		{
+			emit stopped();
+			emit playbackStateChanged();
+		}
 		return;
 	}
 
@@ -681,7 +715,6 @@ void Song::stop()
 
 	// To avoid race conditions with the processing threads
 	Engine::audioEngine()->requestChangeInModel();
-	const bool recordingOnly = m_recordingOnly;
 	m_recordingOnly = false;
 	for (auto track : tracks())
 	{
@@ -692,7 +725,7 @@ void Song::stop()
 	m_paused = false;
 	m_playing = false;
 
-	if (!recordingOnly) switch (timeline.stopBehaviour())
+	if (!preserveRecordingPosition) switch (timeline.stopBehaviour())
 	{
 		case Timeline::StopBehaviour::BackToZero:
 			if (m_playMode == PlayMode::MidiClip)
