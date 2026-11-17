@@ -24,6 +24,9 @@
 
 #include "AudioEngine.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "MixHelpers.h"
 
 #include "mxmconfig.h"
@@ -169,6 +172,17 @@ bool AudioEngine::criticalXRuns() const
 
 void AudioEngine::pushInputFrames( SampleFrame* _ab, const f_cnt_t _frames )
 {
+	float peak = 0.f;
+	for (f_cnt_t frame = 0; frame < _frames; ++frame)
+	{
+		peak = std::max({peak, std::abs(_ab[frame][0]), std::abs(_ab[frame][1])});
+	}
+	float heldPeak = m_inputPeak.load(std::memory_order_relaxed);
+	while (!m_inputPeak.compare_exchange_weak(heldPeak, std::max(peak, heldPeak * 0.9f),
+		std::memory_order_relaxed))
+	{
+	}
+
 	requestChangeInModel();
 
 	f_cnt_t frames = m_inputBufferFrames[ m_inputBufferWrite ];

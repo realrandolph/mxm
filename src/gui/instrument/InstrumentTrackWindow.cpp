@@ -26,11 +26,15 @@
 
 #include <QDir>
 #include <QDropEvent>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
+#include <QSignalBlocker>
+#include <QToolButton>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
@@ -59,6 +63,7 @@
 #include "LeftRightNav.h"
 #include "MainWindow.h"
 #include "PianoView.h"
+#include "PianoRoll.h"
 #include "PluginFactory.h"
 #include "PluginView.h"
 #include "Song.h"
@@ -272,6 +277,68 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	m_pianoView->setMinimumHeight( PIANO_HEIGHT );
 	m_pianoView->setMaximumHeight( PIANO_HEIGHT );
 
+	m_recordButton = new QToolButton(this);
+	m_recordButton->setObjectName("recordButton");
+	m_recordButton->setText(tr("REC"));
+	m_recordButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_recordButton->setCheckable(true);
+	m_recordButton->setFixedSize(42, 24);
+	m_recordButton->setToolTip(tr("Record MIDI notes to this instrument track"));
+	m_recordButton->setStyleSheet(
+		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; }"
+		"QToolButton:checked { background-color: #d32f2f; color: white; }");
+	m_recordButton->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_recordButton, &QToolButton::clicked, this, [this]
+	{
+		if (getGUI()->pianoRoll()->isRecordingTrack(m_track))
+		{
+			cancelArmedRecording();
+			m_recordTriggerNoteKey = -1;
+			getGUI()->pianoRoll()->stop();
+		}
+		else if (m_recordStartTimer.isActive() || m_waitingForInput) { cancelArmedRecording(); }
+		else { startRecording(); }
+		updateRecordingControls();
+	});
+	connect(m_recordButton, &QToolButton::customContextMenuRequested, this, [this](const QPoint& pos)
+	{
+		if (getGUI()->pianoRoll()->isRecording()) { return; }
+		QMenu menu(m_recordButton);
+		auto* delayed = menu.addAction(tr("Start recording in 3 seconds"));
+		auto* onInput = menu.addAction(tr("Start recording when a note is played"));
+		connect(delayed, &QAction::triggered, this, [this] { armRecording(false); });
+		connect(onInput, &QAction::triggered, this, [this] { armRecording(true); });
+		menu.exec(m_recordButton->mapToGlobal(pos));
+	});
+	m_recordStartTimer.setSingleShot(true);
+	connect(&m_recordStartTimer, &QTimer::timeout, this, [this] { startRecording(); });
+
+	m_recordChannelComboBox = new QComboBox(this);
+	m_recordChannelComboBox->setObjectName("recordChannelComboBox");
+	m_recordChannelComboBox->addItem(tr("All channels"), 0);
+	for (int channel = 1; channel <= MidiChannelCount; ++channel)
+	{
+		m_recordChannelComboBox->addItem(tr("Channel %1").arg(channel), channel);
+	}
+	m_recordChannelComboBox->setToolTip(tr("MIDI channel for recorded notes; All channels preserves the incoming channel."));
+	m_recordChannelComboBox->setMaximumWidth(112);
+	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+		[this](int index) { setRecordChannel(m_recordChannelComboBox->itemData(index).toInt()); });
+
+	auto pianoAndRecord = new QWidget(this);
+	auto pianoAndRecordLayout = new QHBoxLayout(pianoAndRecord);
+	pianoAndRecordLayout->setContentsMargins(4, 2, 4, 2);
+	pianoAndRecordLayout->setSpacing(4);
+	auto recordControls = new QVBoxLayout;
+	recordControls->setContentsMargins(0, 0, 0, 0);
+	recordControls->setSpacing(3);
+	recordControls->addWidget(m_recordButton);
+	recordControls->addWidget(new QLabel(tr("Record to"), this));
+	recordControls->addWidget(m_recordChannelComboBox);
+	recordControls->addStretch();
+	pianoAndRecordLayout->addLayout(recordControls);
+	pianoAndRecordLayout->addWidget(m_pianoView, 1, Qt::AlignLeft | Qt::AlignVCenter);
+
 	// setup sizes and policies
 	generalSettingsWidget->setMaximumHeight(90);
 	generalSettingsWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -281,8 +348,27 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	// Use QWidgetItem explicitly to make the size hint change on instrument changes
 	// QLayout::addWidget() uses QWidgetItemV2 with size hint caching
 	vlayout->insertItem(1, new QWidgetItem(m_tabWidget));
-	vlayout->addWidget( m_pianoView );
+	vlayout->addWidget(pianoAndRecord);
 	setModel( _itv->model() );
+	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate,
+		this, &InstrumentTrackWindow::updateRecordingControls);
+	connect(m_track, &InstrumentTrack::midiNoteOn, this, [this](const Note& note)
+	{
+		if (!m_waitingForInput) { return; }
+		m_waitingForInput = false;
+		m_recordTriggerNoteKey = note.key();
+		auto pianoRoll = getGUI()->pianoRoll();
+		if (pianoRoll->recordTrack(m_track)) { pianoRoll->recordInputNoteOn(note); }
+		else { m_recordTriggerNoteKey = -1; }
+		updateRecordingControls();
+	}, Qt::QueuedConnection);
+	connect(m_track, &InstrumentTrack::midiNoteOff, this, [this](const Note& note)
+	{
+		if (m_recordTriggerNoteKey != note.key()) { return; }
+		m_recordTriggerNoteKey = -1;
+		auto pianoRoll = getGUI()->pianoRoll();
+		if (pianoRoll->isRecordingTrack(m_track)) { pianoRoll->recordInputNoteOff(note); }
+	}, Qt::QueuedConnection);
 
 	QMdiSubWindow* subWin = getGUI()->mainWindow()->addWindowedWidget( this );
 
@@ -353,6 +439,11 @@ void InstrumentTrackWindow::modelChanged()
 	m_panningKnob->setModel( &m_track->m_panningModel );
 	m_mixerChannelNumber->setModel( &m_track->m_mixerChannelModel );
 	m_pianoView->setModel( &m_track->m_piano );
+	{
+		const QSignalBlocker blocker(m_recordChannelComboBox);
+		m_recordChannelComboBox->setCurrentIndex(
+			m_recordChannelComboBox->findData(m_track->midiPort()->outputChannel()));
+	}
 
 	if (m_track->instrument() && m_track->instrument()->isBendable())
 	{
@@ -397,6 +488,55 @@ void InstrumentTrackWindow::modelChanged()
 	updateName();
 
 	updateSubWindow();
+}
+
+
+void InstrumentTrackWindow::setRecordChannel(int channel)
+{
+	if (m_track) { m_track->midiPort()->setOutputChannel(channel); }
+}
+
+
+void InstrumentTrackWindow::startRecording()
+{
+	cancelArmedRecording();
+	getGUI()->pianoRoll()->recordTrack(m_track);
+	updateRecordingControls();
+}
+
+
+void InstrumentTrackWindow::armRecording(bool waitForInput)
+{
+	cancelArmedRecording();
+	m_waitingForInput = waitForInput;
+	if (!waitForInput) { m_recordStartTimer.start(3000); }
+	updateRecordingControls();
+}
+
+
+void InstrumentTrackWindow::cancelArmedRecording()
+{
+	m_recordStartTimer.stop();
+	m_waitingForInput = false;
+}
+
+
+void InstrumentTrackWindow::updateRecordingControls()
+{
+	auto pianoRoll = getGUI()->pianoRoll();
+	const bool recording = pianoRoll->isRecordingTrack(m_track);
+	const bool armed = m_recordStartTimer.isActive() || m_waitingForInput;
+	if (!recording && !m_waitingForInput) { m_recordTriggerNoteKey = -1; }
+	if (m_recordButton->isChecked() != (recording || armed))
+	{
+		const QSignalBlocker blocker(m_recordButton);
+		m_recordButton->setChecked(recording || armed);
+	}
+	m_recordButton->setText(recording ? tr("STOP") : armed ? tr("ARM") : tr("REC"));
+	m_recordButton->setToolTip(recording ? tr("Stop recording this instrument track") : armed ?
+		tr("Recording is armed; click to cancel. Right-click to change start mode.") :
+		tr("Record MIDI notes to this instrument track. Right-click for delayed or input-triggered start."));
+	m_recordButton->setEnabled(recording || !pianoRoll->isRecording());
 }
 
 

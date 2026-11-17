@@ -46,12 +46,12 @@ SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleR
 	m_track( dynamic_cast<SampleTrack*>(clip->getTrack()) ),
 	m_clip( clip ),
 	m_session(std::move(session)),
-	m_recordInput(0),
+	m_recordChannel(0),
 	m_inputMonitoring(false)
 {
 	if (m_track)
 	{
-		m_recordInput = m_track->recordInput();
+		m_recordChannel = m_track->recordChannel();
 		m_inputMonitoring = m_track->isInputMonitoring();
 		if (m_inputMonitoring) { setAudioBusHandle(m_track->audioBusHandle()); }
 	}
@@ -95,8 +95,8 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 		{
 			const auto& input = recbuf[frame];
 			auto& output = workingBuffer[frame];
-			if (m_recordInput == 1) { output[0] = output[1] = input[0]; }
-			else if (m_recordInput == 2) { output[0] = output[1] = input[1]; }
+			if (m_recordChannel == 1) { output[0] = input[0]; output[1] = 0.f; }
+			else if (m_recordChannel == 2) { output[0] = 0.f; output[1] = input[1]; }
 			else { output = input; }
 		}
 	}
@@ -129,13 +129,15 @@ void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _fra
 	for( f_cnt_t frame = 0; frame < _frames; ++frame )
 	{
 		SampleFrame recorded;
-		if (m_recordInput == 1)
+		if (m_recordChannel == 1)
 		{
-			recorded[0] = recorded[1] = _ab[frame][0];
+			recorded[0] = _ab[frame][0];
+			recorded[1] = 0.f;
 		}
-		else if (m_recordInput == 2)
+		else if (m_recordChannel == 2)
 		{
-			recorded[0] = recorded[1] = _ab[frame][1];
+			recorded[0] = 0.f;
+			recorded[1] = _ab[frame][1];
 		}
 		else
 		{

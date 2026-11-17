@@ -126,6 +126,8 @@ public:
 	bool recordTrack(InstrumentTrack* track);
 	bool isRecordingTrack(const InstrumentTrack* track) const;
 	void updateRecordingClipLength();
+	void recordInputNoteOn(const Note& note) { startRecordNote(note); }
+	void recordInputNoteOff(const Note& note) { finishRecordNote(note); }
 	void setGhostMidiClip( MidiClip* newMidiClip );
 	void loadGhostNotes( const QDomElement & de );
 	void loadMarkedSemiTones(const QDomElement & de);
@@ -578,6 +580,8 @@ public:
 	void record() override;
 	bool recordTrack(InstrumentTrack* track);
 	bool isRecordingTrack(const InstrumentTrack* track) const;
+	void recordInputNoteOn(const Note& note);
+	void recordInputNoteOff(const Note& note);
 	void recordAccompany() override;
 	void toggleStepRecording() override;
 	void stopRecording();

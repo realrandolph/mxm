@@ -36,7 +36,6 @@
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
-#include "AudioEngine.h"
 #include "Engine.h"
 #include "EffectRackView.h"
 #include "embed.h"
@@ -158,17 +157,13 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 	recordingControlsLayout->setHorizontalSpacing(6);
 	recordingControlsLayout->setVerticalSpacing(2);
 
-	m_recordInputComboBox = new QComboBox(this);
-	m_recordInputComboBox->setObjectName("recordInputComboBox");
-	m_recordInputComboBox->addItem(tr("Stereo"), 0);
-	m_recordInputComboBox->addItem(tr("Mono input 1 (left)"), 1);
-	const auto audioDevice = Engine::audioEngine()->audioDev();
-	if (!audioDevice || audioDevice->captureChannels() > 1)
-	{
-		m_recordInputComboBox->addItem(tr("Mono input 2 (right)"), 2);
-	}
-	m_recordInputComboBox->setToolTip(tr("Audio input mode for recording this track"));
-	recordingControlsLayout->addRow(tr("Record input"), m_recordInputComboBox);
+	m_recordChannelComboBox = new QComboBox(this);
+	m_recordChannelComboBox->setObjectName("recordChannelComboBox");
+	m_recordChannelComboBox->addItem(tr("All channels (Auto)"), 0);
+	m_recordChannelComboBox->addItem(tr("Left channel only"), 1);
+	m_recordChannelComboBox->addItem(tr("Right channel only"), 2);
+	m_recordChannelComboBox->setToolTip(tr("Choose which output channel receives the audio input. Auto preserves the input layout, duplicating mono input to both channels."));
+	recordingControlsLayout->addRow(tr("Record to"), m_recordChannelComboBox);
 
 	m_inputMonitoringCheckBox = new QCheckBox(tr("Monitor input"), this);
 	m_inputMonitoringCheckBox->setObjectName("inputMonitoringCheckBox");
@@ -176,8 +171,8 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 	recordingControlsLayout->addRow(QString{}, m_inputMonitoringCheckBox);
 	generalSettingsLayout->addLayout(recordingControlsLayout);
 
-	connect(m_recordInputComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-		m_track->setRecordInput(m_recordInputComboBox->itemData(index).toInt());
+	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+		m_track->setRecordChannel(m_recordChannelComboBox->itemData(index).toInt());
 	});
 	connect(m_inputMonitoringCheckBox, &QCheckBox::toggled, this, [this](bool enabled) {
 		m_track->setInputMonitoring(enabled);
@@ -233,14 +228,14 @@ void SampleTrackWindow::modelChanged()
 	m_panningKnob->setModel(&m_track->m_panningModel);
 	m_mixerChannelNumber->setModel(&m_track->m_mixerChannelModel);
 	{
-		const QSignalBlocker blocker(m_recordInputComboBox);
-		auto inputIndex = m_recordInputComboBox->findData(m_track->recordInput());
-		if (inputIndex < 0)
+		const QSignalBlocker blocker(m_recordChannelComboBox);
+		auto recordIndex = m_recordChannelComboBox->findData(m_track->recordChannel());
+		if (recordIndex < 0)
 		{
-			m_track->setRecordInput(0);
-			inputIndex = m_recordInputComboBox->findData(0);
+			m_track->setRecordChannel(0);
+			recordIndex = m_recordChannelComboBox->findData(0);
 		}
-		m_recordInputComboBox->setCurrentIndex(inputIndex);
+		m_recordChannelComboBox->setCurrentIndex(recordIndex);
 	}
 	{
 		const QSignalBlocker blocker(m_inputMonitoringCheckBox);

@@ -194,7 +194,7 @@ void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& this
 	m_volumeModel.saveSettings(doc, thisElem, "vol");
 	m_panningModel.saveSettings(doc, thisElem, "pan");
 	m_mixerChannelModel.saveSettings(doc, thisElem, "mixch");
-	thisElem.setAttribute("recordinput", recordInput());
+	thisElem.setAttribute("recordchannel", recordChannel());
 	thisElem.setAttribute("inputmonitor", isInputMonitoring());
 }
 
@@ -220,14 +220,14 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	m_panningModel.loadSettings(thisElem, "pan");
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
-	setRecordInput(thisElem.attribute("recordinput", "0").toInt());
+	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
 	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
 }
 
 
-void SampleTrack::setRecordInput(int input)
+void SampleTrack::setRecordChannel(int channel)
 {
-	m_recordInput.store(std::clamp(input, 0, 2), std::memory_order_relaxed);
+	m_recordChannel.store(std::clamp(channel, 0, 2), std::memory_order_relaxed);
 }
 
 

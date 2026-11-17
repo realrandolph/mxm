@@ -25,6 +25,7 @@
 #ifndef MXM_AUDIO_ENGINE_H
 #define MXM_AUDIO_ENGINE_H
 
+#include <atomic>
 #include <mutex>
 
 #include <QThread>
@@ -230,6 +231,7 @@ public:
 	bool criticalXRuns() const;
 
 	void pushInputFrames( SampleFrame* _ab, const f_cnt_t _frames );
+	float inputPeak() const { return m_inputPeak.load(std::memory_order_relaxed); }
 
 	inline const SampleFrame* inputBuffer()
 	{
@@ -381,6 +383,7 @@ private:
 	f_cnt_t m_inputBufferSize[2];
 	int m_inputBufferRead;
 	int m_inputBufferWrite;
+	std::atomic<float> m_inputPeak{0.f};
 
 	std::unique_ptr<SampleFrame[]> m_outputBufferRead;
 	std::unique_ptr<SampleFrame[]> m_outputBufferWrite;

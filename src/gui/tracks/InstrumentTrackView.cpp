@@ -34,8 +34,6 @@
 #include <QMdiSubWindow>
 #include <QMenu>
 #include <QSpacerItem>
-#include <QSignalBlocker>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "AudioEngine.h"
@@ -53,7 +51,6 @@
 #include "Mixer.h"
 #include "MixerChannelLcdSpinBox.h"
 #include "MixerView.h"
-#include "PianoRoll.h"
 #include "TrackLabelButton.h"
 
 
@@ -73,25 +70,6 @@ InstrumentTrackView::InstrumentTrackView( InstrumentTrack * _it, TrackContainerV
 	m_tlb->setCheckable( true );
 	m_tlb->setIcon(determinePixmap(_it));
 	m_tlb->show();
-
-	m_recordButton = new QToolButton(getTrackSettingsWidget());
-	m_recordButton->setObjectName("recordButton");
-	m_recordButton->setText(tr("REC"));
-	m_recordButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-	m_recordButton->setCheckable(true);
-	m_recordButton->setFixedSize(30, 18);
-	m_recordButton->setToolTip(tr("Record MIDI notes to this instrument track"));
-	m_recordButton->setStyleSheet(
-		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; font-size: 8px; }"
-		"QToolButton:checked { background-color: #d32f2f; color: white; }");
-	connect(m_recordButton, &QToolButton::clicked, this, [this]
-	{
-		auto pianoRoll = getGUI()->pianoRoll();
-		if (pianoRoll->isRecordingTrack(model())) { pianoRoll->stop(); }
-		else { pianoRoll->recordTrack(model()); }
-		updateRecordingControls();
-	});
-	m_recordButton->show();
 
 	connect( m_tlb, SIGNAL(toggled(bool)),
 			this, SLOT(toggleInstrumentWindow(bool)));
@@ -167,7 +145,6 @@ InstrumentTrackView::InstrumentTrackView( InstrumentTrack * _it, TrackContainerV
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 	layout->addWidget(m_tlb);
-	layout->addWidget(m_recordButton, 0, Qt::AlignVCenter);
 	layout->addWidget(m_mixerChannelNumber);
 	layout->addWidget(m_activityIndicator);
 	layout->addWidget(m_volumeKnob);
@@ -184,7 +161,6 @@ InstrumentTrackView::InstrumentTrackView( InstrumentTrack * _it, TrackContainerV
 	connect( _it, SIGNAL(endNote()),
 	 		m_activityIndicator, SLOT(noteEnd()));
 	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &InstrumentTrackView::corruptStateUpdate);
-	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &InstrumentTrackView::updateRecordingControls);
 
 	setModel( _it );
 
@@ -464,20 +440,5 @@ void InstrumentTrackView::corruptStateUpdate()
 	}
 }
 
-
-void InstrumentTrackView::updateRecordingControls()
-{
-	auto pianoRoll = getGUI()->pianoRoll();
-	const bool recording = pianoRoll->isRecordingTrack(model());
-	if (m_recordButton->isChecked() != recording)
-	{
-		const QSignalBlocker blocker(m_recordButton);
-		m_recordButton->setChecked(recording);
-	}
-	m_recordButton->setText(recording ? tr("STOP") : tr("REC"));
-	m_recordButton->setToolTip(recording ? tr("Stop recording this instrument track") :
-		tr("Record MIDI notes to this instrument track"));
-	m_recordButton->setEnabled(recording || !pianoRoll->isRecording());
-}
 
 } // namespace mxm::gui

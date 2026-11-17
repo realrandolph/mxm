@@ -207,6 +207,7 @@ bool AudioJack::initJackClient()
 
 	// set process-callback
 	jack_set_process_callback(m_client, staticProcessCallback, this);
+	jack_set_port_connect_callback(m_client, portConnectCallback, this);
 
 	// set shutdown-callback
 	jack_on_shutdown(m_client, shutdownCallback, this);
@@ -437,6 +438,16 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 				? static_cast<sample_t>(jack_input_buffer[frame]) : 0.f;
 		}
 	}
+	const auto monoInputPort = m_monoInputPort.load(std::memory_order_relaxed);
+	if (monoInputPort >= 0)
+	{
+		for (jack_nframes_t frame = 0; frame < nframes; ++frame)
+		{
+			const auto mono = m_inputFrameBuffer[frame][monoInputPort];
+			m_inputFrameBuffer[frame][0] = mono;
+			m_inputFrameBuffer[frame][1] = mono;
+		}
+	}
 	audioEngine()->pushInputFrames (m_inputFrameBuffer.data(), nframes);
 	return 0;
 }
@@ -447,6 +458,25 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 int AudioJack::staticProcessCallback(jack_nframes_t nframes, void* udata)
 {
 	return static_cast<AudioJack*>(udata)->processCallback(nframes);
+}
+
+
+void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* udata)
+{
+	auto* audioJack = static_cast<AudioJack*>(udata);
+	int connectedPort = -1;
+	for (int index = 0; index < static_cast<int>(audioJack->m_inputPorts.size()); ++index)
+	{
+		auto* port = audioJack->m_inputPorts[index];
+		if (!port || jack_port_connected(port) <= 0) { continue; }
+		if (connectedPort >= 0)
+		{
+			connectedPort = -1;
+			break;
+		}
+		connectedPort = index;
+	}
+	audioJack->m_monoInputPort.store(connectedPort, std::memory_order_relaxed);
 }
 
 

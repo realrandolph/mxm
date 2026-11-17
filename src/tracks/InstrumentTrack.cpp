@@ -72,6 +72,7 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	m_piano(this),
 	m_microtuner()
 {
+	m_midiPort.setOutputChannel(0);
 	m_pitchModel.setCenterValue( 0 );
 	m_pitchModel.setStrictStepSize(true);
 	m_panningModel.setCenterValue( DefaultPanning );

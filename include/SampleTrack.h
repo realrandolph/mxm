@@ -69,8 +69,8 @@ public:
 	bool isRecording() const { return m_recording.load(std::memory_order_relaxed); }
 	bool startRecording();
 	void stopRecording(bool stopTransport = true);
-	int recordInput() const { return m_recordInput.load(std::memory_order_relaxed); }
-	void setRecordInput(int input);
+	int recordChannel() const { return m_recordChannel.load(std::memory_order_relaxed); }
+	void setRecordChannel(int channel);
 	bool isInputMonitoring() const { return m_inputMonitoring.load(std::memory_order_relaxed); }
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
 	void updateInputLevel(float level);
@@ -118,7 +118,7 @@ private:
 	AudioBusHandle m_audioBusHandle;
 	bool m_isPlaying;
 	std::atomic_bool m_recording{false};
-	std::atomic_int m_recordInput{0};
+	std::atomic_int m_recordChannel{0};
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};
 	std::shared_ptr<SampleRecordSession> m_recordingSession;

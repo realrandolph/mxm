@@ -26,6 +26,8 @@
 #define MXM_GUI_SAMPLE_TRACK_VIEW_H
 
 
+#include <QTimer>
+
 #include "SampleTrack.h"
 #include "TrackView.h"
 
@@ -92,6 +94,9 @@ private slots:
 	void createMixerLine();
 	void corruptStateUpdate();
 	void updateRecordingControls();
+	void armRecording(bool waitForInput);
+	void cancelArmedRecording();
+	void startRecording();
 
 
 private:
@@ -101,6 +106,8 @@ private:
 	FadeButton * m_activityIndicator;
 	QToolButton* m_recordButton;
 	QProgressBar* m_inputLevelMeter;
+	QTimer m_recordStartTimer;
+	bool m_waitingForInput{false};
 
 	TrackLabelButton * m_tlb;
 

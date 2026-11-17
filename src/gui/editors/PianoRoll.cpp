@@ -4500,6 +4500,7 @@ void PianoRoll::stop()
 			const auto length = TimePos(std::max(endPosition.getTicks() - startedNote.pos().getTicks(), 1));
 			Note recordedNote(length, startedNote.pos(),
 				startedNote.key(), startedNote.getVolume(), startedNote.getPanning());
+			recordedNote.setMidiChannel(startedNote.midiChannel());
 			if (m_doAutoQuantization)
 			{
 				recordedNote.quantizeLength(quantization());
@@ -4564,6 +4565,10 @@ void PianoRoll::startRecordNote(const Note & n )
 			Note n1( 1, Engine::getSong()->getPlayPos(
 						Engine::getSong()->playMode() ) - sub,
 					n.key(), n.getVolume(), n.getPanning() );
+			auto* track = m_midiClip->instrumentTrack();
+			const auto* midiPort = track->midiPort();
+			n1.setMidiChannel(midiPort->outputChannel() == 0
+				? n.midiChannel() : midiPort->realOutputChannel());
 			if( n1.pos() >= 0 )
 			{
 				m_recordingNotes << n1;
@@ -4598,6 +4603,7 @@ void PianoRoll::finishRecordNote(const Note & n )
 					Note n1(n.length(), it->pos(),
 							it->key(), it->getVolume(),
 							it->getPanning(), n.detuning());
+					n1.setMidiChannel(it->midiChannel());
 
 					if (m_doAutoQuantization)
 					{
@@ -5683,6 +5689,18 @@ bool PianoRollWindow::recordTrack(InstrumentTrack* track)
 bool PianoRollWindow::isRecordingTrack(const InstrumentTrack* track) const
 {
 	return m_editor->isRecordingTrack(track);
+}
+
+
+void PianoRollWindow::recordInputNoteOn(const Note& note)
+{
+	m_editor->recordInputNoteOn(note);
+}
+
+
+void PianoRollWindow::recordInputNoteOff(const Note& note)
+{
+	m_editor->recordInputNoteOff(note);
 }
 
 

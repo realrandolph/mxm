@@ -96,7 +96,7 @@ private:
 	AutomatableButton* m_muteBtn;
 	AutomatableButton* m_soloBtn;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
-	QComboBox* m_recordInputComboBox;
+	QComboBox* m_recordChannelComboBox;
 	QCheckBox* m_inputMonitoringCheckBox;
 
 	EffectRackView * m_effectRack;
