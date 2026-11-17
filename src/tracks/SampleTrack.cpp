@@ -29,7 +29,10 @@
 
 #include <QDomElement>
 
+#include "AudioDevice.h"
+#include "AudioEngine.h"
 #include "EffectChain.h"
+#include "Engine.h"
 #include "Mixer.h"
 #include "panning.h"
 #include "PatternStore.h"
@@ -66,6 +69,7 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 
 SampleTrack::~SampleTrack()
 {
+	stopRecording();
 	Engine::audioEngine()->removePlayHandlesOfTypes(this,
 		PlayHandle::Type::SamplePlayHandle | PlayHandle::Type::SampleRecordPlayHandle);
 }
@@ -76,12 +80,6 @@ SampleTrack::~SampleTrack()
 bool SampleTrack::play( const TimePos & _start, const f_cnt_t _frames,
 					const f_cnt_t _offset, int _clip_num )
 {
-	if (Engine::getSong()->isRecordingOnly())
-	{
-		setPlaying(false);
-		return false;
-	}
-
 	bool played_a_note = false; // will be return variable
 
 
@@ -230,12 +228,30 @@ void SampleTrack::setRecordInput(int input)
 }
 
 
-void SampleTrack::prepareRecording(const TimePos& position)
+bool SampleTrack::startRecording()
 {
-	if (!isRecordArmed()) { return; }
+	if (isRecording()) { return true; }
+	auto audioDevice = Engine::audioEngine()->audioDev();
+	if (!audioDevice || !audioDevice->supportsCapture()) { return false; }
 
+	auto song = Engine::getSong();
+	const auto playMode = song->playMode();
+	const auto position = playMode == Song::PlayMode::None
+		? song->getPlayPos(Song::PlayMode::None) : song->getPlayPos(Song::PlayMode::Song);
 	auto clip = static_cast<SampleClip*>(createClip(position));
+	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
+	song->trackRecordingStarted();
 	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip));
+	return true;
+}
+
+
+void SampleTrack::stopRecording()
+{
+	if (m_recording.exchange(false, std::memory_order_relaxed))
+	{
+		if (auto song = Engine::getSong()) { song->trackRecordingStopped(); }
+	}
 }
 
 

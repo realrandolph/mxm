@@ -28,6 +28,8 @@
 #include <memory>
 #include <vector>
 
+#include <QPointer>
+
 #include "PlayHandle.h"
 
 namespace mxm
@@ -36,7 +38,7 @@ namespace mxm
 
 class SampleBuffer;
 class SampleClip;
-class Track;
+class SampleTrack;
 
 
 class SampleRecordHandle : public PlayHandle
@@ -56,8 +58,8 @@ private:
 
 	std::vector<SampleFrame> m_recordedFrames;
 
-	Track * m_track;
-	SampleClip * m_clip;
+	SampleTrack * m_track;
+	QPointer<SampleClip> m_clip;
 	int m_recordInput;
 	bool m_inputMonitoring;
 

@@ -99,7 +99,7 @@ private:
 	Knob * m_volumeKnob;
 	Knob * m_panningKnob;
 	FadeButton * m_activityIndicator;
-	QToolButton* m_recordArmButton;
+	QToolButton* m_recordButton;
 	QProgressBar* m_inputLevelMeter;
 
 	TrackLabelButton * m_tlb;

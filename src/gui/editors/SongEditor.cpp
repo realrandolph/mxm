@@ -914,7 +914,7 @@ ComboBoxModel *SongEditor::snappingModel() const
 
 
 SongEditorWindow::SongEditorWindow(Song* song) :
-	Editor(Engine::audioEngine()->audioDev()->supportsCapture(), false),
+	Editor(false, false),
 	m_editor(new SongEditor(song)),
 	m_crtlAction( nullptr ),
 	m_snapSizeLabel( new QLabel( m_toolBar ) )
@@ -930,8 +930,6 @@ SongEditorWindow::SongEditorWindow(Song* song) :
 
 	// Set up buttons
 	m_playAction->setToolTip(tr("Play song (Space)"));
-	m_recordAction->setToolTip(tr("Record audio into armed sample tracks"));
-	m_recordAccompanyAction->setToolTip(tr("Record audio into armed sample tracks while playing"));
 	m_stopAction->setToolTip(tr( "Stop song (Space)" ));
 
 
@@ -1091,26 +1089,6 @@ void SongEditorWindow::play()
 }
 
 
-void SongEditorWindow::record()
-{
-	m_editor->m_song->record();
-	m_editor->m_timeLine->setRecording(true);
-	m_editor->m_positionLine->setRecording(true);
-}
-
-
-
-
-void SongEditorWindow::recordAccompany()
-{
-	m_editor->m_song->playAndRecord();
-	m_editor->m_timeLine->setRecording(true);
-	m_editor->m_positionLine->setRecording(true);
-}
-
-
-
-
 void SongEditorWindow::stop()
 {
 	m_editor->m_song->stop();
@@ -1147,4 +1125,3 @@ void SongEditorWindow::adjustUiAfterProjectLoad()
 
 
 } // namespace mxm::gui
-

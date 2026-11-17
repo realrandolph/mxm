@@ -36,6 +36,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AudioDevice.h"
 #include "ConfigManager.h"
 #include "DeprecationHelper.h"
 #include "MainWindow.h"
@@ -47,7 +48,6 @@
 #include "GuiApplication.h"
 #include "Knob.h"
 #include "SampleClip.h"
-#include "Song.h"
 #include "SampleTrackWindow.h"
 #include "SongEditor.h"
 #include "StringPairDrag.h"
@@ -90,21 +90,23 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 	recordControlsLayout->setContentsMargins(0, 0, 0, 0);
 	recordControlsLayout->setSpacing(1);
 
-	m_recordArmButton = new QToolButton(recordControls);
-	m_recordArmButton->setObjectName("recordArmButton");
-	m_recordArmButton->setText(tr("ARM"));
-	m_recordArmButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-	m_recordArmButton->setCheckable(true);
-	m_recordArmButton->setFixedSize(30, 18);
-	m_recordArmButton->setToolTip(tr("Arm this sample track for recording"));
-	m_recordArmButton->setStyleSheet(
+	m_recordButton = new QToolButton(recordControls);
+	m_recordButton->setObjectName("recordButton");
+	m_recordButton->setText(tr("REC"));
+	m_recordButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_recordButton->setCheckable(true);
+	m_recordButton->setFixedSize(30, 18);
+	m_recordButton->setToolTip(tr("Record audio to this sample track"));
+	m_recordButton->setStyleSheet(
 		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; font-size: 8px; }"
 		"QToolButton:checked { background-color: #d32f2f; color: white; }");
-	m_recordArmButton->setChecked(_t->isRecordArmed());
-	connect(m_recordArmButton, &QToolButton::toggled, this, [this](bool armed) {
-		model()->setRecordArmed(armed);
+	connect(m_recordButton, &QToolButton::clicked, this, [this] {
+		auto track = model();
+		if (track->isRecording()) { track->stopRecording(); }
+		else { track->startRecording(); }
+		updateRecordingControls();
 	});
-	recordControlsLayout->addWidget(m_recordArmButton);
+	recordControlsLayout->addWidget(m_recordButton);
 
 	m_inputLevelMeter = new QProgressBar(recordControls);
 	m_inputLevelMeter->setObjectName("inputLevelMeter");
@@ -301,15 +303,19 @@ void SampleTrackView::corruptStateUpdate()
 void SampleTrackView::updateRecordingControls()
 {
 	auto track = model();
-	if (m_recordArmButton->isChecked() != track->isRecordArmed())
+	const bool recording = track->isRecording();
+	if (m_recordButton->isChecked() != recording)
 	{
-		const QSignalBlocker blocker(m_recordArmButton);
-		m_recordArmButton->setChecked(track->isRecordArmed());
+		const QSignalBlocker blocker(m_recordButton);
+		m_recordButton->setChecked(recording);
 	}
-	const bool recording = Engine::getSong()->isRecording() && track->isRecordArmed();
-	m_recordArmButton->setText(recording ? tr("REC") : tr("ARM"));
-	m_recordArmButton->setToolTip(recording ? tr("Recording this sample track") :
-		tr("Arm this sample track for recording"));
+	const auto audioDevice = Engine::audioEngine()->audioDev();
+	const bool captureAvailable = audioDevice && audioDevice->supportsCapture();
+	m_recordButton->setText(recording ? tr("STOP") : tr("REC"));
+	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") :
+		(captureAvailable ? tr("Record audio to this sample track") :
+			tr("The selected audio device does not support input recording")));
+	m_recordButton->setEnabled(recording || captureAvailable);
 
 	const auto inputLevel = std::clamp(track->takeInputLevel(), 0.f, 1.f);
 	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));

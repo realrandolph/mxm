@@ -81,8 +81,6 @@ Song::Song() :
 	m_oldFileName(),
 	m_modified( false ),
 	m_loadOnLaunch( true ),
-	m_recording( false ),
-	m_recordingOnly( false ),
 	m_exporting( false ),
 	m_exportLoop( false ),
 	m_renderBetweenMarkers( false ),
@@ -144,6 +142,10 @@ Song::Song() :
 Song::~Song()
 {
 	m_playing = false;
+	for (auto track : tracks())
+	{
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+	}
 	delete m_globalAutomationTrack;
 }
 
@@ -226,14 +228,6 @@ void Song::processNextBuffer()
 	{
 		case PlayMode::Song:
 			trackList = tracks();
-			if (m_recordingOnly)
-			{
-				std::erase_if(trackList, [](Track* track)
-				{
-					auto sampleTrack = dynamic_cast<SampleTrack*>(track);
-					return !sampleTrack || !sampleTrack->isRecordArmed();
-				});
-			}
 			break;
 
 		case PlayMode::Pattern:
@@ -509,9 +503,6 @@ int Song::getExportProgress() const
 
 void Song::playSong()
 {
-	m_recording = false;
-	m_recordingOnly = false;
-
 	if( isStopped() == false )
 	{
 		stop();
@@ -525,62 +516,6 @@ void Song::playSong()
 
 	savePlayStartPosition();
 
-	emit playbackStateChanged();
-}
-
-
-
-
-void Song::record()
-{
-	startRecording(false);
-}
-
-
-
-
-void Song::playAndRecord()
-{
-	startRecording(true);
-}
-
-
-void Song::startRecording(bool withPlayback)
-{
-	if (Engine::audioEngine()->audioDev() == nullptr ||
-		!Engine::audioEngine()->audioDev()->supportsCapture())
-	{
-		return;
-	}
-	const auto& sampleTracks = tracks();
-	if (std::none_of(sampleTracks.begin(), sampleTracks.end(), [](Track* track)
-		{ auto sampleTrack = dynamic_cast<SampleTrack*>(track); return sampleTrack && sampleTrack->isRecordArmed(); }))
-	{
-		return;
-	}
-
-	const TimePos startPosition = getPlayPos(PlayMode::Song);
-	if (!isStopped()) { stop(); }
-
-	getTimeline(PlayMode::Song).setTicks(startPosition.getTicks());
-	for (Track* track : tracks())
-	{
-		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track))
-		{
-			sampleTrack->prepareRecording(startPosition);
-		}
-	}
-
-	{
-		const auto guard = Engine::audioEngine()->requestChangesGuard();
-		m_playMode = PlayMode::Song;
-		m_playing = true;
-		m_paused = false;
-		m_recording = true;
-		m_recordingOnly = !withPlayback;
-		m_vstSyncController.setPlaybackState(withPlayback);
-		savePlayStartPosition();
-	}
 	emit playbackStateChanged();
 }
 
@@ -690,9 +625,19 @@ void Song::togglePause()
 
 void Song::stop()
 {
-	// do not stop/reset things again if we're stopped already
-	if( m_playMode == PlayMode::None )
+	if (m_playMode == PlayMode::None)
 	{
+		if (!isRecording()) { return; }
+		{
+			const auto guard = Engine::audioEngine()->requestChangesGuard();
+			for (auto track : tracks())
+			{
+				if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+			}
+			Engine::audioEngine()->clear();
+		}
+		emit stopped();
+		emit playbackStateChanged();
 		return;
 	}
 
@@ -700,11 +645,13 @@ void Song::stop()
 
 	// To avoid race conditions with the processing threads
 	Engine::audioEngine()->requestChangeInModel();
+	for (auto track : tracks())
+	{
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+	}
 
 	auto& timeline = getTimeline();
 	m_paused = false;
-	m_recording = false;
-	m_recordingOnly = false;
 	m_playing = false;
 
 	switch (timeline.stopBehaviour())

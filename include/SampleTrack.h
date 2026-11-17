@@ -59,13 +59,13 @@ public:
 	void saveTrackSpecificSettings(QDomDocument& doc, QDomElement& parent, bool presetMode) override;
 	void loadTrackSpecificSettings( const QDomElement & _this ) override;
 
-	bool isRecordArmed() const { return m_recordArmed.load(std::memory_order_relaxed); }
-	void setRecordArmed(bool armed) { m_recordArmed.store(armed, std::memory_order_relaxed); }
+	bool isRecording() const { return m_recording.load(std::memory_order_relaxed); }
+	bool startRecording();
+	void stopRecording();
 	int recordInput() const { return m_recordInput.load(std::memory_order_relaxed); }
 	void setRecordInput(int input);
 	bool isInputMonitoring() const { return m_inputMonitoring.load(std::memory_order_relaxed); }
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
-	void prepareRecording(const TimePos& position);
 	void updateInputLevel(float level);
 	float takeInputLevel() { return m_inputLevel.exchange(0.f, std::memory_order_relaxed); }
 
@@ -109,7 +109,7 @@ private:
 	IntModel m_mixerChannelModel;
 	AudioBusHandle m_audioBusHandle;
 	bool m_isPlaying;
-	std::atomic_bool m_recordArmed{false};
+	std::atomic_bool m_recording{false};
 	std::atomic_int m_recordInput{0};
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};

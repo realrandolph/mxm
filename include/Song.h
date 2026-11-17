@@ -26,6 +26,7 @@
 #define MXM_SONG_H
 
 #include <array>
+#include <atomic>
 #include <memory>
 
 #include <QString>
@@ -174,15 +175,7 @@ public:
 		m_exportLoop = exportLoop;
 	}
 
-	inline bool isRecording() const
-	{
-		return m_recording;
-	}
-
-	inline bool isRecordingOnly() const
-	{
-		return m_recordingOnly;
-	}
+	bool isRecording() const { return m_recordingTracks.load(std::memory_order_relaxed) > 0; }
 	
 	inline void setLoopRenderCount(int count)
 	{
@@ -335,8 +328,6 @@ public:
 
 public slots:
 	void playSong();
-	void record();
-	void playAndRecord();
 	void playPattern();
 	void playMidiClip( const mxm::MidiClip * midiClipToPlay, bool loop = true );
 	void togglePause();
@@ -404,7 +395,8 @@ private:
 
 	void processAutomations(const TrackList& tracks, TimePos timeStart, f_cnt_t frames);
 	void processMetronome(size_t bufferOffset);
-	void startRecording(bool withPlayback);
+	void trackRecordingStarted() { m_recordingTracks.fetch_add(1, std::memory_order_relaxed); }
+	void trackRecordingStopped() { m_recordingTracks.fetch_sub(1, std::memory_order_relaxed); }
 
 	void setModified(bool value);
 
@@ -427,8 +419,7 @@ private:
 	bool m_modified;
 	bool m_loadOnLaunch;
 
-	volatile bool m_recording;
-	bool m_recordingOnly;
+	std::atomic_int m_recordingTracks{0};
 	volatile bool m_exporting;
 	volatile bool m_exportLoop;
 	volatile bool m_renderBetweenMarkers;
@@ -470,6 +461,7 @@ private:
 
 	friend class Engine;
 	friend class gui::SongEditor;
+	friend class SampleTrack;
 	friend class gui::ControllerRackView;
 
 signals:

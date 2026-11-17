@@ -28,12 +28,13 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QMetaObject>
+
 #include "AudioEngine.h"
 #include "Engine.h"
 #include "SampleBuffer.h"
 #include "SampleClip.h"
 #include "SampleTrack.h"
-#include "Song.h"
 
 
 namespace mxm
@@ -42,17 +43,18 @@ namespace mxm
 
 SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
 	PlayHandle( Type::SampleRecordPlayHandle ),
-	m_track( clip->getTrack() ),
+	m_track( dynamic_cast<SampleTrack*>(clip->getTrack()) ),
 	m_clip( clip ),
 	m_recordInput(0),
 	m_inputMonitoring(false)
 {
-	if (auto sampleTrack = dynamic_cast<SampleTrack*>(m_track))
+	if (m_track)
 	{
-		m_recordInput = sampleTrack->recordInput();
-		m_inputMonitoring = sampleTrack->isInputMonitoring();
-		if (m_inputMonitoring) { setAudioBusHandle(sampleTrack->audioBusHandle()); }
+		m_recordInput = m_track->recordInput();
+		m_inputMonitoring = m_track->isInputMonitoring();
+		if (m_inputMonitoring) { setAudioBusHandle(m_track->audioBusHandle()); }
 	}
+	setUsesBuffer(m_inputMonitoring);
 	m_recordedFrames.reserve(Engine::audioEngine()->outputSampleRate());
 }
 
@@ -61,11 +63,19 @@ SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
 
 SampleRecordHandle::~SampleRecordHandle()
 {
-	if (!m_recordedFrames.empty())
+	if (!m_clip) { return; }
+	auto clip = m_clip;
+	if (m_recordedFrames.empty())
 	{
-		m_clip->setSampleBuffer(std::make_shared<const SampleBuffer>(std::move(m_recordedFrames),
-			Engine::audioEngine()->inputSampleRate()));
+		QMetaObject::invokeMethod(clip.data(), [clip] { if (clip) { delete clip.data(); } }, Qt::QueuedConnection);
+		return;
 	}
+	auto sampleBuffer = std::make_shared<const SampleBuffer>(std::move(m_recordedFrames),
+		Engine::audioEngine()->inputSampleRate());
+	QMetaObject::invokeMethod(clip.data(), [clip, sampleBuffer = std::move(sampleBuffer)]() mutable
+	{
+		if (clip) { clip->setSampleBuffer(std::move(sampleBuffer)); }
+	}, Qt::QueuedConnection);
 }
 
 
@@ -73,7 +83,7 @@ SampleRecordHandle::~SampleRecordHandle()
 
 void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
-	if (!Engine::getSong()->isRecording()) { return; }
+	if (!m_track || !m_track->isRecording()) { return; }
 
 	const auto recbuf = Engine::audioEngine()->inputBuffer();
 	const auto frames = Engine::audioEngine()->inputBufferFrames();
@@ -97,7 +107,7 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 
 bool SampleRecordHandle::isFinished() const
 {
-	return false;
+	return !m_track || !m_track->isRecording();
 }
 
 
@@ -133,7 +143,7 @@ void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _fra
 		peak = std::max({peak, std::abs(recorded[0]), std::abs(recorded[1])});
 		m_recordedFrames.push_back(recorded);
 	}
-	if (auto sampleTrack = dynamic_cast<SampleTrack*>(m_track)) { sampleTrack->updateInputLevel(peak); }
+	if (m_track) { m_track->updateInputLevel(peak); }
 }
 
 

@@ -24,8 +24,6 @@
 
 #include "AudioEngine.h"
 
-#include <vector>
-
 #include "MixHelpers.h"
 
 #include "mxmconfig.h"
@@ -461,6 +459,15 @@ void AudioEngine::removeAudioBusHandle(AudioBusHandle* busHandle)
 
 bool AudioEngine::addPlayHandle( PlayHandle* handle )
 {
+	if (handle->type() == PlayHandle::Type::SampleRecordPlayHandle)
+	{
+		requestChangeInModel();
+		m_playHandles += handle;
+		if (auto bus = handle->audioBusHandle()) { bus->addPlayHandle(handle); }
+		doneChangeInModel();
+		return true;
+	}
+
 	// Only add play handles if we have the CPU capacity to process them.
 	// Instrument play handles are not added during playback, but when the
 	// associated instrument is created, so add those unconditionally.
@@ -543,18 +550,13 @@ void AudioEngine::removePlayHandle(PlayHandle * ph)
 void AudioEngine::removePlayHandlesOfTypes(Track * track, PlayHandle::Types types)
 {
 	requestChangeInModel();
-	std::vector<PlayHandle*> recordHandles;
 	PlayHandleList::Iterator it = m_playHandles.begin();
 	while( it != m_playHandles.end() )
 	{
 		if ((*it)->isFromTrack(track) && ((*it)->type() & types))
 		{
 			if (auto bus = (*it)->audioBusHandle()) { bus->removePlayHandle(*it); }
-			if ((*it)->type() == PlayHandle::Type::SampleRecordPlayHandle && !s_renderingThread)
-			{
-				recordHandles.push_back(*it);
-			}
-			else if((*it)->type() == PlayHandle::Type::NotePlayHandle)
+			if((*it)->type() == PlayHandle::Type::NotePlayHandle)
 			{
 				NotePlayHandleManager::release((NotePlayHandle*)*it);
 			}
@@ -567,7 +569,6 @@ void AudioEngine::removePlayHandlesOfTypes(Track * track, PlayHandle::Types type
 		}
 	}
 	doneChangeInModel();
-	for (auto handle : recordHandles) { delete handle; }
 }
 
 
