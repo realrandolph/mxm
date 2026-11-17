@@ -87,6 +87,7 @@ public:
 	//!
 	//! @param clipv The ClipView to remove.
 	void removeClipView(ClipView* clipv);
+	ClipView* nextOverlappingClip(ClipView* current, int x);
 
 	void removeClipView( int clipNum )
 	{
@@ -216,6 +217,8 @@ private:
 
 	using clipViewVector = QVector<ClipView*>;
 	clipViewVector m_clipViews;
+	int m_lastOverlapX = -1;
+	int m_lastOverlapIndex = -1;
 
 	QPixmap m_background;
 

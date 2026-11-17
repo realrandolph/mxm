@@ -61,7 +61,7 @@ public:
 
 	bool isRecording() const { return m_recording.load(std::memory_order_relaxed); }
 	bool startRecording();
-	void stopRecording();
+	void stopRecording(bool stopTransport = true);
 	int recordInput() const { return m_recordInput.load(std::memory_order_relaxed); }
 	void setRecordInput(int input);
 	bool isInputMonitoring() const { return m_inputMonitoring.load(std::memory_order_relaxed); }

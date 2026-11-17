@@ -144,7 +144,7 @@ Song::~Song()
 	m_playing = false;
 	for (auto track : tracks())
 	{
-		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
 	}
 	delete m_globalAutomationTrack;
 }
@@ -227,7 +227,7 @@ void Song::processNextBuffer()
 	switch (m_playMode)
 	{
 		case PlayMode::Song:
-			trackList = tracks();
+			if (!m_recordingOnly) { trackList = tracks(); }
 			break;
 
 		case PlayMode::Pattern:
@@ -520,6 +520,42 @@ void Song::playSong()
 }
 
 
+void Song::startTrackRecordingTransport(const TimePos& position)
+{
+	if (m_playMode == PlayMode::Song)
+	{
+		if (m_paused)
+		{
+			m_playing = true;
+			m_paused = false;
+			m_vstSyncController.setPlaybackState(true);
+			emit playbackStateChanged();
+		}
+		return;
+	}
+	if (m_playMode != PlayMode::None) { return; }
+	getTimeline(PlayMode::Song).setTicks(position.getTicks());
+	m_recordingOnly = true;
+	m_playMode = PlayMode::Song;
+	m_playing = true;
+	m_paused = false;
+	m_vstSyncController.setPlaybackState(false);
+	savePlayStartPosition();
+	emit playbackStateChanged();
+}
+
+
+void Song::trackRecordingStopped(bool stopTransport)
+{
+	if (m_recordingTracks.fetch_sub(1, std::memory_order_relaxed) == 1 &&
+		stopTransport && m_playMode != PlayMode::None)
+	{
+		m_recordingOnly = true;
+		stop();
+	}
+}
+
+
 
 
 void Song::playPattern()
@@ -632,7 +668,7 @@ void Song::stop()
 			const auto guard = Engine::audioEngine()->requestChangesGuard();
 			for (auto track : tracks())
 			{
-				if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+				if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
 			}
 			Engine::audioEngine()->clear();
 		}
@@ -645,16 +681,18 @@ void Song::stop()
 
 	// To avoid race conditions with the processing threads
 	Engine::audioEngine()->requestChangeInModel();
+	const bool recordingOnly = m_recordingOnly;
+	m_recordingOnly = false;
 	for (auto track : tracks())
 	{
-		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(); }
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
 	}
 
 	auto& timeline = getTimeline();
 	m_paused = false;
 	m_playing = false;
 
-	switch (timeline.stopBehaviour())
+	if (!recordingOnly) switch (timeline.stopBehaviour())
 	{
 		case Timeline::StopBehaviour::BackToZero:
 			if (m_playMode == PlayMode::MidiClip)

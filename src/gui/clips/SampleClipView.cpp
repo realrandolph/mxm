@@ -37,7 +37,9 @@
 #include "SampleThumbnail.h"
 #include "Song.h"
 #include "StringPairDrag.h"
+#include "SongEditor.h"
 #include "TrackContainerView.h"
+#include "TrackContentWidget.h"
 #include "TrackView.h"
 
 namespace mxm::gui
@@ -50,6 +52,7 @@ SampleClipView::SampleClipView( SampleClip * _clip, TrackView * _tv ) :
 	m_paintPixmap(),
 	m_paintPixmapXPosition(0)
 {
+	setAttribute(Qt::WA_TranslucentBackground);
 	// update UI and tooltip
 	updateSample();
 
@@ -141,6 +144,18 @@ void SampleClipView::dropEvent( QDropEvent * _de )
 
 void SampleClipView::mousePressEvent( QMouseEvent * _me )
 {
+	if (_me->button() == Qt::LeftButton && !_me->modifiers())
+	{
+		auto content = m_trackView->getTrackContentWidget();
+		auto nextClip = content->nextOverlappingClip(this, mapTo(content, _me->pos()).x());
+		if (nextClip != this)
+		{
+			getGUI()->songEditor()->m_editor->selectAllClips(false);
+			nextClip->setSelected(true);
+			_me->accept();
+			return;
+		}
+	}
 	if( _me->button() == Qt::MiddleButton && _me->modifiers() == Qt::ControlModifier )
 	{
 		auto sClip = dynamic_cast<SampleClip*>(getClip());
@@ -217,21 +232,20 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		m_paintPixmap = QPixmap(viewPortRect.size());
 	}
 
+	m_paintPixmap.fill(Qt::transparent);
 	QPainter p( &m_paintPixmap );
 
 	bool muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
 	bool selected = isSelected();
 
 	QLinearGradient lingrad(0, 0, 0, height());
-	QColor c = painter.background().color();
+	QColor c = m_clip->color().value_or(m_clip->getTrack()->color().value_or(painter.background().color()));
+	c.setAlpha(150);
 	if (muted) { c = c.darker(150); }
 	if (selected) { c = c.darker(150); }
 
 	lingrad.setColorAt( 1, c.darker( 300 ) );
 	lingrad.setColorAt( 0, c );
-
-	// paint a black rectangle under the clip to prevent glitches with transparent backgrounds
-	p.fillRect( rect(), QColor( 0, 0, 0 ) );
 
 	if( gradient() )
 	{
@@ -242,7 +256,8 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		p.fillRect( rect(), c );
 	}
 
-	auto clipColor = m_clip->color().value_or(m_clip->getTrack()->color().value_or(painter.pen().brush().color()));
+	auto clipColor = c;
+	clipColor.setAlpha(255);
 
 	p.setPen(clipColor);
 

@@ -178,6 +178,24 @@ void TrackContentWidget::removeClipView( ClipView * clipv )
 	}
 }
 
+ClipView* TrackContentWidget::nextOverlappingClip(ClipView* current, int x)
+{
+	QVector<ClipView*> overlapping;
+	for (auto clipView : m_clipViews)
+	{
+		if (clipView->geometry().contains(x, current->y())) { overlapping.push_back(clipView); }
+	}
+	if (overlapping.size() < 2) { return current; }
+
+	if (x != m_lastOverlapX)
+	{
+		m_lastOverlapX = x;
+		m_lastOverlapIndex = overlapping.indexOf(current);
+	}
+	m_lastOverlapIndex = (m_lastOverlapIndex + 1) % overlapping.size();
+	return overlapping[m_lastOverlapIndex];
+}
+
 
 
 

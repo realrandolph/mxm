@@ -395,8 +395,9 @@ private:
 
 	void processAutomations(const TrackList& tracks, TimePos timeStart, f_cnt_t frames);
 	void processMetronome(size_t bufferOffset);
+	void startTrackRecordingTransport(const TimePos& position);
 	void trackRecordingStarted() { m_recordingTracks.fetch_add(1, std::memory_order_relaxed); }
-	void trackRecordingStopped() { m_recordingTracks.fetch_sub(1, std::memory_order_relaxed); }
+	void trackRecordingStopped(bool stopTransport);
 
 	void setModified(bool value);
 
@@ -420,6 +421,7 @@ private:
 	bool m_loadOnLaunch;
 
 	std::atomic_int m_recordingTracks{0};
+	bool m_recordingOnly = false;
 	volatile bool m_exporting;
 	volatile bool m_exportLoop;
 	volatile bool m_renderBetweenMarkers;

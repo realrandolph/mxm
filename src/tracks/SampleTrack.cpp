@@ -27,6 +27,7 @@
 
 #include <algorithm>
 
+#include <QColor>
 #include <QDomElement>
 
 #include "AudioDevice.h"
@@ -69,7 +70,7 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 
 SampleTrack::~SampleTrack()
 {
-	stopRecording();
+	stopRecording(false);
 	Engine::audioEngine()->removePlayHandlesOfTypes(this,
 		PlayHandle::Type::SamplePlayHandle | PlayHandle::Type::SampleRecordPlayHandle);
 }
@@ -178,6 +179,7 @@ gui::TrackView * SampleTrack::createView( gui::TrackContainerView* tcv )
 Clip * SampleTrack::createClip(const TimePos & pos)
 {
 	auto sClip = new SampleClip(this);
+	sClip->setColor(QColor::fromHsv((getClipNum(sClip) * 137) % 360, 170, 230));
 	sClip->movePosition(pos);
 	return sClip;
 }
@@ -242,15 +244,16 @@ bool SampleTrack::startRecording()
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
 	song->trackRecordingStarted();
 	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip));
+	song->startTrackRecordingTransport(position);
 	return true;
 }
 
 
-void SampleTrack::stopRecording()
+void SampleTrack::stopRecording(bool stopTransport)
 {
 	if (m_recording.exchange(false, std::memory_order_relaxed))
 	{
-		if (auto song = Engine::getSong()) { song->trackRecordingStopped(); }
+		if (auto song = Engine::getSong()) { song->trackRecordingStopped(stopTransport); }
 	}
 }
 
