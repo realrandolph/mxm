@@ -126,8 +126,7 @@ public:
 	bool recordTrack(InstrumentTrack* track);
 	bool isRecordingTrack(const InstrumentTrack* track) const;
 	void updateRecordingClipLength();
-	void recordInputNoteOn(const Note& note) { startRecordNote(note); }
-	void recordInputNoteOff(const Note& note) { finishRecordNote(note); }
+	void recordInputNoteOn(const Note& note, int midiChannel) { startRecordNote(note, midiChannel); }
 	void setGhostMidiClip( MidiClip* newMidiClip );
 	void loadGhostNotes( const QDomElement & de );
 	void loadMarkedSemiTones(const QDomElement & de);
@@ -211,8 +210,8 @@ protected slots:
 	bool toggleStepRecording();
 	void stop();
 
-	void startRecordNote( const mxm::Note & n );
-	void finishRecordNote( const mxm::Note & n );
+	void startRecordNote(const mxm::Note& note, int midiChannel);
+	void finishRecordNote(const mxm::Note& note, int midiChannel);
 
 	void horScrolled( int new_pos );
 	void verScrolled( int new_pos );
@@ -394,11 +393,18 @@ private:
 
 	void adjustLeftRightScoll(int value);
 
+	struct RecordingNote
+	{
+		Note note;
+		int inputChannel;
+		int midiChannel;
+	};
+
 	TimePos m_currentPosition;
 	bool m_recording;
 	bool m_recordingTrack;
 	bool m_doAutoQuantization{false};
-	QList<Note> m_recordingNotes;
+	QList<RecordingNote> m_recordingNotes;
 
 	Note * m_currentNote;
 	Action m_action;
@@ -580,8 +586,7 @@ public:
 	void record() override;
 	bool recordTrack(InstrumentTrack* track);
 	bool isRecordingTrack(const InstrumentTrack* track) const;
-	void recordInputNoteOn(const Note& note);
-	void recordInputNoteOff(const Note& note);
+	void recordInputNoteOn(const Note& note, int midiChannel);
 	void recordAccompany() override;
 	void toggleStepRecording() override;
 	void stopRecording();

@@ -264,6 +264,8 @@ signals:
 	void midiNoteOff( const mxm::Note& );
 	void newNote();
 	void endNote();
+	void midiNoteOnWithChannel(const mxm::Note&, int channel);
+	void midiNoteOffWithChannel(const mxm::Note&, int channel);
 
 protected:
 	QString nodeName() const override

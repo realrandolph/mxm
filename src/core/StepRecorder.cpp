@@ -22,6 +22,7 @@
 
 #include <QKeyEvent>
 
+#include "InstrumentTrack.h"
 #include "MidiClip.h"
 #include "StepRecorderWidget.h"
 #include "PianoRoll.h"
@@ -77,7 +78,7 @@ void StepRecorder::stop()
 	m_isRecording = false;
 }
 
-void StepRecorder::notePressed(const Note & n)
+void StepRecorder::notePressed(const Note& n, int inputChannel)
 {
 	//if this is the first pressed note in step, advance position
 	if(!m_isStepInProgress)
@@ -88,10 +89,15 @@ void StepRecorder::notePressed(const Note & n)
 		stepForwards();
 	}
 
-	StepNote* stepNote = findCurStepNote(n.key());
+	StepNote* stepNote = findCurStepNote(n.key(), inputChannel);
 	if(stepNote == nullptr)
 	{
-		m_curStepNotes.push_back(new StepNote(Note(m_curStepLength, m_curStepStartPos, n.key(), n.getVolume(), n.getPanning())));
+		const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+		const auto midiChannel = midiPort->outputChannel() == 0
+			? inputChannel : midiPort->realOutputChannel();
+		m_curStepNotes.push_back(new StepNote(
+			Note(m_curStepLength, m_curStepStartPos, n.key(), n.getVolume(), n.getPanning()),
+			inputChannel, midiChannel));
 		m_pianoRoll.update();
 	}
 	else if (stepNote->isReleased())
@@ -100,9 +106,9 @@ void StepRecorder::notePressed(const Note & n)
 	}
 }
 
-void StepRecorder::noteReleased(const Note & n)
+void StepRecorder::noteReleased(const Note& n, int inputChannel)
 {
-	StepNote* stepNote = findCurStepNote(n.key());
+	StepNote* stepNote = findCurStepNote(n.key(), inputChannel);
 
 	if(stepNote != nullptr && stepNote->isPressed())
 	{
@@ -236,7 +242,7 @@ void StepRecorder::applyStep()
 
 	for (const StepNote* stepNote : m_curStepNotes)
 	{
-		m_midiClip->addNote(stepNote->m_note, false);
+		m_midiClip->addNote(stepNote->m_note, false, stepNote->m_midiChannel);
 	}
 
 	m_midiClip->rearrangeAllNotes();
@@ -365,11 +371,11 @@ bool StepRecorder::allCurStepNotesReleased()
 	return true;
 }
 
-StepRecorder::StepNote* StepRecorder::findCurStepNote(const int key)
+StepRecorder::StepNote* StepRecorder::findCurStepNote(int key, int inputChannel)
 {
 	for (StepNote* stepNote : m_curStepNotes)
 	{
-		if(stepNote->m_note.key() == key)
+		if (stepNote->m_note.key() == key && stepNote->m_inputChannel == inputChannel)
 		{
 			return stepNote;
 		}

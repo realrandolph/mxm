@@ -67,7 +67,6 @@ Note::Note( const Note & note ) :
 	m_length( note.m_length ),
 	m_pos( note.m_pos ),
 	m_detuning(note.m_detuning),
-	m_midiChannel(note.m_midiChannel),
 	m_type(note.m_type)
 {
 }
@@ -86,7 +85,6 @@ Note& Note::operator=(const Note& note)
 	m_pos = note.m_pos;
 	m_type = note.m_type;
 	m_detuning = note.m_detuning;
-	m_midiChannel = note.m_midiChannel;
 
 	return *this;
 }
@@ -195,7 +193,6 @@ void Note::saveSettings( QDomDocument & doc, QDomElement & parent )
 	parent.setAttribute( "len", m_length );
 	parent.setAttribute( "pos", m_pos );
 	parent.setAttribute("type", static_cast<int>(m_type));
-	if (m_midiChannel >= 0) { parent.setAttribute("midichan", m_midiChannel); }
 
 	if( m_detuning && m_length )
 	{
@@ -217,7 +214,6 @@ void Note::loadSettings( const QDomElement & _this )
 	// Default m_type value is 0, which corresponds to RegularNote
 	static_assert(0 == static_cast<int>(Type::Regular));
 	m_type = static_cast<Type>(_this.attribute("type", "0").toInt());
-	setMidiChannel(_this.attribute("midichan", "-1").toInt());
 
 	if( _this.hasChildNodes() )
 	{

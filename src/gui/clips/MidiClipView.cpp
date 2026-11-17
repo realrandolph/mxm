@@ -343,7 +343,8 @@ void MidiClipView::mergeClips(QVector<ClipView*> clipvs)
 			const TimePos newLength = newNoteEnd - newNoteStart;
 			if (newLength > 0)
 			{
-				Note* newNote = newMidiClip->addNote(*note, false);
+				Note* newNote = newMidiClip->addNote(*note, false,
+					mcView->getMidiClip()->midiChannelForNote(note));
 				newNote->setPos(newNoteStart + (mcViewPos - earliestPos));
 				newNote->setLength(newLength);
 			}
@@ -390,7 +391,7 @@ void MidiClipView::clearNotesOutOfBounds()
 			Note newNote = Note{*note};
 			newNote.setPos(newNoteStart);
 			newNote.setLength(newLength);
-			newClip->addNote(newNote, false);
+			newClip->addNote(newNote, false, m_clip->midiChannelForNote(note));
 		}
 	}
 	newClip->setStartTimeOffset(0);
@@ -894,14 +895,14 @@ bool MidiClipView::destructiveSplitClip(const TimePos pos)
 		{
 			auto movedNote = Note{*note};
 			movedNote.setPos(note->pos() - internalSplitPos);
-			rightClip->addNote(movedNote, false);
+			rightClip->addNote(movedNote, false, m_clip->midiChannelForNote(note));
 		}
 		else if (note->endPos() > internalSplitPos)
 		{
 			auto movedNote = Note{*note};
 			movedNote.setPos(0);
 			movedNote.setLength(note->endPos() - internalSplitPos);
-			rightClip->addNote(movedNote, false);
+			rightClip->addNote(movedNote, false, m_clip->midiChannelForNote(note));
 		}
 	}
 
@@ -909,13 +910,13 @@ bool MidiClipView::destructiveSplitClip(const TimePos pos)
 	{
 		if (note->endPos() <= internalSplitPos)
 		{
-			leftClip->addNote(*note, false);
+			leftClip->addNote(*note, false, m_clip->midiChannelForNote(note));
 		}
 		else if (note->pos() < internalSplitPos)
 		{
 			auto movedNote = Note{*note};
 			movedNote.setLength(internalSplitPos - note->pos());
-			leftClip->addNote(movedNote, false);
+			leftClip->addNote(movedNote, false, m_clip->midiChannelForNote(note));
 		}
 	}
 

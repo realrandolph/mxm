@@ -163,6 +163,7 @@ private:
 	QTimer m_recordStartTimer;
 	bool m_waitingForInput{false};
 	int m_recordTriggerNoteKey{-1};
+	int m_recordTriggerNoteChannel{-1};
 
 
 
