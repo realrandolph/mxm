@@ -41,10 +41,11 @@ namespace mxm
 {
 
 
-SampleRecordHandle::SampleRecordHandle( SampleClip* clip ) :
+SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleRecordSession> session) :
 	PlayHandle( Type::SampleRecordPlayHandle ),
 	m_track( dynamic_cast<SampleTrack*>(clip->getTrack()) ),
 	m_clip( clip ),
+	m_session(std::move(session)),
 	m_recordInput(0),
 	m_inputMonitoring(false)
 {
@@ -83,7 +84,7 @@ SampleRecordHandle::~SampleRecordHandle()
 
 void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
-	if (!m_track || !m_track->isRecording()) { return; }
+	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
 	const auto recbuf = Engine::audioEngine()->inputBuffer();
 	const auto frames = Engine::audioEngine()->inputBufferFrames();
@@ -107,7 +108,7 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 
 bool SampleRecordHandle::isFinished() const
 {
-	return !m_track || !m_track->isRecording();
+	return !m_track || !m_session->active.load(std::memory_order_relaxed);
 }
 
 
@@ -143,7 +144,11 @@ void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _fra
 		peak = std::max({peak, std::abs(recorded[0]), std::abs(recorded[1])});
 		m_recordedFrames.push_back(recorded);
 	}
-	if (m_track) { m_track->updateInputLevel(peak); }
+	if (m_track)
+	{
+		m_session->recordedFrames.fetch_add(_frames, std::memory_order_relaxed);
+		m_track->updateInputLevel(peak);
+	}
 }
 
 

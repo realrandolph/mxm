@@ -29,6 +29,7 @@
 
 #include "InstrumentTrack.h"
 
+class QToolButton;
 
 namespace mxm::gui
 {
@@ -98,6 +99,7 @@ private slots:
 	void handleConfigChange(QString cls, QString attr, QString value);
 	
 	void corruptStateUpdate();
+	void updateRecordingControls();
 
 private:
 	static QPixmap determinePixmap(InstrumentTrack* instrumentTrack);
@@ -107,6 +109,7 @@ private:
 
 	// widgets in track-settings-widget
 	TrackLabelButton * m_tlb;
+	QToolButton* m_recordButton;
 	MixerChannelLcdSpinBox* m_mixerChannelNumber;
 	Knob * m_volumeKnob;
 	Knob * m_panningKnob;

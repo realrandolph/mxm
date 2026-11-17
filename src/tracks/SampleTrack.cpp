@@ -26,6 +26,7 @@
 #include "SampleTrack.h"
 
 #include <algorithm>
+#include <limits>
 
 #include <QColor>
 #include <QDomElement>
@@ -242,10 +243,25 @@ bool SampleTrack::startRecording()
 		? song->getPlayPos(Song::PlayMode::None) : song->getPlayPos(Song::PlayMode::Song);
 	auto clip = static_cast<SampleClip*>(createClip(position));
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
+	m_recordingSession = std::make_shared<SampleRecordSession>();
+	m_recordingClip = clip;
+	clip->changeLength(TimePos(1));
 	song->trackRecordingStarted();
-	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip));
+	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip, m_recordingSession));
 	song->startTrackRecordingTransport(position);
 	return true;
+}
+
+
+void SampleTrack::updateRecordingClipLength()
+{
+	if (!isRecording() || !m_recordingClip) { return; }
+	if (!m_recordingSession) { return; }
+	const auto frames = m_recordingSession->recordedFrames.load(std::memory_order_relaxed);
+	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->inputSampleRate());
+	const auto ticks = std::min<double>(static_cast<double>(frames) / framesPerTick,
+		std::numeric_limits<tick_t>::max());
+	m_recordingClip->changeLength(TimePos(static_cast<tick_t>(ticks)));
 }
 
 
@@ -253,6 +269,7 @@ void SampleTrack::stopRecording(bool stopTransport)
 {
 	if (m_recording.exchange(false, std::memory_order_relaxed))
 	{
+		if (m_recordingSession) { m_recordingSession->active.store(false, std::memory_order_relaxed); }
 		if (auto song = Engine::getSong()) { song->trackRecordingStopped(stopTransport); }
 	}
 }

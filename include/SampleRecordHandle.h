@@ -25,6 +25,8 @@
 #ifndef MXM_SAMPLE_RECORD_HANDLE_H
 #define MXM_SAMPLE_RECORD_HANDLE_H
 
+#include <atomic>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -40,11 +42,17 @@ class SampleBuffer;
 class SampleClip;
 class SampleTrack;
 
+struct SampleRecordSession
+{
+	std::atomic_bool active{true};
+	std::atomic_uint64_t recordedFrames{0};
+};
+
 
 class SampleRecordHandle : public PlayHandle
 {
 public:
-	SampleRecordHandle( SampleClip* clip );
+	SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleRecordSession> session);
 	~SampleRecordHandle() override;
 
 	void play( SampleFrame* _working_buffer ) override;
@@ -60,6 +68,7 @@ private:
 
 	SampleTrack * m_track;
 	QPointer<SampleClip> m_clip;
+	std::shared_ptr<SampleRecordSession> m_session;
 	int m_recordInput;
 	bool m_inputMonitoring;
 

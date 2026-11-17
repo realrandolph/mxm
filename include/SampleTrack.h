@@ -26,6 +26,10 @@
 #define MXM_SAMPLE_TRACK_H
 
 #include <atomic>
+#include <cstdint>
+#include <memory>
+
+#include <QPointer>
 
 #include "AudioBusHandle.h"
 #include "Track.h"
@@ -33,6 +37,9 @@
 
 namespace mxm
 {
+
+class SampleClip;
+struct SampleRecordSession;
 
 namespace gui
 {
@@ -68,6 +75,7 @@ public:
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
 	void updateInputLevel(float level);
 	float takeInputLevel() { return m_inputLevel.exchange(0.f, std::memory_order_relaxed); }
+	void updateRecordingClipLength();
 
 	inline IntModel * mixerChannelModel()
 	{
@@ -113,6 +121,8 @@ private:
 	std::atomic_int m_recordInput{0};
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};
+	std::shared_ptr<SampleRecordSession> m_recordingSession;
+	QPointer<SampleClip> m_recordingClip;
 
 
 

@@ -304,6 +304,7 @@ void SampleTrackView::updateRecordingControls()
 {
 	auto track = model();
 	const bool recording = track->isRecording();
+	track->updateRecordingClipLength();
 	if (m_recordButton->isChecked() != recording)
 	{
 		const QSignalBlocker blocker(m_recordButton);

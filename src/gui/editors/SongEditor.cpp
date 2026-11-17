@@ -1091,8 +1091,9 @@ void SongEditorWindow::play()
 
 void SongEditorWindow::stop()
 {
-	m_editor->m_song->stop();
-	getGUI()->pianoRoll()->stopRecording();
+	auto pianoRoll = getGUI()->pianoRoll();
+	if (pianoRoll->isRecording()) { pianoRoll->stop(); }
+	else { m_editor->m_song->stop(); }
 	m_editor->m_timeLine->setRecording(false);
 	m_editor->m_positionLine->setRecording(false);
 }
