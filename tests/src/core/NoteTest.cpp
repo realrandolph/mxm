@@ -24,12 +24,26 @@
 
 #include <memory>
 
+#include "Engine.h"
+#include "InstrumentTrack.h"
 #include "Note.h"
+#include "NotePlayHandle.h"
+#include "Song.h"
 
 class NoteTest : public QObject
 {
 	Q_OBJECT
 private slots:
+	void initTestCase()
+	{
+		mxm::Engine::init(true);
+	}
+
+	void cleanupTestCase()
+	{
+		mxm::Engine::destroy();
+	}
+
 	void midiChannelRoundTrips()
 	{
 		using namespace mxm;
@@ -80,6 +94,17 @@ private slots:
 		Note note;
 		note.restoreState(noteElement);
 		QCOMPARE(note.midiChannel(), -1);
+	}
+
+	void midiInputKeepsUnspecifiedSourceChannel()
+	{
+		using namespace mxm;
+		InstrumentTrack track(Engine::getSong());
+		NotePlayHandle noteHandle(&track, 0, 1, Note(), nullptr, -1,
+			NotePlayHandle::Origin::MidiInput);
+
+		QCOMPARE(static_cast<const Note&>(noteHandle).midiChannel(), -1);
+		QCOMPARE(noteHandle.midiChannel(), track.midiPort()->realOutputChannel());
 	}
 };
 

@@ -317,9 +317,14 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 	bool eventHandled = false;
 	auto findMidiInputNote = [this, &event](int key) -> NotePlayHandle*
 	{
+		auto matchesInputChannel = [&event](const NotePlayHandle* note)
+		{
+			return static_cast<const Note&>(*note).midiChannel() == event.channel();
+		};
+
 		auto* current = m_notes[key];
 		if (current && current->origin() == NotePlayHandle::Origin::MidiInput &&
-			current->midiChannel() == event.channel() && !current->isReleased())
+			matchesInputChannel(current) && !current->isReleased())
 		{
 			return current;
 		}
@@ -327,7 +332,7 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 		for (auto* note : m_processHandles)
 		{
 			if (note->origin() == NotePlayHandle::Origin::MidiInput &&
-				note->key() == key && note->midiChannel() == event.channel() &&
+				note->key() == key && matchesInputChannel(note) &&
 				!note->isReleased())
 			{
 				return note;

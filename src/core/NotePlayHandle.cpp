@@ -104,7 +104,8 @@ NotePlayHandle::NotePlayHandle( InstrumentTrack* instrumentTrack,
 	updateFrequency();
 
 	setFrames( _frames );
-	setMidiChannel(m_midiChannel);
+	// Keep the source channel on Note; this handle's midiChannel() is the routed output channel.
+	setMidiChannel(m_origin == Origin::MidiInput ? midiEventChannel : m_midiChannel);
 
 	// inform attached components about new MIDI note (used for recording in Piano Roll)
 	if( m_origin == Origin::MidiInput )
