@@ -899,6 +899,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 
 	if( !( fixedClips() && beatClip ) )
 	{
+		p.setBrush(Qt::NoBrush);
 		// inner border
 		p.setPen( c.lighter( current ? 160 : 130 ) );
 		p.drawRect( 1, 1, rect().right() - BORDER_WIDTH,
