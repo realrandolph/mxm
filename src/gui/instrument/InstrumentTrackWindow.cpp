@@ -368,17 +368,17 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	updateRecordingControls();
 	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate,
 		this, &InstrumentTrackWindow::updateRecordingControls);
-	connect(m_track, &InstrumentTrack::midiNoteOnWithChannel, this,
-		[this](const Note& note, int midiChannel)
+	connect(m_track, &InstrumentTrack::midiNoteOn, this,
+		[this](const Note& note)
 	{
 		if (!m_waitingForInput) { return; }
 		m_waitingForInput = false;
 		m_recordTriggerNoteKey = note.key();
-		m_recordTriggerNoteChannel = midiChannel;
+		m_recordTriggerNoteChannel = note.midiChannel();
 		auto pianoRoll = getGUI()->pianoRoll();
 		if (pianoRoll->recordTrack(m_track))
 		{
-			pianoRoll->recordInputNoteOn(note, midiChannel);
+			pianoRoll->recordInputNoteOn(note);
 		}
 		else
 		{
@@ -387,12 +387,14 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 		}
 		updateRecordingControls();
 	}, Qt::QueuedConnection);
-	connect(m_track, &InstrumentTrack::midiNoteOffWithChannel, this,
-		[this](const Note& note, int midiChannel)
+	connect(m_track, &InstrumentTrack::midiNoteOff, this,
+		[this](const Note& note)
 	{
-		if (m_recordTriggerNoteKey != note.key() || m_recordTriggerNoteChannel != midiChannel) { return; }
+		if (m_recordTriggerNoteKey != note.key() || m_recordTriggerNoteChannel != note.midiChannel()) { return; }
 		m_recordTriggerNoteKey = -1;
 		m_recordTriggerNoteChannel = -1;
+		auto pianoRoll = getGUI()->pianoRoll();
+		if (pianoRoll->isRecordingTrack(m_track)) { pianoRoll->recordInputNoteOff(note); }
 	}, Qt::QueuedConnection);
 
 	QMdiSubWindow* subWin = getGUI()->mainWindow()->addWindowedWidget( this );

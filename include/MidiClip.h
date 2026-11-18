@@ -26,8 +26,6 @@
 #ifndef MXM_MIDI_CLIP_H
 #define MXM_MIDI_CLIP_H
 
-#include <QHash>
-
 #include "Clip.h"
 #include "Note.h"
 
@@ -63,9 +61,6 @@ public:
 
 	// note management
 	Note * addNote( const Note & _new_note, const bool _quant_pos = true );
-	Note * addNote(const Note& note, bool quantizePosition, int midiChannel);
-	int midiChannelForNote(const Note* note) const { return m_noteMidiChannels.value(note, -1); }
-	void setMidiChannelForNote(Note* note, int midiChannel);
 
 	NoteVector::const_iterator removeNote(NoteVector::const_iterator it);
 	NoteVector::const_iterator removeNote(Note* note);
@@ -158,7 +153,6 @@ private:
 
 	// data-stuff
 	NoteVector m_notes;
-	QHash<const Note*, int> m_noteMidiChannels;
 	int m_steps;
 
 	MidiClip * adjacentMidiClipByOffset(int offset) const;

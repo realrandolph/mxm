@@ -8,7 +8,7 @@ set(MXM_TESTS
 	src/core/AudioBufferTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
-	src/tracks/MidiClipTest.cpp
+	src/core/NoteTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
 	src/core/TimelineTest.cpp

@@ -77,7 +77,8 @@ NotePlayHandle::NotePlayHandle( InstrumentTrack* instrumentTrack,
 	m_unpitchedFrequency( 0 ),
 	m_baseDetuning( nullptr ),
 	m_songGlobalParentOffset( 0 ),
-	m_midiChannel(midiEventChannel >= 0 ? midiEventChannel : parent != nullptr
+	m_midiChannel(midiEventChannel >= 0 ? midiEventChannel : n.midiChannel() >= 0
+		? n.midiChannel() : parent != nullptr
 		? parent->midiChannel() : instrumentTrack->midiPort()->realOutputChannel()),
 	m_origin( origin ),
 	m_frequencyNeedsUpdate( false )
@@ -103,12 +104,12 @@ NotePlayHandle::NotePlayHandle( InstrumentTrack* instrumentTrack,
 	updateFrequency();
 
 	setFrames( _frames );
+	setMidiChannel(m_midiChannel);
 
 	// inform attached components about new MIDI note (used for recording in Piano Roll)
 	if( m_origin == Origin::MidiInput )
 	{
 		m_instrumentTrack->midiNoteOn( *this );
-		m_instrumentTrack->midiNoteOnWithChannel(*this, midiChannel());
 	}
 
 	if (m_instrumentTrack->instrument() && m_instrumentTrack->instrument()->isSingleStreamed())
@@ -406,7 +407,6 @@ void NotePlayHandle::noteOff( const f_cnt_t _s )
 		{
 			setLength( TimePos( static_cast<f_cnt_t>( totalFramesPlayed() / Engine::framesPerTick() ) ) );
 			m_instrumentTrack->midiNoteOff( *this );
-			m_instrumentTrack->midiNoteOffWithChannel(*this, midiChannel());
 		}
 	}
 }

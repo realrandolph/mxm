@@ -43,71 +43,9 @@
 #include "Song.h"
 
 #include <algorithm>
-#include <array>
-#include <mutex>
-#include <shared_mutex>
-#include <unordered_map>
 
 namespace mxm
 {
-
-namespace
-{
-	struct MidiOutputNoteCounts
-	{
-		std::array<std::array<int, NumKeys>, MidiChannelCount> counts{};
-	};
-
-	struct MidiOutputNoteUpdate
-	{
-		bool retrigger;
-		bool sendNoteOff;
-		bool matched;
-	};
-
-	std::shared_mutex s_midiOutputNoteCountsMutex;
-	std::unordered_map<const InstrumentTrack*, MidiOutputNoteCounts> s_midiOutputNoteCounts;
-
-	void initializeMidiOutputNoteCounts(const InstrumentTrack* track)
-	{
-		std::unique_lock lock(s_midiOutputNoteCountsMutex);
-		s_midiOutputNoteCounts.try_emplace(track);
-	}
-
-	MidiOutputNoteUpdate updateMidiOutputNoteCount(const InstrumentTrack* track, int channel, int key,
-		bool noteOn)
-	{
-		// Callers hold that track's m_midiNotesMutex, so separate tracks can update concurrently.
-		std::shared_lock lock(s_midiOutputNoteCountsMutex);
-		const auto it = s_midiOutputNoteCounts.find(track);
-		if (it == s_midiOutputNoteCounts.end()) { return {false, false, false}; }
-		auto& count = it->second.counts[channel][key];
-		if (noteOn)
-		{
-			const bool retrigger = count > 0;
-			++count;
-			return {retrigger, false, true};
-		}
-		if (count == 0) { return {false, false, false}; }
-		return {false, --count == 0, true};
-	}
-
-	void resetMidiOutputNoteCounts(const InstrumentTrack* track)
-	{
-		std::unique_lock lock(s_midiOutputNoteCountsMutex);
-		if (const auto it = s_midiOutputNoteCounts.find(track); it != s_midiOutputNoteCounts.end())
-		{
-			it->second = {};
-		}
-	}
-
-	void removeMidiOutputNoteCounts(const InstrumentTrack* track)
-	{
-		std::unique_lock lock(s_midiOutputNoteCountsMutex);
-		s_midiOutputNoteCounts.erase(track);
-	}
-}
-
 
 InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	Track(Track::Type::Instrument, tc),
@@ -150,7 +88,6 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 		m_notes[i] = nullptr;
 		m_runningMidiNotes[i] = 0;
 	}
-	initializeMidiOutputNoteCounts(this);
 
 
 	// Initialize the m_midiCCEnabled variable, but it's actually going to be connected
@@ -267,7 +204,6 @@ InstrumentTrack::~InstrumentTrack()
 
 	// kill all running notes and the iph
 	silenceAllNotes( true );
-	removeMidiOutputNoteCounts(this);
 
 	// now we're save deleting the instrument
 	if( m_instrument ) delete m_instrument;
@@ -486,7 +422,6 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 									nph->totalFramesPlayed() /
 									Engine::framesPerTick() ) ) );
 								midiNoteOff( *nph );
-								midiNoteOffWithChannel(*nph, nph->midiChannel());
 							}
 						}
 					}
@@ -563,11 +498,12 @@ void InstrumentTrack::processOutEvent( const MidiEvent& event, const TimePos& ti
 
 			if( key >= 0 && key < NumKeys )
 			{
-				const auto noteCount = updateMidiOutputNoteCount(this, outputChannel, key, true);
-				if (noteCount.retrigger)
+				auto& channelNoteCount = m_runningMidiNotesByChannel[outputChannel][key];
+				if (channelNoteCount > 0)
 				{
 					m_instrument->handleMidiEvent(MidiEvent(MidiNoteOff, outputChannel, key, 0), time, offset);
 				}
+				++channelNoteCount;
 				++m_runningMidiNotes[key];
 				m_piano.setKeyState(event.key(), true);
 				m_instrument->handleMidiEvent(MidiEvent(MidiNoteOn, outputChannel, key, event.velocity()), time, offset);
@@ -582,12 +518,13 @@ void InstrumentTrack::processOutEvent( const MidiEvent& event, const TimePos& ti
 
 			if (key >= 0 && key < NumKeys)
 			{
-				const auto noteCount = updateMidiOutputNoteCount(this, outputChannel, key, false);
-				if (noteCount.matched)
+				auto& channelNoteCount = m_runningMidiNotesByChannel[outputChannel][key];
+				if (channelNoteCount > 0)
 				{
+					--channelNoteCount;
 					m_runningMidiNotes[key] = std::max(0, m_runningMidiNotes[key] - 1);
 					m_piano.setKeyState(event.key(), m_runningMidiNotes[key] > 0);
-					if (noteCount.sendNoteOff)
+					if (channelNoteCount == 0)
 					{
 						m_instrument->handleMidiEvent(MidiEvent(MidiNoteOff, outputChannel, key, 0), time, offset);
 					}
@@ -616,6 +553,10 @@ void InstrumentTrack::silenceAllNotes( bool removeIPH )
 	{
 		m_notes[i] = nullptr;
 		m_runningMidiNotes[i] = 0;
+		for (int channel = 0; channel < MidiChannelCount; ++channel)
+		{
+			m_runningMidiNotesByChannel[channel][i] = 0;
+		}
 	}
 	m_midiNotesMutex.unlock();
 
@@ -629,7 +570,6 @@ void InstrumentTrack::silenceAllNotes( bool removeIPH )
 		flags |= PlayHandle::Type::InstrumentPlayHandle;
 	}
 	Engine::audioEngine()->removePlayHandlesOfTypes( this, flags );
-	resetMidiOutputNoteCounts(this);
 	Engine::audioEngine()->doneChangeInModel();
 }
 
@@ -874,8 +814,8 @@ bool InstrumentTrack::play( const TimePos & _start, const f_cnt_t _frames,
 				? 0
 				: (currentNote->endPos() - cur_start - noteOverlap) * frames_per_tick;
 
-			NotePlayHandle* notePlayHandle = NotePlayHandleManager::acquire(this, _offset, noteFrames,
-				*currentNote, nullptr, c->midiChannelForNote(currentNote));
+			NotePlayHandle* notePlayHandle = NotePlayHandleManager::acquire(
+				this, _offset, noteFrames, *currentNote);
 			notePlayHandle->setPatternTrack(pattern_track);
 			// are we playing global song?
 			if( _clip_num < 0 )

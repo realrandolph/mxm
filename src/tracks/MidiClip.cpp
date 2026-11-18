@@ -31,7 +31,6 @@
 #include "GuiApplication.h"
 #include "InstrumentTrack.h"
 #include "MidiClipView.h"
-#include "Midi.h"
 #include "PatternStore.h"
 #include "PianoRoll.h"
 
@@ -64,10 +63,7 @@ MidiClip::MidiClip( const MidiClip& other ) :
 {
 	for (const auto& note : other.m_notes)
 	{
-		auto* clonedNote = note->clone();
-		m_notes.push_back(clonedNote);
-		const auto channel = other.midiChannelForNote(note);
-		if (channel >= 0) { m_noteMidiChannels.insert(clonedNote, channel); }
+		m_notes.push_back(note->clone());
 	}
 
 	init();
@@ -183,12 +179,6 @@ TimePos MidiClip::beatClipLength() const
 
 Note * MidiClip::addNote( const Note & _new_note, const bool _quant_pos )
 {
-	return addNote(_new_note, _quant_pos, -1);
-}
-
-
-Note * MidiClip::addNote(const Note& _new_note, const bool _quant_pos, int midiChannel)
-{
 	auto new_note = _new_note.clone();
 	if (_quant_pos && gui::getGUI()->pianoRoll())
 	{
@@ -197,10 +187,6 @@ Note * MidiClip::addNote(const Note& _new_note, const bool _quant_pos, int midiC
 
 	instrumentTrack()->lock();
 	m_notes.insert(std::upper_bound(m_notes.begin(), m_notes.end(), new_note, Note::lessThan), new_note);
-	if (midiChannel >= 0 && midiChannel < MidiChannelCount)
-	{
-		m_noteMidiChannels.insert(new_note, midiChannel);
-	}
 	instrumentTrack()->unlock();
 
 	checkType();
@@ -212,27 +198,11 @@ Note * MidiClip::addNote(const Note& _new_note, const bool _quant_pos, int midiC
 }
 
 
-void MidiClip::setMidiChannelForNote(Note* note, int midiChannel)
-{
-	instrumentTrack()->lock();
-	if (midiChannel >= 0 && midiChannel < MidiChannelCount)
-	{
-		m_noteMidiChannels.insert(note, midiChannel);
-	}
-	else
-	{
-		m_noteMidiChannels.remove(note);
-	}
-	instrumentTrack()->unlock();
-}
-
-
 
 
 NoteVector::const_iterator MidiClip::removeNote(NoteVector::const_iterator it)
 {
 	instrumentTrack()->lock();
-	m_noteMidiChannels.remove(*it);
 	delete *it;
 	auto new_it = m_notes.erase(it);
 	instrumentTrack()->unlock();
@@ -251,7 +221,6 @@ NoteVector::const_iterator MidiClip::removeNote(Note* note)
 	auto it = std::find(m_notes.begin(), m_notes.end(), note);
 	if (it != m_notes.end())
 	{
-		m_noteMidiChannels.remove(*it);
 		delete *it;
 		it = m_notes.erase(it);
 	}
@@ -298,7 +267,6 @@ void MidiClip::clearNotes()
 		delete note;
 	}
 	m_notes.clear();
-	m_noteMidiChannels.clear();
 	instrumentTrack()->unlock();
 
 	checkType();
@@ -386,7 +354,7 @@ void MidiClip::splitNotes(const NoteVector& notes, TimePos pos)
 		newNote.setLength(rightLength);
 		newNote.setPos(note->pos() + leftLength);
 
-		addNote(newNote, false, midiChannelForNote(note));
+		addNote(newNote, false);
 	}
 }
 
@@ -420,13 +388,12 @@ void MidiClip::splitNotesAlongLine(const NoteVector notes, TimePos pos1, int key
 
 			if (deleteShortEnds)
 			{
-				addNote(newNote1.length() >= newNote2.length() ? newNote1 : newNote2, false,
-					midiChannelForNote(note));
+				addNote(newNote1.length() >= newNote2.length() ? newNote1 : newNote2, false);
 			}
 			else
 			{
-				addNote(newNote1, false, midiChannelForNote(note));
-				addNote(newNote2, false, midiChannelForNote(note));
+				addNote(newNote1, false);
+				addNote(newNote2, false);
 			}
 
 			removeNote(note);
@@ -489,9 +456,7 @@ void MidiClip::exportToXML(QDomDocument& doc, QDomElement& midiClipElement, bool
 	{
 		if (!onlySelectedNotes || note->selected())
 		{
-			auto noteElement = note->saveState(doc, midiClipElement);
-			const auto midiChannel = midiChannelForNote(note);
-			if (midiChannel >= 0) { noteElement.setAttribute("midichan", midiChannel); }
+			note->saveState(doc, midiClipElement);
 		}
 	}
 }
@@ -536,11 +501,6 @@ void MidiClip::loadSettings( const QDomElement & _this )
 			auto n = new Note;
 			n->restoreState( node.toElement() );
 			m_notes.push_back( n );
-			const auto midiChannel = node.toElement().attribute("midichan", "-1").toInt();
-			if (midiChannel >= 0 && midiChannel < MidiChannelCount)
-			{
-				m_noteMidiChannels.insert(n, midiChannel);
-			}
 		}
 		node = node.nextSibling();
         }
@@ -631,7 +591,6 @@ void MidiClip::cloneSteps()
 			newNote->setLength( toCopy->length() );
 			newNote->setPanning( toCopy->getPanning() );
 			newNote->setVolume( toCopy->getVolume() );
-			setMidiChannelForNote(newNote, midiChannelForNote(toCopy));
 		}
 	}
 	updateLength();

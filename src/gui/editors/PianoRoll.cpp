@@ -915,10 +915,8 @@ void PianoRoll::setCurrentMidiClip( MidiClip* newMidiClip )
 	// make sure to always get informed about the MIDI clip being destroyed
 	connect( m_midiClip, SIGNAL(destroyedMidiClip(mxm::MidiClip*)), this, SLOT(hideMidiClip(mxm::MidiClip*)));
 
-	connect(m_midiClip->instrumentTrack(), &InstrumentTrack::midiNoteOnWithChannel,
-		this, &PianoRoll::startRecordNote);
-	connect(m_midiClip->instrumentTrack(), &InstrumentTrack::midiNoteOffWithChannel,
-		this, &PianoRoll::finishRecordNote);
+	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOn( const mxm::Note& ) ), this, SLOT( startRecordNote( const mxm::Note& ) ) );
+	connect( m_midiClip->instrumentTrack(), SIGNAL( midiNoteOff( const mxm::Note& ) ), this, SLOT( finishRecordNote( const mxm::Note& ) ) );
 	connect( m_midiClip, SIGNAL(dataChanged()), this, SLOT(update()));
 	connect( m_midiClip->instrumentTrack()->pianoModel(), SIGNAL(dataChanged()), this, SLOT(update()));
 
@@ -1977,8 +1975,7 @@ void PianoRoll::mousePressEvent(QMouseEvent * me )
 					{
 						for (Note *note: selectedNotes)
 						{
-							Note *newNote = m_midiClip->addNote(*note, false,
-								m_midiClip->midiChannelForNote(note));
+							Note *newNote = m_midiClip->addNote(*note, false);
 							newNote->setSelected(false);
 						}
 
@@ -4500,16 +4497,19 @@ void PianoRoll::stop()
 		}
 		for (const auto& startedNote : m_recordingNotes)
 		{
-			const auto length = TimePos(std::max(endPosition.getTicks() - startedNote.note.pos().getTicks(), 1));
-			Note recordedNote(length, startedNote.note.pos(),
-				startedNote.note.key(), startedNote.note.getVolume(), startedNote.note.getPanning());
+			const auto length = TimePos(std::max(endPosition.getTicks() - startedNote.pos().getTicks(), 1));
+			Note recordedNote(length, startedNote.pos(),
+				startedNote.key(), startedNote.getVolume(), startedNote.getPanning());
+			const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+			recordedNote.setMidiChannel(midiPort->outputChannel() == 0
+				? startedNote.midiChannel() : midiPort->realOutputChannel());
 			if (m_doAutoQuantization)
 			{
 				recordedNote.quantizeLength(quantization());
 				recordedNote.quantizePos(quantization());
 			}
 			recordedNote.setLength(std::max(recordedNote.length(), TimePos(1)));
-			m_midiClip->addNote(recordedNote, false, startedNote.midiChannel);
+			m_midiClip->addNote(recordedNote, false);
 		}
 	}
 	if (m_recordingTrack && hasValidMidiClip())
@@ -4550,7 +4550,7 @@ void PianoRoll::stopRecording()
 
 
 
-void PianoRoll::startRecordNote(const Note& n, int midiChannel)
+void PianoRoll::startRecordNote(const Note & n )
 {
 	if(hasValidMidiClip())
 	{
@@ -4567,17 +4567,15 @@ void PianoRoll::startRecordNote(const Note& n, int midiChannel)
 			Note n1( 1, Engine::getSong()->getPlayPos(
 						Engine::getSong()->playMode() ) - sub,
 					n.key(), n.getVolume(), n.getPanning() );
-			auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
-			const auto recordedChannel = midiPort->outputChannel() == 0
-				? midiChannel : midiPort->realOutputChannel();
+			n1.setMidiChannel(n.midiChannel());
 			if( n1.pos() >= 0 )
 			{
-				m_recordingNotes << RecordingNote{n1, midiChannel, recordedChannel};
+				m_recordingNotes << n1;
 			}
 		}
 		else if (m_stepRecorder.isRecording())
 		{
-			m_stepRecorder.notePressed(n, midiChannel);
+			m_stepRecorder.notePressed(n);
 		}
 	}
 }
@@ -4585,7 +4583,7 @@ void PianoRoll::startRecordNote(const Note& n, int midiChannel)
 
 
 
-void PianoRoll::finishRecordNote(const Note& n, int midiChannel)
+void PianoRoll::finishRecordNote(const Note & n )
 {
 	if(hasValidMidiClip())
 	{
@@ -4596,14 +4594,17 @@ void PianoRoll::finishRecordNote(const Note& n, int midiChannel)
 					Engine::getSong()->playMode() ==
 						Song::PlayMode::MidiClip ) )
 		{
-			for (auto it = m_recordingNotes.begin();
+			for( QList<Note>::Iterator it = m_recordingNotes.begin();
 						it != m_recordingNotes.end(); ++it )
 			{
-				if (it->note.key() == n.key() && it->inputChannel == midiChannel)
+				if (it->key() == n.key() && it->midiChannel() == n.midiChannel())
 				{
-					Note n1(n.length(), it->note.pos(),
-							it->note.key(), it->note.getVolume(),
-							it->note.getPanning(), n.detuning());
+					Note n1(n.length(), it->pos(),
+							it->key(), it->getVolume(),
+							it->getPanning(), n.detuning());
+					const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+					n1.setMidiChannel(midiPort->outputChannel() == 0
+						? it->midiChannel() : midiPort->realOutputChannel());
 
 					if (m_doAutoQuantization)
 					{
@@ -4611,7 +4612,7 @@ void PianoRoll::finishRecordNote(const Note& n, int midiChannel)
 						n1.quantizePos(quantization());
 					}
 					n1.setLength(std::max(n1.length(), TimePos(1)));
-					m_midiClip->addNote(n1, false, it->midiChannel);
+					m_midiClip->addNote(n1, false);
 					update();
 					m_recordingNotes.erase( it );
 					break;
@@ -4620,7 +4621,7 @@ void PianoRoll::finishRecordNote(const Note& n, int midiChannel)
 		}
 		else if (m_stepRecorder.isRecording())
 		{
-			m_stepRecorder.noteReleased(n, midiChannel);
+			m_stepRecorder.noteReleased(n);
 		}
 	}
 }
@@ -4827,9 +4828,7 @@ void PianoRoll::copyToClipboard( const NoteVector & notes ) const
 	{
 		Note clip_note( *note );
 		clip_note.setPos( clip_note.pos( start_pos ) );
-		auto noteElement = clip_note.saveState(dataFile, note_list);
-		const auto midiChannel = m_midiClip->midiChannelForNote(note);
-		if (midiChannel >= 0) { noteElement.setAttribute("midichan", midiChannel); }
+		clip_note.saveState( dataFile, note_list );
 	}
 
 	copyString( dataFile.toString(), MimeType::Default );
@@ -4920,8 +4919,7 @@ void PianoRoll::pasteNotes()
 			cur_note.setSelected( true );
 
 			// add to MIDI clip
-			const auto midiChannel = list.item(i).toElement().attribute("midichan", "-1").toInt();
-			m_midiClip->addNote(cur_note, false, midiChannel);
+			m_midiClip->addNote( cur_note, false );
 		}
 
 		// we only have to do the following lines if we pasted at
@@ -5142,7 +5140,6 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 			continue;
 		}
 
-		const auto midiChannel = m_midiClip->midiChannelForNote(n);
 		Note copy(*n);
 		m_midiClip->removeNote( n );
 		if (mode == QuantizeAction::Both || mode == QuantizeAction::Pos)
@@ -5153,7 +5150,7 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 		{
 			copy.quantizeLength(quantization());
 		}
-		m_midiClip->addNote(copy, false, midiChannel);
+		m_midiClip->addNote(copy, false);
 	}
 
 	update();
@@ -5696,9 +5693,15 @@ bool PianoRollWindow::isRecordingTrack(const InstrumentTrack* track) const
 }
 
 
-void PianoRollWindow::recordInputNoteOn(const Note& note, int midiChannel)
+void PianoRollWindow::recordInputNoteOn(const Note& note)
 {
-	m_editor->recordInputNoteOn(note, midiChannel);
+	m_editor->recordInputNoteOn(note);
+}
+
+
+void PianoRollWindow::recordInputNoteOff(const Note& note)
+{
+	m_editor->recordInputNoteOff(note);
 }
 
 

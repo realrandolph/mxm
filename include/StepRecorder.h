@@ -51,8 +51,8 @@ class StepRecorder : public QObject
 	void initialize();
 	void start(const TimePos& currentPosition,const TimePos& stepLength);
 	void stop();
-	void notePressed(const Note& note, int inputChannel = -1);
-	void noteReleased(const Note& note, int inputChannel = -1);
+	void notePressed(const Note & n);
+	void noteReleased(const Note & n);
 	bool keyPressEvent(QKeyEvent* ke);
 	bool mousePressEvent(QMouseEvent* ke);
 	void setCurrentMidiClip(MidiClip* newMidiClip);
@@ -101,8 +101,7 @@ class StepRecorder : public QObject
 	class StepNote
 	{
 		public:
-		StepNote(const Note& note, int inputChannel, int midiChannel) :
-			m_note(note), m_inputChannel(inputChannel), m_midiChannel(midiChannel), m_pressed(true) {};
+		StepNote(const Note & note) : m_note(note), m_pressed(true) {};
 
 		void setPressed()
 		{
@@ -131,8 +130,6 @@ class StepRecorder : public QObject
 		}
 
 		Note m_note;
-		int m_inputChannel;
-		int m_midiChannel;
 
 		private:
 		bool m_pressed;
@@ -141,7 +138,7 @@ class StepRecorder : public QObject
 
 	std::vector<StepNote*> m_curStepNotes; // contains the current recorded step notes (i.e. while user still press the notes; before they are applied to the clip)
 
-	StepNote* findCurStepNote(int key, int inputChannel);
+	StepNote* findCurStepNote(int key, int midiChannel);
 
 	bool m_isStepInProgress = false;
 };

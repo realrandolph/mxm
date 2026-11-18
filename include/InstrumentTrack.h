@@ -264,8 +264,6 @@ signals:
 	void midiNoteOff( const mxm::Note& );
 	void newNote();
 	void endNote();
-	void midiNoteOnWithChannel(const mxm::Note&, int channel);
-	void midiNoteOffWithChannel(const mxm::Note&, int channel);
 
 protected:
 	QString nodeName() const override
@@ -293,6 +291,7 @@ private:
 	NotePlayHandleList m_sustainedNotes;
 
 	int m_runningMidiNotes[NumKeys];
+	int m_runningMidiNotesByChannel[MidiChannelCount][NumKeys]{};
 	QMutex m_midiNotesMutex;
 
 	bool m_sustainPedalPressed;
