@@ -326,7 +326,12 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	}
 	m_recordChannelComboBox->setToolTip(tr("MIDI channel for recorded notes; All channels preserves the incoming channel."));
 	m_recordChannelComboBox->setAccessibleName(tr("MIDI recording channel"));
-	m_recordChannelComboBox->setMaximumWidth(108);
+	QFont channelFont = m_recordChannelComboBox->font();
+	if (channelFont.pointSizeF() > 2) { channelFont.setPointSizeF(channelFont.pointSizeF() - 1); }
+	else if (channelFont.pixelSize() > 2) { channelFont.setPixelSize(channelFont.pixelSize() - 1); }
+	m_recordChannelComboBox->setFont(channelFont);
+	m_recordChannelComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+	m_recordChannelComboBox->setMinimumWidth(m_recordChannelComboBox->sizeHint().width());
 	m_recordChannelComboBox->setFixedHeight(20);
 	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
 		[this](int index) { setRecordChannel(m_recordChannelComboBox->itemData(index).toInt()); });
@@ -342,8 +347,8 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	auto recordControlsLayout = new QHBoxLayout(recordControls);
 	recordControlsLayout->setContentsMargins(4, 1, 4, 1);
 	recordControlsLayout->setSpacing(4);
-	recordControlsLayout->addStretch(1);
 	recordControlsLayout->addWidget(m_recordButton);
+	recordControlsLayout->addStretch(1);
 	auto recordChannelLabel = new QLabel(tr("MIDI ch."), recordControls);
 	recordChannelLabel->setBuddy(m_recordChannelComboBox);
 	recordChannelLabel->setStyleSheet("font-size: 9px; color: palette(mid);");
@@ -409,7 +414,7 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 }
 
 void InstrumentTrackWindow::resizeEvent(QResizeEvent * event) {
-	/* m_instrumentView->resize(QSize(size().width()-1, maxHeight)); */
+	QWidget::resizeEvent(event);
 	adjustTabSize(m_instrumentView);
 	adjustTabSize(m_instrumentFunctionsView);
 	adjustTabSize(m_ssView);
@@ -641,27 +646,17 @@ void InstrumentTrackWindow::updateInstrumentView()
 	if( m_track->m_instrument != nullptr )
 	{
 		m_instrumentView = m_track->m_instrument->createView( m_tabWidget );
+		m_instrumentViewAspect = m_instrumentView->sizeHint().expandedTo(m_instrumentView->minimumSizeHint())
+			.expandedTo(m_instrumentView->minimumSize());
+		if (!m_instrumentViewAspect.isValid() || m_instrumentViewAspect.isEmpty())
+		{
+			m_instrumentViewAspect = QSize(INSTRUMENT_WIDTH, INSTRUMENT_HEIGHT);
+		}
 		m_tabWidget->addTab( m_instrumentView, tr( "Plugin" ), "plugin_tab", 0 );
 		m_tabWidget->setActiveTab( 0 );
 
-		// If instrument is resizable, unset size constraints on tabs.
-		// Otherwise, prevent other tabs from exceeding the size of the
-		// instrument tab
-		const auto maxSize = m_instrumentView->isResizable()
-			? QSize{QWIDGETSIZE_MAX, QWIDGETSIZE_MAX}
-			: QSize{
-				std::max(INSTRUMENT_WIDTH, m_instrumentView->width()),
-				std::max(INSTRUMENT_HEIGHT, m_instrumentView->maximumHeight()),
-			};
-		m_tabWidget->setMaximumSize(maxSize);
-		// Individual tabs must also have their maximum widths set,
-		// otherwise they will remain wide, and their overflowing contents
-		// will get clipped.
-		m_ssView->setMaximumSize(maxSize);
-		m_instrumentFunctionsView->setMaximumSize(maxSize);
-		m_effectView->setMaximumSize(maxSize);
-		m_midiView->setMaximumSize(maxSize);
-		m_tuningView->setMaximumSize(maxSize);
+		m_tabWidget->setMinimumSize(m_instrumentViewAspect.width() + 4,
+			m_instrumentViewAspect.height() + GRAPHIC_TAB_HEIGHT - 1);
 
 		m_ssView->setFunctionsHidden(m_track->m_instrument->isSingleStreamed());
 
@@ -897,10 +892,25 @@ void InstrumentTrackWindow::viewPrevInstrument()
 
 void InstrumentTrackWindow::adjustTabSize(QWidget *w)
 {
-	// "-1" :
-	// in "TabWidget::addTab", under "Position tab's window", the widget is
-	// moved up by 1 pixel
-	w->resize(width() - 4, height() - 180 - PIANO_RECORD_CONTROLS_HEIGHT);
+	if (!w) { return; }
+	const QSize available(std::max(1, m_tabWidget->width() - 4),
+		std::max(1, m_tabWidget->height() - GRAPHIC_TAB_HEIGHT));
+	if (w == m_instrumentView)
+	{
+		QSize pluginSize = m_instrumentViewAspect;
+		if (m_instrumentView->isResizable())
+		{
+			pluginSize.scale(available.boundedTo(m_instrumentView->maximumSize()), Qt::KeepAspectRatio);
+			pluginSize = pluginSize.expandedTo(m_instrumentView->minimumSize());
+		}
+		w->resize(pluginSize);
+		w->move(2 + std::max(0, (available.width() - w->width()) / 2), GRAPHIC_TAB_HEIGHT - 1);
+	}
+	else
+	{
+		w->move(2, GRAPHIC_TAB_HEIGHT - 1);
+		w->resize(available);
+	}
 	w->update();
 }
 
@@ -930,29 +940,9 @@ void InstrumentTrackWindow::updateSubWindow()
 	auto subWindow = findSubWindowInParents();
 	if (subWindow && m_instrumentView)
 	{
-		const auto instrumentViewResizable = m_instrumentView->isResizable();
-
-		if (instrumentViewResizable)
-		{
-			// TODO As of writing SlicerT is the only resizable instrument. Is this code specific to SlicerT?
-			// TODO Expand extraSpace in terms of specific widget sizes or replace with QLayout::setSizeConstraint.
-			const auto extraSpace = QSize(12, 208 + PIANO_RECORD_CONTROLS_HEIGHT);
-			setMaximumSize(m_instrumentView->maximumSize() + extraSpace);
-			setMinimumSize(m_instrumentView->minimumSize() + extraSpace);
-		}
-		else
-		{
-			setFixedSize(sizeHint());
-
-			// The sub window might be reused from an instrument that was maximized. Show the sub window
-			// as normal, i.e. not maximized, if the instrument view is not resizable.
-			if (subWindow->isMaximized())
-			{
-				subWindow->showNormal();
-			}
-		}
-
-		subWindow->setWindowFlag(Qt::WindowMaximizeButtonHint, instrumentViewResizable);
+		setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+		setMinimumSize(layout()->minimumSize());
+		subWindow->setWindowFlag(Qt::WindowMaximizeButtonHint, true);
 
 		// TODO This is only needed if the sub window is implemented with MXM's own SubWindow class.
 		// If an QMdiSubWindow is used everything works automatically. It seems that SubWindow is

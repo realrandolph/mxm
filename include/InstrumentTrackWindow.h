@@ -170,6 +170,7 @@ private:
 	// tab-widget with all children
 	TabWidget * m_tabWidget;
 	PluginView * m_instrumentView;
+	QSize m_instrumentViewAspect;
 	InstrumentSoundShapingView * m_ssView;
 	InstrumentFunctionNoteStackingView* m_noteStackingView;
 	InstrumentFunctionArpeggioView* m_arpeggioView;
