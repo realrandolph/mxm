@@ -49,6 +49,16 @@ namespace mxm::gui
 {
 
 constexpr int BeatStepButtonOffset = 4;
+constexpr int SongEditorClipAlpha = 160;
+
+QColor colorForMidiChannel(QColor color, int channel)
+{
+	int hue = color.hsvHue();
+	if (hue < 0) { hue = 210; }
+	hue = (hue + channel * 360 / MidiChannelCount) % 360;
+	color.setHsv(hue, std::max(color.hsvSaturation(), 96), color.value(), color.alpha());
+	return color;
+}
 
 MidiClipView::MidiClipView( MidiClip* clip, TrackView* parent ) :
 	ClipView( clip, parent ),
@@ -61,6 +71,7 @@ MidiClipView::MidiClipView( MidiClip* clip, TrackView* parent ) :
 	// TODO if this option is ever added to the GUI, rename it to legacysepattern
 	m_legacySEPattern(ConfigManager::inst()->value("ui", "legacysebb", "0").toInt())
 {
+	setAttribute(Qt::WA_TranslucentBackground);
 	connect( getGUI()->pianoRoll(), SIGNAL(currentMidiClipChanged()),
 			this, SLOT(update()));
 	update();
@@ -552,6 +563,7 @@ static int computeNoteRange(int minKey, int maxKey)
 void MidiClipView::paintEvent( QPaintEvent * )
 {
 	QPainter painter( this );
+	const bool songEditorMelodyClip = !fixedClips() && m_clip->type() == MidiClip::Type::MelodyClip;
 
 	if( !needsUpdate() )
 	{
@@ -565,6 +577,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	{
 		m_paintPixmap = QPixmap(size());
 	}
+	m_paintPixmap.fill(Qt::transparent);
 
 	QPainter p( &m_paintPixmap );
 
@@ -572,6 +585,26 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	bool const muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
 	bool current = getGUI()->pianoRoll()->currentMidiClip() == m_clip;
 	bool beatClip = m_clip->m_clipType == MidiClip::Type::BeatClip;
+	int midiChannel = -1;
+	bool hasMultipleChannels = false;
+	int maxKey = std::numeric_limits<int>::min();
+	int minKey = std::numeric_limits<int>::max();
+	for (const Note* note : m_clip->notes())
+	{
+		if (songEditorMelodyClip)
+		{
+			const int channel = note->midiChannel();
+			if (channel >= 0)
+			{
+				if (midiChannel >= 0 && midiChannel != channel) { hasMultipleChannels = true; }
+				else { midiChannel = channel; }
+			}
+		}
+		maxKey = std::max(maxKey, note->key());
+		minKey = std::min(minKey, note->key());
+	}
+	if (hasMultipleChannels) { midiChannel = -1; }
+	const QString channelLabel = midiChannel >= 0 ? QString::number(midiChannel + 1) : QString{};
 
 	if( beatClip )
 	{
@@ -581,15 +614,14 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	else
 	{
 		c = getColorForDisplay( painter.background().color() );
+		if (midiChannel >= 0) { c = colorForMidiChannel(c, midiChannel); }
+		if (songEditorMelodyClip) { c.setAlpha(SongEditorClipAlpha); }
 	}
 
 	// invert the gradient for the background in the B&B editor
 	QLinearGradient lingrad( 0, 0, 0, height() );
 	lingrad.setColorAt( beatClip ? 0 : 1, c.darker( 300 ) );
 	lingrad.setColorAt( beatClip ? 1 : 0, c );
-
-	// paint a black rectangle under the clip to prevent glitches with transparent backgrounds
-	p.fillRect( rect(), QColor( 0, 0, 0 ) );
 
 	if( gradient() )
 	{
@@ -615,6 +647,15 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		QFontMetrics fontMetrics(labelFont);
 		textBoxHeight = fontMetrics.height() + 2 * textTop;
 	}
+
+	QFont channelFont = font();
+	channelFont.setPixelSize(std::max(8, QFontMetrics(font()).height() - 2));
+	const QFontMetrics channelFontMetrics(channelFont);
+	const int channelBadgeHeight = channelLabel.isEmpty() ? 0 : channelFontMetrics.height() + 2;
+	const int channelBadgeWidth = channelLabel.isEmpty()
+		? 0 : std::max(channelBadgeHeight, channelFontMetrics.horizontalAdvance(channelLabel) + 4);
+	const int channelLabelOffset = channelLabel.isEmpty() ? 0 : channelBadgeWidth + 4;
+	if (channelBadgeHeight > 0) { textBoxHeight = std::max(textBoxHeight, channelBadgeHeight + 2 * textTop); }
 
 	// Compute pixels per bar
 	const int baseWidth = fixedClips() ? parentWidget()->width() - 2 * BORDER_WIDTH
@@ -706,16 +747,6 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	{
 		// Compute the minimum and maximum key in the clip
 		// so that we know how much there is to draw.
-		int maxKey = std::numeric_limits<int>::min();
-		int minKey = std::numeric_limits<int>::max();
-
-		for (Note const * note : noteCollection)
-		{
-			int const key = note->key();
-			maxKey = qMax( maxKey, key );
-			minKey = qMin( minKey, key );
-		}
-
 		// If needed adjust the note range so that we always have paint a certain interval
 		int const minimalNoteRange = 12; // Always paint at least one octave
 		int const actualNoteRange = computeNoteRange(minKey, maxKey);
@@ -836,7 +867,21 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	// clip name
 	if (drawTextBox)
 	{
-		paintTextLabel(m_clip->name(), p);
+		paintTextLabel(m_clip->name(), p, channelLabelOffset);
+	}
+	if (!channelLabel.isEmpty())
+	{
+		const QRect badgeRect(BORDER_WIDTH, BORDER_WIDTH, channelBadgeWidth, channelBadgeHeight);
+		QColor badgeColor = c.darker(150);
+		badgeColor.setAlpha(240);
+		QColor badgeBorder = c.lighter(150);
+		badgeBorder.setAlpha(240);
+		p.setPen(badgeBorder);
+		p.setBrush(badgeColor);
+		p.drawRoundedRect(badgeRect, 2, 2);
+		p.setFont(channelFont);
+		p.setPen(badgeColor.lightness() < 128 ? Qt::white : Qt::black);
+		p.drawText(badgeRect, Qt::AlignCenter, channelLabel);
 	}
 
 	if( !( fixedClips() && beatClip ) )
