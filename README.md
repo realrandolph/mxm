@@ -24,20 +24,32 @@ Older project formats remain supported; required migrations run when a project i
 opened, and saving writes the current format.
 
 MXM includes an advanced Piano Roll, Beat Sequencer, Song Editor, and Mixer for
-composing, arranging, and mixing music. It ships with 15+ synthesizer plugins by
-default, along with VST2 and SoundFont2 support.
+composing, arranging, recording, and mixing music. It ships with 15+ synthesizer
+plugins and supports VST2 and VST3 instruments and effects, LV2 plugins, and
+SoundFont2 sound banks.
 
 Features
 ---------
 
-* Song-Editor for arranging melodies, samples, patterns, and automation
-* Pattern-Editor for creating beats and patterns
-* An easy-to-use Piano-Roll for editing patterns and melodies
-* A Mixer with unlimited mixer channels and an arbitrary number of effects
-* Many powerful instrument and effect-plugins out of the box
-* Full user-defined track-based automation and computer-controlled automation sources
-* Compatible with many standards such as SoundFont2, VST2 (instruments and effects), LADSPA, LV2, GUS Patches, and full MIDI support
-* MIDI file importing and exporting
+* **Record performances directly into your arrangement.** Capture MIDI on an
+  instrument track, starting immediately, after a three-second delay, or
+  when you play the first note. Choose a recording channel or preserve incoming
+  MIDI channels; the take grows with the playhead and keeps its recorded length.
+* **Record audio on Sample Tracks.** Start immediately, after a three-second
+  delay, or when input is detected, with input monitoring and a level meter.
+* **Keep overlapping clips readable.** Channel-colored MIDI notes and sample
+  waveforms remain visible above other clips in the Song Editor.
+* Compose and arrange melodies, samples, patterns, and automation in the Song
+  Editor, Pattern Editor, and Piano Roll.
+* Mix with unlimited mixer channels and an arbitrary number of effects.
+* Resize Instrument Windows around plugin interfaces while preserving their
+  intended proportions.
+* Get started with the detected audio device; audio settings are available if
+  playback setup fails.
+* Extend the built-in instrument and effect collection with VST2, VST3, and LV2
+  plugins, SoundFont2, GUS Patches, and full MIDI support.
+* Import and export MIDI files; create user-defined track automation and use
+  computer-controlled automation sources.
 
 Building
 ---------
