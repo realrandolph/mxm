@@ -233,6 +233,8 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 	}
 
 	m_paintPixmap.fill(Qt::transparent);
+	if (m_waveformPreview.size() != viewPortRect.size()) { m_waveformPreview = QPixmap(viewPortRect.size()); }
+	m_waveformPreview.fill(Qt::transparent);
 	QPainter p( &m_paintPixmap );
 
 	bool muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
@@ -297,7 +299,13 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 			.reversed = sample.reversed()
 		};
 
-		m_sampleThumbnail.visualize(param, p);
+		if (fixedClips()) { m_sampleThumbnail.visualize(param, p); }
+		else
+		{
+			QPainter waveformPainter(&m_waveformPreview);
+			waveformPainter.setPen(p.pen());
+			m_sampleThumbnail.visualize(param, waveformPainter);
+		}
 	}
 
 	QString name = PathUtil::cleanName(m_clip->m_sample.sampleFile());
@@ -335,6 +343,7 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 	p.end();
 
 	painter.drawPixmap(m_paintPixmapXPosition, 0, m_paintPixmap);
+	m_trackView->getTrackContentWidget()->updateNoteOverlay();
 }
 
 

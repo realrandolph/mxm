@@ -43,6 +43,7 @@
 #include "RenameDialog.h"
 #include "SongEditor.h"
 #include "TrackContainerView.h"
+#include "TrackContentWidget.h"
 #include "TrackView.h"
 
 namespace mxm::gui
@@ -104,6 +105,7 @@ void MidiClipView::update()
 	setToolTip(m_clip->name());
 
 	ClipView::update();
+	m_trackView->getTrackContentWidget()->updateNoteOverlay();
 }
 
 
@@ -587,6 +589,12 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		m_paintPixmap = QPixmap(size());
 	}
 	m_paintPixmap.fill(Qt::transparent);
+	if (songEditorMelodyClip)
+	{
+		if (m_notePreview.size() != size()) { m_notePreview = QPixmap(size()); }
+		m_notePreview.fill(Qt::transparent);
+	}
+	else { m_notePreview = QPixmap(); }
 
 	QPainter p( &m_paintPixmap );
 
@@ -802,10 +810,13 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		int const notesBorder = 4; // Border for the notes towards the top and bottom in pixels
 
 		// The relevant painting code starts here
-		p.save();
+		QPainter notePainter;
+		if (songEditorMelodyClip) { notePainter.begin(&m_notePreview); }
+		QPainter& notes = songEditorMelodyClip ? notePainter : p;
+		notes.save();
 
-		p.translate(0., distanceToTop + notesBorder);
-		p.scale(width(), height() - distanceToTop - 2 * notesBorder);
+		notes.translate(0., distanceToTop + notesBorder);
+		notes.scale(width(), height() - distanceToTop - 2 * notesBorder);
 
 		// set colour based on mute status
 		QColor noteFillColor = muted ? getMutedNoteFillColor().lighter(200)
@@ -816,7 +827,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		bool const drawAsLines = height() < 64;
 		if (!drawAsLines)
 		{
-			p.setRenderHint(QPainter::Antialiasing);
+			notes.setRenderHint(QPainter::Antialiasing);
 		}
 
 		float const noteHeight = 1. / adjustedNoteRange;
@@ -843,7 +854,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 				? noteColorForMidiChannel(noteColorBase, currentNote->midiChannel()) : noteFillColor;
 			if (drawAsLines)
 			{
-				p.fillRect(noteRectF, fillColor);
+				notes.fillRect(noteRectF, fillColor);
 			}
 			else
 			{
@@ -852,13 +863,14 @@ void MidiClipView::paintEvent( QPaintEvent * )
 					: noteBorderColor;
 				QPen notePen(borderColor);
 				notePen.setWidth(0);
-				p.setPen(notePen);
-				p.fillRect(noteRectF, fillColor);
-				p.drawRect( noteRectF );
+				notes.setPen(notePen);
+				notes.fillRect(noteRectF, fillColor);
+				notes.drawRect( noteRectF );
 			}
 		}
 
-		p.restore();
+		notes.restore();
+		if (songEditorMelodyClip) { notePainter.end(); }
 	}
 
 	// bar lines
@@ -927,6 +939,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 
 	p.end();
 	painter.drawPixmap( 0, 0, m_paintPixmap );
+	if (songEditorMelodyClip) { m_trackView->getTrackContentWidget()->updateNoteOverlay(); }
 }
 
 

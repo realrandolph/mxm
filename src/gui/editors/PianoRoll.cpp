@@ -4411,6 +4411,7 @@ bool PianoRoll::recordTrack(InstrumentTrack* track)
 
 	auto clip = static_cast<MidiClip*>(track->createClip(position));
 	clip->setAutoResize(false);
+	clip->changeLength(TimePos(1));
 	setCurrentMidiClip(clip);
 	clip->addJournalCheckPoint();
 	m_recordingNotes.clear();
@@ -4512,13 +4513,6 @@ void PianoRoll::stop()
 			m_midiClip->addNote(recordedNote, false);
 		}
 	}
-	if (m_recordingTrack && hasValidMidiClip())
-	{
-		const auto takeLength = m_midiClip->length();
-		m_midiClip->setAutoResize(true);
-		m_midiClip->updateLength();
-		if (m_midiClip->length() < takeLength) { m_midiClip->changeLength(takeLength); }
-	}
 	m_recordingNotes.clear();
 	song->stop();
 	m_recording = false;
@@ -4541,7 +4535,6 @@ void PianoRoll::stopRecording()
 	if (m_recordingTrack && hasValidMidiClip())
 	{
 		updateRecordingClipLength();
-		m_midiClip->setAutoResize(true);
 	}
 	m_recordingTrack = false;
 	m_recording = false;

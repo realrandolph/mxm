@@ -45,6 +45,8 @@ class SampleClipView : public ClipView
 public:
 	SampleClipView( SampleClip * _clip, TrackView * _tv );
 	~SampleClipView() override = default;
+	const QPixmap& waveformPreview() const { return m_waveformPreview; }
+	long waveformPreviewXPosition() const { return m_paintPixmapXPosition; }
 
 public slots:
 	void updateSample();
@@ -67,6 +69,7 @@ private:
 	SampleClip * m_clip;
 	SampleThumbnail m_sampleThumbnail;
 	QPixmap m_paintPixmap;
+	QPixmap m_waveformPreview;
 	long m_paintPixmapXPosition;
 } ;
 
