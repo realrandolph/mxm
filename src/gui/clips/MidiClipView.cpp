@@ -60,6 +60,15 @@ QColor colorForMidiChannel(QColor color, int channel)
 	return color;
 }
 
+QColor noteColorForMidiChannel(const QColor& baseColor, int channel)
+{
+	const QColor channelColor = colorForMidiChannel(baseColor, channel);
+	QColor noteColor;
+	noteColor.setHsl(channelColor.hslHue(), std::max(channelColor.hslSaturation(), 200),
+		baseColor.lightness() > 140 ? 65 : 215, 220);
+	return noteColor;
+}
+
 MidiClipView::MidiClipView( MidiClip* clip, TrackView* parent ) :
 	ClipView( clip, parent ),
 	m_clip( clip ),
@@ -582,6 +591,7 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	QPainter p( &m_paintPixmap );
 
 	QColor c;
+	QColor noteColorBase;
 	bool const muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
 	bool current = getGUI()->pianoRoll()->currentMidiClip() == m_clip;
 	bool beatClip = m_clip->m_clipType == MidiClip::Type::BeatClip;
@@ -610,10 +620,12 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	{
 		// Do not paint PatternClips how we paint MidiClips
 		c = patternClipBackground();
+		noteColorBase = c;
 	}
 	else
 	{
 		c = getColorForDisplay( painter.background().color() );
+		noteColorBase = c;
 		if (midiChannel >= 0) { c = colorForMidiChannel(c, midiChannel); }
 		if (songEditorMelodyClip) { c.setAlpha(SongEditorClipAlpha); }
 	}
@@ -802,23 +814,14 @@ void MidiClipView::paintEvent( QPaintEvent * )
 									   : (hasCustomColor() ? c.lighter(200) : getNoteBorderColor());
 
 		bool const drawAsLines = height() < 64;
-		if (drawAsLines)
+		if (!drawAsLines)
 		{
-			p.setPen(noteFillColor);
-		}
-		else
-		{
-			p.setPen(noteBorderColor);
 			p.setRenderHint(QPainter::Antialiasing);
 		}
 
-		// Needed for Qt5 although the documentation for QPainter::setPen(QColor) as it's used above
-		// states that it should already set a width of 0.
-		QPen pen = p.pen();
-		pen.setWidth(0);
-		p.setPen(pen);
-
 		float const noteHeight = 1. / adjustedNoteRange;
+		const float visibleNoteHeight = std::max(noteHeight,
+			2.f / std::max(1.f, height() - distanceToTop - 2 * notesBorder));
 
 		// scan through all the notes and draw them on the clip
 		for (Note const * currentNote : noteCollection)
@@ -832,15 +835,25 @@ void MidiClipView::paintEvent( QPaintEvent * )
 
 			float const noteStartY = invertedMappedNoteKey * noteHeight;
 
-			QRectF noteRectF( noteStartX, noteStartY, noteLength, noteHeight);
+			const float drawnNoteHeight = drawAsLines ? visibleNoteHeight : noteHeight;
+			QRectF noteRectF(noteStartX, noteStartY + (noteHeight - drawnNoteHeight) / 2,
+				noteLength, drawnNoteHeight);
+			const bool hasMidiChannel = songEditorMelodyClip && currentNote->midiChannel() >= 0;
+			const QColor fillColor = hasMidiChannel
+				? noteColorForMidiChannel(noteColorBase, currentNote->midiChannel()) : noteFillColor;
 			if (drawAsLines)
 			{
-				p.drawLine(QPointF(noteStartX, noteStartY + 0.5 * noteHeight),
-					   QPointF(noteStartX + noteLength, noteStartY + 0.5 * noteHeight));
+				p.fillRect(noteRectF, fillColor);
 			}
 			else
 			{
-				p.fillRect( noteRectF, noteFillColor );
+				const QColor borderColor = hasMidiChannel
+					? (fillColor.lightness() > 128 ? fillColor.darker(150) : fillColor.lighter(150))
+					: noteBorderColor;
+				QPen notePen(borderColor);
+				notePen.setWidth(0);
+				p.setPen(notePen);
+				p.fillRect(noteRectF, fillColor);
 				p.drawRect( noteRectF );
 			}
 		}
