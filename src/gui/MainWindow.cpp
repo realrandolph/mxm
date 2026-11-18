@@ -457,19 +457,14 @@ void MainWindow::finalize()
 	m_toolBarLayout->addWidget( project_notes_window, 1, 7 );
 	m_toolBarLayout->setColumnStretch( 100, 1 );
 
-	// setup-dialog opened before?
+	// Record that the application has initialized, but use the detected defaults on first launch.
 	if( !ConfigManager::inst()->value( "app", "configured" ).toInt() )
 	{
 		ConfigManager::inst()->setValue( "app", "configured", "1" );
-		// no, so show it that user can setup everything
-		SetupDialog sd;
-		sd.exec();
 	}
-	// look whether the audio engine failed to start the audio device selected by the
-	// user and is using AudioDummy as a fallback
-	// or the audio device is set to invalid one
-	else if( Engine::audioEngine()->audioDevStartFailed() || !AudioEngine::isAudioDevNameValid(
-		ConfigManager::inst()->value( "audioengine", "audiodev" ) ) )
+
+	// Offer audio settings only if device discovery could not start playback.
+	if (Engine::audioEngine()->audioDevStartFailed())
 	{
 		QMessageBox::critical(nullptr, "Audio device setup failed",
 			tr("Failed to setup audio device for playback. Try adjusting your audio device settings (e.g. the sample rate), then restart MXM."));
@@ -477,6 +472,11 @@ void MainWindow::finalize()
 		// if so, offer the audio settings section of the setup dialog
 		SetupDialog sd( SetupDialog::ConfigTab::AudioSettings );
 		sd.exec();
+	}
+	else if (!AudioEngine::isAudioDevNameValid(ConfigManager::inst()->value("audioengine", "audiodev")))
+	{
+		// Persist the working backend selected by automatic device discovery.
+		ConfigManager::inst()->setValue("audioengine", "audiodev", Engine::audioEngine()->audioDevName());
 	}
 
 	// Add editor subwindows
