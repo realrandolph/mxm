@@ -181,6 +181,7 @@ private:
 
 	// Audio settings widgets.
 	QComboBox * m_audioInterfaces;
+	QWidget* m_audioSetupWidgetContainer{nullptr};
 	AswMap m_audioIfaceSetupWidgets;
 	trMap m_audioIfaceNames;
 	int m_bufferSize;
