@@ -25,9 +25,16 @@
 
 #include "SampleTrack.h"
 
+#include <algorithm>
+#include <limits>
+
+#include <QColor>
 #include <QDomElement>
 
+#include "AudioDevice.h"
+#include "AudioEngine.h"
 #include "EffectChain.h"
+#include "Engine.h"
 #include "Mixer.h"
 #include "panning.h"
 #include "PatternStore.h"
@@ -64,7 +71,9 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 
 SampleTrack::~SampleTrack()
 {
-	Engine::audioEngine()->removePlayHandlesOfTypes( this, PlayHandle::Type::SamplePlayHandle );
+	stopRecording(false);
+	Engine::audioEngine()->removePlayHandlesOfTypes(this,
+		PlayHandle::Type::SamplePlayHandle | PlayHandle::Type::SampleRecordPlayHandle);
 }
 
 
@@ -111,17 +120,17 @@ bool SampleTrack::play( const TimePos & _start, const f_cnt_t _frames,
 
 			if( _start >= sClip->startPosition() && _start < sClip->endPosition() )
 			{
-				if( sClip->isPlaying() == false && _start >= (sClip->startPosition() + sClip->startTimeOffset()) )
+				if (sClip->isPlaying() == false && _start >= (sClip->startPosition() + sClip->startTimeOffset()))
 				{
 					auto bufferFramesPerTick = Engine::framesPerTick(sClip->sample().sampleRate());
-					f_cnt_t sampleStart = bufferFramesPerTick * ( _start - sClip->startPosition() - sClip->startTimeOffset() );
+					f_cnt_t sampleStart = bufferFramesPerTick *
+						(_start - sClip->startPosition() - sClip->startTimeOffset());
 					f_cnt_t clipFrameLength = bufferFramesPerTick * ( sClip->endPosition() - sClip->startPosition() - sClip->startTimeOffset() );
 					f_cnt_t sampleBufferLength = sClip->sample().sampleSize();
 					//if the Clip smaller than the sample length we play only until Clip end
 					//else we play the sample to the end but nothing more
 					f_cnt_t samplePlayLength = clipFrameLength > sampleBufferLength ? sampleBufferLength : clipFrameLength;
-					//we only play within the sampleBuffer limits
-					if( sampleStart < sampleBufferLength )
+					if (sampleStart < sampleBufferLength)
 					{
 						sClip->setSampleStartFrame( sampleStart );
 						sClip->setSamplePlayLength( samplePlayLength );
@@ -143,24 +152,10 @@ bool SampleTrack::play( const TimePos & _start, const f_cnt_t _frames,
 	for (const auto& clip : clips)
 	{
 		auto st = dynamic_cast<SampleClip*>(clip);
-		if( !st->isMuted() )
+		if (!st->isMuted())
 		{
-			PlayHandle* handle;
-			if( st->isRecord() )
-			{
-				if( !Engine::getSong()->isRecording() )
-				{
-					return played_a_note;
-				}
-				auto smpHandle = new SampleRecordHandle(st);
-				handle = smpHandle;
-			}
-			else
-			{
-				auto smpHandle = new SamplePlayHandle(st);
-				smpHandle->setPatternTrack(pattern_track);
-				handle = smpHandle;
-			}
+			auto handle = new SamplePlayHandle(st);
+			handle->setPatternTrack(pattern_track);
 			handle->setOffset( _offset );
 			// send it to the audio engine
 			Engine::audioEngine()->addPlayHandle( handle );
@@ -185,6 +180,7 @@ gui::TrackView * SampleTrack::createView( gui::TrackContainerView* tcv )
 Clip * SampleTrack::createClip(const TimePos & pos)
 {
 	auto sClip = new SampleClip(this);
+	sClip->setColor(QColor::fromHsv((getClipNum(sClip) * 137) % 360, 170, 230));
 	sClip->movePosition(pos);
 	return sClip;
 }
@@ -198,6 +194,8 @@ void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& this
 	m_volumeModel.saveSettings(doc, thisElem, "vol");
 	m_panningModel.saveSettings(doc, thisElem, "pan");
 	m_mixerChannelModel.saveSettings(doc, thisElem, "mixch");
+	thisElem.setAttribute("recordchannel", recordChannel());
+	thisElem.setAttribute("inputmonitor", isInputMonitoring());
 }
 
 
@@ -222,6 +220,68 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	m_panningModel.loadSettings(thisElem, "pan");
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
+	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
+	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
+}
+
+
+void SampleTrack::setRecordChannel(int channel)
+{
+	m_recordChannel.store(std::clamp(channel, 0, 2), std::memory_order_relaxed);
+}
+
+
+bool SampleTrack::startRecording()
+{
+	if (isRecording()) { return true; }
+	auto audioDevice = Engine::audioEngine()->audioDev();
+	if (!audioDevice || !audioDevice->supportsCapture()) { return false; }
+
+	auto song = Engine::getSong();
+	const auto playMode = song->playMode();
+	const auto position = playMode == Song::PlayMode::None
+		? song->getPlayPos(Song::PlayMode::None) : song->getPlayPos(Song::PlayMode::Song);
+	auto clip = static_cast<SampleClip*>(createClip(position));
+	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
+	m_recordingSession = std::make_shared<SampleRecordSession>();
+	m_recordingClip = clip;
+	clip->changeLength(TimePos(1));
+	song->trackRecordingStarted();
+	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip, m_recordingSession));
+	song->startTrackRecordingTransport(position);
+	return true;
+}
+
+
+void SampleTrack::updateRecordingClipLength()
+{
+	if (!isRecording() || !m_recordingClip) { return; }
+	if (!m_recordingSession) { return; }
+	const auto frames = m_recordingSession->recordedFrames.load(std::memory_order_relaxed);
+	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->inputSampleRate());
+	const auto ticks = std::min<double>(static_cast<double>(frames) / framesPerTick,
+		std::numeric_limits<tick_t>::max());
+	m_recordingClip->changeLength(TimePos(static_cast<tick_t>(ticks)));
+}
+
+
+void SampleTrack::stopRecording(bool stopTransport)
+{
+	if (m_recording.exchange(false, std::memory_order_relaxed))
+	{
+		if (m_recordingSession) { m_recordingSession->active.store(false, std::memory_order_relaxed); }
+		if (auto song = Engine::getSong()) { song->trackRecordingStopped(stopTransport); }
+	}
+}
+
+
+void SampleTrack::updateInputLevel(float level)
+{
+	float current = m_inputLevel.load(std::memory_order_relaxed);
+	while (current < level &&
+		!m_inputLevel.compare_exchange_weak(current, level, std::memory_order_relaxed))
+	{
+	}
 }
 
 

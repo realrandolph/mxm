@@ -59,6 +59,7 @@ InstrumentMidiIOView::InstrumentMidiIOView( QWidget* parent ) :
 	/*: This string must be be short, its width must be less than
 	 *  width of LCD spin-box of two digits */
 	m_inputChannelSpinBox->setLabel( tr( "CHAN" ) );
+	m_inputChannelSpinBox->setToolTip(tr("Filter received MIDI by input channel; -- accepts all input channels."));
 	m_inputChannelSpinBox->setEnabled( false );
 	midiInputLayout->addWidget( m_inputChannelSpinBox );
 
@@ -84,13 +85,6 @@ InstrumentMidiIOView::InstrumentMidiIOView( QWidget* parent ) :
 	auto midiOutputLayout = new QHBoxLayout(m_midiOutputGroupBox);
 	midiOutputLayout->setContentsMargins( 8, 18, 8, 8 );
 	midiOutputLayout->setSpacing( 4 );
-
-	m_outputChannelSpinBox = new LcdSpinBox( 2, m_midiOutputGroupBox );
-	m_outputChannelSpinBox->addTextForValue( 0, "--" );
-	/*: This string must be be short, its width must be less than
-	 *  width of LCD spin-box of two digits */
-	m_outputChannelSpinBox->setLabel( tr( "CHAN" ) );
-	midiOutputLayout->addWidget( m_outputChannelSpinBox );
 
 	m_fixedOutputVelocitySpinBox = new LcdSpinBox( 3, m_midiOutputGroupBox );
 	m_fixedOutputVelocitySpinBox->addTextForValue( -1, "---" );
@@ -171,7 +165,6 @@ void InstrumentMidiIOView::modelChanged()
 	m_fixedInputVelocitySpinBox->setModel( &mp->m_fixedInputVelocityModel );
 
 	m_midiOutputGroupBox->setModel( &mp->m_writableModel );
-	m_outputChannelSpinBox->setModel( &mp->m_outputChannelModel );
 	m_fixedOutputVelocitySpinBox->setModel( &mp->m_fixedOutputVelocityModel );
 	m_fixedOutputNoteSpinBox->setModel( &mp->m_fixedOutputNoteModel );
 	m_outputProgramSpinBox->setModel( &mp->m_outputProgramModel );

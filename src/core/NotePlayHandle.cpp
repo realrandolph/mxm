@@ -77,7 +77,9 @@ NotePlayHandle::NotePlayHandle( InstrumentTrack* instrumentTrack,
 	m_unpitchedFrequency( 0 ),
 	m_baseDetuning( nullptr ),
 	m_songGlobalParentOffset( 0 ),
-	m_midiChannel( midiEventChannel >= 0 ? midiEventChannel : instrumentTrack->midiPort()->realOutputChannel() ),
+	m_midiChannel(midiEventChannel >= 0 ? midiEventChannel : n.midiChannel() >= 0
+		? n.midiChannel() : parent != nullptr
+		? parent->midiChannel() : instrumentTrack->midiPort()->realOutputChannel()),
 	m_origin( origin ),
 	m_frequencyNeedsUpdate( false )
 {
@@ -102,6 +104,8 @@ NotePlayHandle::NotePlayHandle( InstrumentTrack* instrumentTrack,
 	updateFrequency();
 
 	setFrames( _frames );
+	// Keep the source channel on Note; this handle's midiChannel() is the routed output channel.
+	setMidiChannel(m_origin == Origin::MidiInput ? midiEventChannel : m_midiChannel);
 
 	// inform attached components about new MIDI note (used for recording in Piano Roll)
 	if( m_origin == Origin::MidiInput )

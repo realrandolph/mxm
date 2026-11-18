@@ -62,7 +62,6 @@ private:
 	QToolButton * m_rpBtn;
 
 	GroupBox * m_midiOutputGroupBox;
-	LcdSpinBox * m_outputChannelSpinBox;
 	LcdSpinBox * m_fixedOutputVelocitySpinBox;
 	LcdSpinBox * m_outputProgramSpinBox;
 	LcdSpinBox * m_fixedOutputNoteSpinBox;

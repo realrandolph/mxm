@@ -23,6 +23,7 @@
  *
  */
 
+#include <algorithm>
 #include <iostream>
 
 #include "mxmconfig.h"
@@ -107,7 +108,7 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	const auto backend = ConfigManager::inst()->value(tag(), backendAttribute());
 	
 	const auto inputDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(Direction::Input));
-	const auto inputDeviceChannels = ConfigManager::inst()->value(tag(), channelsAttribute(Direction::Input)).toInt();
+	auto inputDeviceChannels = ConfigManager::inst()->value(tag(), channelsAttribute(Direction::Input)).toInt();
 
 	const auto outputDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(Direction::Output));
 	const auto outputDeviceChannels = ConfigManager::inst()->value(tag(), channelsAttribute(Direction::Output)).toInt();
@@ -122,6 +123,29 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		if (deviceInfo->name == inputDeviceName && hostApiInfo->name == backend) { inputDeviceIndex = i; }
 		if (deviceInfo->name == outputDeviceName && hostApiInfo->name == backend) { outputDeviceIndex = i; }
 	}
+
+	if (inputDeviceIndex == paNoDevice && inputDeviceName.isEmpty())
+	{
+		const auto defaultInput = Pa_GetDefaultInputDevice();
+		if (defaultInput != paNoDevice)
+		{
+			const auto deviceInfo = Pa_GetDeviceInfo(defaultInput);
+			const auto hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+			if (backend.isEmpty() || hostApiInfo->name == backend) { inputDeviceIndex = defaultInput; }
+		}
+	}
+
+	if (inputDeviceIndex != paNoDevice)
+	{
+		const auto maxInputChannels = Pa_GetDeviceInfo(inputDeviceIndex)->maxInputChannels;
+		if (maxInputChannels > 0)
+		{
+			inputDeviceChannels = std::clamp(inputDeviceChannels > 0 ? inputDeviceChannels : 2,
+			1, std::min(maxInputChannels, 2));
+		}
+		else { inputDeviceIndex = paNoDevice; }
+	}
+	else { inputDeviceChannels = 0; }
 
 	const auto sampleRate = engine->baseSampleRate();
 	const auto framesPerBuffer = engine->framesPerPeriod();
@@ -170,6 +194,10 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	successful = true;
 	setSampleRate(sampleRate);
 	setChannels(outputDeviceChannels);
+	m_inputChannels = inputDeviceIndex == paNoDevice ? 0 : static_cast<ch_cnt_t>(inputDeviceChannels);
+	setCaptureChannels(std::min<ch_cnt_t>(m_inputChannels, 2));
+	m_supportsCapture = m_inputChannels > 0;
+	if (m_supportsCapture) { m_inputBuffer.resize(framesPerBuffer); }
 }
 
 AudioPortAudio::~AudioPortAudio()
@@ -188,7 +216,7 @@ void AudioPortAudio::stopProcessingImpl()
 	Pa_StopStream(m_paStream);
 }
 
-int AudioPortAudio::processCallback(const void*, void* output, unsigned long frameCount,
+int AudioPortAudio::processCallback(const void* input, void* output, unsigned long frameCount,
 	const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* userData)
 {
 	const auto device = static_cast<AudioPortAudio*>(userData);
@@ -197,11 +225,24 @@ int AudioPortAudio::processCallback(const void*, void* output, unsigned long fra
 
 	if (!device->isRunning())
 	{
-		std::fill_n(outputBuffer, frameCount * channels, 0.f);
+		if (outputBuffer) { std::fill_n(outputBuffer, frameCount * channels, 0.f); }
 		return paComplete;
 	}
 
-	device->audioEngine()->renderNextBuffer({outputBuffer, channels, frameCount});
+	if (input && device->m_inputChannels > 0)
+	{
+		const auto inputBuffer = static_cast<const float*>(input);
+		const auto frames = std::min<unsigned long>(frameCount, device->m_inputBuffer.size());
+		for (unsigned long frame = 0; frame < frames; ++frame)
+		{
+			const auto inputOffset = frame * device->m_inputChannels;
+			device->m_inputBuffer[frame][0] = inputBuffer[inputOffset];
+			device->m_inputBuffer[frame][1] = inputBuffer[inputOffset + std::min<ch_cnt_t>(1, device->m_inputChannels - 1)];
+		}
+		device->audioEngine()->pushInputFrames(device->m_inputBuffer.data(), frames);
+	}
+
+	if (outputBuffer) { device->audioEngine()->renderNextBuffer({outputBuffer, channels, frameCount}); }
 	return paContinue;
 }
 } // namespace mxm
@@ -252,7 +293,7 @@ public:
 	{
 		const auto maxChannelCount = maxChannels(Pa_GetDeviceInfo(deviceIndex), m_direction);
 		const auto channelCount = ConfigManager::inst()->value(tag(), channelsAttribute(m_direction)).toInt();
-		m_channelModel.setRange(1, maxChannelCount);
+		m_channelModel.setRange(1, m_direction == Direction::Input ? std::min(maxChannelCount, 2) : maxChannelCount);
 		m_channelModel.setValue(channelCount == 0 ? DEFAULT_CHANNELS : channelCount);
 		m_channelSpinBox->setNumDigits(QString::number(maxChannelCount).length());
 	}

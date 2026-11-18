@@ -26,8 +26,13 @@
 #define MXM_GUI_SAMPLE_TRACK_VIEW_H
 
 
+#include <QTimer>
+
 #include "SampleTrack.h"
 #include "TrackView.h"
+
+class QProgressBar;
+class QToolButton;
 
 namespace mxm
 {
@@ -36,7 +41,6 @@ namespace gui
 {
 
 class Knob;
-class MixerChannelLcdSpinBox;
 class SampleTrackWindow;
 class TrackLabelButton;
 
@@ -89,14 +93,21 @@ private slots:
 	//! @brief Create and assign a new mixer Channel for this track.
 	void createMixerLine();
 	void corruptStateUpdate();
+	void updateRecordingControls();
+	void armRecording(bool waitForInput);
+	void cancelArmedRecording();
+	void startRecording();
 
 
 private:
 	SampleTrackWindow * m_window;
-	MixerChannelLcdSpinBox* m_mixerChannelNumber;
 	Knob * m_volumeKnob;
 	Knob * m_panningKnob;
 	FadeButton * m_activityIndicator;
+	QToolButton* m_recordButton;
+	QProgressBar* m_inputLevelMeter;
+	QTimer m_recordStartTimer;
+	bool m_waitingForInput{false};
 
 	TrackLabelButton * m_tlb;
 

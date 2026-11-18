@@ -24,6 +24,9 @@
 
 #include "AudioEngine.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "MixHelpers.h"
 
 #include "mxmconfig.h"
@@ -169,6 +172,17 @@ bool AudioEngine::criticalXRuns() const
 
 void AudioEngine::pushInputFrames( SampleFrame* _ab, const f_cnt_t _frames )
 {
+	float peak = 0.f;
+	for (f_cnt_t frame = 0; frame < _frames; ++frame)
+	{
+		peak = std::max({peak, std::abs(_ab[frame][0]), std::abs(_ab[frame][1])});
+	}
+	float heldPeak = m_inputPeak.load(std::memory_order_relaxed);
+	while (!m_inputPeak.compare_exchange_weak(heldPeak, std::max(peak, heldPeak * 0.9f),
+		std::memory_order_relaxed))
+	{
+	}
+
 	requestChangeInModel();
 
 	f_cnt_t frames = m_inputBufferFrames[ m_inputBufferWrite ];
@@ -216,7 +230,7 @@ void AudioEngine::renderStageNoteSetup()
 
 		if( it != m_playHandles.end() )
 		{
-			(*it)->audioBusHandle()->removePlayHandle(*it);
+			if (auto bus = (*it)->audioBusHandle()) { bus->removePlayHandle(*it); }
 			if((*it)->type() == PlayHandle::Type::NotePlayHandle)
 			{
 				NotePlayHandleManager::release((NotePlayHandle*)*it);
@@ -279,7 +293,7 @@ void AudioEngine::renderStageEffects()
 		}
 		if( ( *it )->isFinished() )
 		{
-			(*it)->audioBusHandle()->removePlayHandle(*it);
+			if (auto bus = (*it)->audioBusHandle()) { bus->removePlayHandle(*it); }
 			if((*it)->type() == PlayHandle::Type::NotePlayHandle)
 			{
 				NotePlayHandleManager::release((NotePlayHandle*)*it);
@@ -459,13 +473,23 @@ void AudioEngine::removeAudioBusHandle(AudioBusHandle* busHandle)
 
 bool AudioEngine::addPlayHandle( PlayHandle* handle )
 {
+	if (handle->type() == PlayHandle::Type::SampleRecordPlayHandle)
+	{
+		requestChangeInModel();
+		m_playHandles += handle;
+		if (auto bus = handle->audioBusHandle()) { bus->addPlayHandle(handle); }
+		doneChangeInModel();
+		return true;
+	}
+
 	// Only add play handles if we have the CPU capacity to process them.
 	// Instrument play handles are not added during playback, but when the
 	// associated instrument is created, so add those unconditionally.
-	if (handle->type() == PlayHandle::Type::InstrumentPlayHandle || !criticalXRuns())
+	if (handle->type() == PlayHandle::Type::InstrumentPlayHandle ||
+		handle->type() == PlayHandle::Type::SampleRecordPlayHandle || !criticalXRuns())
 	{
 		m_newPlayHandles.push( handle );
-		handle->audioBusHandle()->addPlayHandle(handle);
+		if (auto bus = handle->audioBusHandle()) { bus->addPlayHandle(handle); }
 		return true;
 	}
 
@@ -486,7 +510,7 @@ void AudioEngine::removePlayHandle(PlayHandle * ph)
 	// which were created in a thread different than the audio engine thread
 	if (ph->affinityMatters() && ph->affinity() == QThread::currentThread())
 	{
-		ph->audioBusHandle()->removePlayHandle(ph);
+		if (auto bus = ph->audioBusHandle()) { bus->removePlayHandle(ph); }
 		bool removedFromList = false;
 		// Check m_newPlayHandles first because doing it the other way around
 		// creates a race condition
@@ -545,7 +569,7 @@ void AudioEngine::removePlayHandlesOfTypes(Track * track, PlayHandle::Types type
 	{
 		if ((*it)->isFromTrack(track) && ((*it)->type() & types))
 		{
-			(*it)->audioBusHandle()->removePlayHandle(*it);
+			if (auto bus = (*it)->audioBusHandle()) { bus->removePlayHandle(*it); }
 			if((*it)->type() == PlayHandle::Type::NotePlayHandle)
 			{
 				NotePlayHandleManager::release((NotePlayHandle*)*it);

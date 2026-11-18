@@ -42,10 +42,48 @@
 #include "StringPairDrag.h"
 #include "TrackContainerView.h"
 #include "ClipView.h"
+#include "MidiClipView.h"
+#include "SampleClipView.h"
 #include "TrackView.h"
 
 namespace mxm::gui
 {
+
+class MidiNoteOverlay : public QWidget
+{
+public:
+	MidiNoteOverlay(QWidget* parent, const QVector<ClipView*>& clips) : QWidget(parent), m_clips(clips)
+	{
+		setAttribute(Qt::WA_TransparentForMouseEvents);
+		setAttribute(Qt::WA_TranslucentBackground);
+	}
+
+protected:
+	void paintEvent(QPaintEvent*) override
+	{
+		QPainter painter(this);
+		for (auto* clip : m_clips)
+		{
+			auto* midi = qobject_cast<MidiClipView*>(clip);
+			if (midi && midi->isVisible() && !midi->notePreview().isNull())
+			{
+				painter.drawPixmap(midi->pos(), midi->notePreview());
+			}
+			auto* sample = qobject_cast<SampleClipView*>(clip);
+			if (sample && sample->isVisible() && !sample->waveformPreview().isNull())
+			{
+				painter.save();
+				painter.setClipRect(sample->geometry());
+				painter.drawPixmap(sample->x() + sample->waveformPreviewXPosition(), sample->y(),
+					sample->waveformPreview());
+				painter.restore();
+			}
+		}
+	}
+
+private:
+	const QVector<ClipView*>& m_clips;
+};
 
 //! @brief Alternate between a darker and a lighter background color every 4 bars
 const int BARS_PER_GROUP = 4;
@@ -157,6 +195,13 @@ void TrackContentWidget::addClipView( ClipView * clipv )
 	Clip * clip = clipv->getClip();
 
 	m_clipViews.push_back( clipv );
+	if (!m_trackView->trackContainerView()->fixedClips())
+	{
+		if (!m_noteOverlay) { m_noteOverlay = new MidiNoteOverlay(this, m_clipViews); }
+		m_noteOverlay->setGeometry(rect());
+		m_noteOverlay->show();
+		m_noteOverlay->raise();
+	}
 
 	clip->saveJournallingState( false );
 	changePosition();
@@ -174,8 +219,36 @@ void TrackContentWidget::removeClipView( ClipView * clipv )
 	if( it != m_clipViews.end() )
 	{
 		m_clipViews.erase( it );
+		updateNoteOverlay();
 		Engine::getSong()->setModified();
 	}
+}
+
+void TrackContentWidget::updateNoteOverlay()
+{
+	if (m_noteOverlay)
+	{
+		m_noteOverlay->setGeometry(rect());
+		m_noteOverlay->update();
+	}
+}
+
+ClipView* TrackContentWidget::nextOverlappingClip(ClipView* current, int x)
+{
+	QVector<ClipView*> overlapping;
+	for (auto clipView : m_clipViews)
+	{
+		if (clipView->geometry().contains(x, current->y())) { overlapping.push_back(clipView); }
+	}
+	if (overlapping.size() < 2) { return current; }
+
+	if (x != m_lastOverlapX)
+	{
+		m_lastOverlapX = x;
+		m_lastOverlapIndex = overlapping.indexOf(current);
+	}
+	m_lastOverlapIndex = (m_lastOverlapIndex + 1) % overlapping.size();
+	return overlapping[m_lastOverlapIndex];
 }
 
 
@@ -189,6 +262,7 @@ void TrackContentWidget::update()
 		clipView->update();
 	}
 	QWidget::update();
+	updateNoteOverlay();
 }
 
 
@@ -237,6 +311,7 @@ void TrackContentWidget::changePosition( const TimePos & newPos )
 		}
 	}
 	setUpdatesEnabled(true);
+	updateNoteOverlay();
 
 	updateBackground();
 }
@@ -560,6 +635,7 @@ void TrackContentWidget::resizeEvent( QResizeEvent * resizeEvent )
 {
 	// Update background
 	updateBackground();
+	updateNoteOverlay();
 	// Force redraw
 	QWidget::resizeEvent( resizeEvent );
 }

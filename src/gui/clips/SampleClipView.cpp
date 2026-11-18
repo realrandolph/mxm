@@ -37,7 +37,9 @@
 #include "SampleThumbnail.h"
 #include "Song.h"
 #include "StringPairDrag.h"
+#include "SongEditor.h"
 #include "TrackContainerView.h"
+#include "TrackContentWidget.h"
 #include "TrackView.h"
 
 namespace mxm::gui
@@ -50,6 +52,7 @@ SampleClipView::SampleClipView( SampleClip * _clip, TrackView * _tv ) :
 	m_paintPixmap(),
 	m_paintPixmapXPosition(0)
 {
+	setAttribute(Qt::WA_TranslucentBackground);
 	// update UI and tooltip
 	updateSample();
 
@@ -82,10 +85,6 @@ void SampleClipView::updateSample()
 void SampleClipView::constructContextMenu(QMenu* cm)
 {
 	cm->addSeparator();
-
-	/*contextMenu.addAction( embed::getIconPixmap( "record" ),
-				tr( "Set/clear record" ),
-						m_clip, SLOT(toggleRecord()));*/
 
 	cm->addAction(
 		embed::getIconPixmap("flip_x"),
@@ -145,24 +144,27 @@ void SampleClipView::dropEvent( QDropEvent * _de )
 
 void SampleClipView::mousePressEvent( QMouseEvent * _me )
 {
-	if( _me->button() == Qt::LeftButton &&
-		_me->modifiers() & Qt::ControlModifier &&
-		_me->modifiers() & Qt::ShiftModifier )
+	if (_me->button() == Qt::LeftButton && !_me->modifiers())
 	{
-		m_clip->toggleRecord();
-	}
-	else
-	{
-		if( _me->button() == Qt::MiddleButton && _me->modifiers() == Qt::ControlModifier )
+		auto content = m_trackView->getTrackContentWidget();
+		auto nextClip = content->nextOverlappingClip(this, mapTo(content, _me->pos()).x());
+		if (nextClip != this)
 		{
-			auto sClip = dynamic_cast<SampleClip*>(getClip());
-			if( sClip )
-			{
-				sClip->updateTrackClips();
-			}
+			getGUI()->songEditor()->m_editor->selectAllClips(false);
+			nextClip->setSelected(true);
+			_me->accept();
+			return;
 		}
-		ClipView::mousePressEvent( _me );
 	}
+	if( _me->button() == Qt::MiddleButton && _me->modifiers() == Qt::ControlModifier )
+	{
+		auto sClip = dynamic_cast<SampleClip*>(getClip());
+		if( sClip )
+		{
+			sClip->updateTrackClips();
+		}
+	}
+	ClipView::mousePressEvent( _me );
 }
 
 
@@ -230,21 +232,22 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		m_paintPixmap = QPixmap(viewPortRect.size());
 	}
 
+	m_paintPixmap.fill(Qt::transparent);
+	if (m_waveformPreview.size() != viewPortRect.size()) { m_waveformPreview = QPixmap(viewPortRect.size()); }
+	m_waveformPreview.fill(Qt::transparent);
 	QPainter p( &m_paintPixmap );
 
 	bool muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
 	bool selected = isSelected();
 
 	QLinearGradient lingrad(0, 0, 0, height());
-	QColor c = painter.background().color();
+	QColor c = m_clip->color().value_or(m_clip->getTrack()->color().value_or(painter.background().color()));
+	c.setAlpha(150);
 	if (muted) { c = c.darker(150); }
 	if (selected) { c = c.darker(150); }
 
 	lingrad.setColorAt( 1, c.darker( 300 ) );
 	lingrad.setColorAt( 0, c );
-
-	// paint a black rectangle under the clip to prevent glitches with transparent backgrounds
-	p.fillRect( rect(), QColor( 0, 0, 0 ) );
 
 	if( gradient() )
 	{
@@ -255,7 +258,8 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		p.fillRect( rect(), c );
 	}
 
-	auto clipColor = m_clip->color().value_or(m_clip->getTrack()->color().value_or(painter.pen().brush().color()));
+	auto clipColor = c;
+	clipColor.setAlpha(255);
 
 	p.setPen(clipColor);
 
@@ -295,7 +299,13 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 			.reversed = sample.reversed()
 		};
 
-		m_sampleThumbnail.visualize(param, p);
+		if (fixedClips()) { m_sampleThumbnail.visualize(param, p); }
+		else
+		{
+			QPainter waveformPainter(&m_waveformPreview);
+			waveformPainter.setPen(p.pen());
+			m_sampleThumbnail.visualize(param, waveformPainter);
+		}
 	}
 
 	QString name = PathUtil::cleanName(m_clip->m_sample.sampleFile());
@@ -330,24 +340,10 @@ void SampleClipView::paintEvent( QPaintEvent * pe )
 		p.setPen(markerColor());
 		p.drawLine(m_markerPos, rect().bottom(), m_markerPos, rect().top());
 	}
-	// recording sample tracks is not possible at the moment
-
-	/* if( m_clip->isRecord() )
-	{
-		p.setFont( pointSize<7>( p.font() ) );
-
-		p.setPen( textShadowColor() );
-		p.drawText( 10, p.fontMetrics().height()+1, "Rec" );
-		p.setPen( textColor() );
-		p.drawText( 9, p.fontMetrics().height(), "Rec" );
-
-		p.setBrush( QBrush( textColor() ) );
-		p.drawEllipse( 4, 5, 4, 4 );
-	}*/
-
 	p.end();
 
 	painter.drawPixmap(m_paintPixmapXPosition, 0, m_paintPixmap);
+	m_trackView->getTrackContentWidget()->updateNoteOverlay();
 }
 
 

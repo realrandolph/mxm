@@ -138,7 +138,7 @@ class StepRecorder : public QObject
 
 	std::vector<StepNote*> m_curStepNotes; // contains the current recorded step notes (i.e. while user still press the notes; before they are applied to the clip)
 
-	StepNote* findCurStepNote(const int key);
+	StepNote* findCurStepNote(int key, int midiChannel);
 
 	bool m_isStepInProgress = false;
 };

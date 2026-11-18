@@ -117,6 +117,7 @@ private:
 	int processCallback(jack_nframes_t nframes);
 
 	static int staticProcessCallback(jack_nframes_t nframes, void* udata);
+	static void portConnectCallback(jack_port_id_t portA, jack_port_id_t portB, int connected, void* udata);
 	static void shutdownCallback(void* _udata);
 
 	jack_client_t* m_client;
@@ -126,6 +127,7 @@ private:
 	std::atomic<MidiJack*> m_midiClient;
 	std::vector<jack_port_t*> m_outputPorts;
 	std::vector<jack_port_t*> m_inputPorts;
+	std::atomic<int> m_monoInputPort{-1};
 	jack_default_audio_sample_t** m_tempOutBufs;
 	std::vector<SampleFrame> m_inputFrameBuffer;
 

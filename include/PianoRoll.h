@@ -50,6 +50,7 @@ namespace mxm
 
 
 class MidiClip;
+class InstrumentTrack;
 
 
 namespace gui
@@ -122,14 +123,16 @@ public:
 	void showPanTextFloat(panning_t pan, const QPoint &pos, int timeout=-1);
 
 	void setCurrentMidiClip( MidiClip* newMidiClip );
+	bool recordTrack(InstrumentTrack* track);
+	bool isRecordingTrack(const InstrumentTrack* track) const;
+	void updateRecordingClipLength();
+	void recordInputNoteOn(const Note& note) { startRecordNote(note); }
+	void recordInputNoteOff(const Note& note) { finishRecordNote(note); }
 	void setGhostMidiClip( MidiClip* newMidiClip );
 	void loadGhostNotes( const QDomElement & de );
 	void loadMarkedSemiTones(const QDomElement & de);
 
-	inline void stopRecording()
-	{
-		m_recording = false;
-	}
+	void stopRecording();
 
 	inline bool isRecording() const
 	{
@@ -393,6 +396,7 @@ private:
 
 	TimePos m_currentPosition;
 	bool m_recording;
+	bool m_recordingTrack;
 	bool m_doAutoQuantization{false};
 	QList<Note> m_recordingNotes;
 
@@ -574,6 +578,10 @@ public:
 	void play() override;
 	void stop() override;
 	void record() override;
+	bool recordTrack(InstrumentTrack* track);
+	bool isRecordingTrack(const InstrumentTrack* track) const;
+	void recordInputNoteOn(const Note& note);
+	void recordInputNoteOff(const Note& note);
 	void recordAccompany() override;
 	void toggleStepRecording() override;
 	void stopRecording();

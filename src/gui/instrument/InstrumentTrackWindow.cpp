@@ -26,11 +26,15 @@
 
 #include <QDir>
 #include <QDropEvent>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
 #include <QPushButton>
+#include <QSignalBlocker>
+#include <QToolButton>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
@@ -59,6 +63,7 @@
 #include "LeftRightNav.h"
 #include "MainWindow.h"
 #include "PianoView.h"
+#include "PianoRoll.h"
 #include "PluginFactory.h"
 #include "PluginView.h"
 #include "Song.h"
@@ -76,6 +81,7 @@ namespace mxm::gui
 const int INSTRUMENT_WIDTH	= 254;
 const int INSTRUMENT_HEIGHT	= INSTRUMENT_WIDTH;
 const int PIANO_HEIGHT		= 80;
+const int PIANO_RECORD_CONTROLS_HEIGHT = 22;
 
 
 InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
@@ -271,6 +277,87 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	m_pianoView = new PianoView( this );
 	m_pianoView->setMinimumHeight( PIANO_HEIGHT );
 	m_pianoView->setMaximumHeight( PIANO_HEIGHT );
+	m_pianoView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+	m_recordButton = new QToolButton(this);
+	m_recordButton->setObjectName("recordButton");
+	m_recordButton->setText(tr("REC"));
+	m_recordButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_recordButton->setCheckable(true);
+	m_recordButton->setFixedSize(34, 18);
+	m_recordButton->setAccessibleName(tr("Record MIDI notes"));
+	m_recordButton->setToolTip(tr("Record MIDI notes to this instrument track. Right-click for start options."));
+	m_recordButton->setStyleSheet(
+		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; font-size: 8px; }"
+		"QToolButton:checked { background-color: #d32f2f; color: white; }");
+	m_recordButton->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_recordButton, &QToolButton::clicked, this, [this]
+	{
+		if (getGUI()->pianoRoll()->isRecordingTrack(m_track))
+		{
+			cancelArmedRecording();
+			m_recordTriggerNoteKey = -1;
+			m_recordTriggerNoteChannel = -1;
+			getGUI()->pianoRoll()->stop();
+		}
+		else if (m_recordStartTimer.isActive() || m_waitingForInput) { cancelArmedRecording(); }
+		else { startRecording(); }
+		updateRecordingControls();
+	});
+	connect(m_recordButton, &QToolButton::customContextMenuRequested, this, [this](const QPoint& pos)
+	{
+		if (getGUI()->pianoRoll()->isRecording()) { return; }
+		QMenu menu(m_recordButton);
+		auto* delayed = menu.addAction(tr("Start recording in 3 seconds"));
+		auto* onInput = menu.addAction(tr("Start recording when a note is played"));
+		connect(delayed, &QAction::triggered, this, [this] { armRecording(false); });
+		connect(onInput, &QAction::triggered, this, [this] { armRecording(true); });
+		menu.exec(m_recordButton->mapToGlobal(pos));
+	});
+	m_recordStartTimer.setSingleShot(true);
+	connect(&m_recordStartTimer, &QTimer::timeout, this, [this] { startRecording(); });
+
+	m_recordChannelComboBox = new QComboBox(this);
+	m_recordChannelComboBox->setObjectName("recordChannelComboBox");
+	m_recordChannelComboBox->addItem(tr("All channels"), 0);
+	for (int channel = 1; channel <= MidiChannelCount; ++channel)
+	{
+		m_recordChannelComboBox->addItem(tr("Channel %1").arg(channel), channel);
+	}
+	m_recordChannelComboBox->setToolTip(tr("MIDI channel for recorded notes; All channels preserves the incoming channel."));
+	m_recordChannelComboBox->setAccessibleName(tr("MIDI recording channel"));
+	QFont channelFont = m_recordChannelComboBox->font();
+	if (channelFont.pointSizeF() > 2) { channelFont.setPointSizeF(channelFont.pointSizeF() - 1); }
+	else if (channelFont.pixelSize() > 2) { channelFont.setPixelSize(channelFont.pixelSize() - 1); }
+	m_recordChannelComboBox->setFont(channelFont);
+	m_recordChannelComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+	m_recordChannelComboBox->setMinimumWidth(m_recordChannelComboBox->sizeHint().width());
+	m_recordChannelComboBox->setFixedHeight(20);
+	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+		[this](int index) { setRecordChannel(m_recordChannelComboBox->itemData(index).toInt()); });
+
+	auto pianoSection = new QWidget(this);
+	pianoSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	auto pianoSectionLayout = new QVBoxLayout(pianoSection);
+	pianoSectionLayout->setContentsMargins(0, 0, 0, 0);
+	pianoSectionLayout->setSpacing(0);
+
+	auto recordControls = new QWidget(pianoSection);
+	recordControls->setFixedHeight(PIANO_RECORD_CONTROLS_HEIGHT);
+	auto recordControlsLayout = new QHBoxLayout(recordControls);
+	recordControlsLayout->setContentsMargins(4, 1, 4, 1);
+	recordControlsLayout->setSpacing(4);
+	recordControlsLayout->addWidget(m_recordButton);
+	recordControlsLayout->addStretch(1);
+	auto recordChannelLabel = new QLabel(tr("MIDI ch."), recordControls);
+	recordChannelLabel->setBuddy(m_recordChannelComboBox);
+	recordChannelLabel->setStyleSheet("font-size: 9px; color: palette(mid);");
+	recordChannelLabel->setToolTip(m_recordChannelComboBox->toolTip());
+	recordControlsLayout->addWidget(recordChannelLabel);
+	recordControlsLayout->addWidget(m_recordChannelComboBox);
+
+	pianoSectionLayout->addWidget(recordControls);
+	pianoSectionLayout->addWidget(m_pianoView);
 
 	// setup sizes and policies
 	generalSettingsWidget->setMaximumHeight(90);
@@ -281,8 +368,39 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 	// Use QWidgetItem explicitly to make the size hint change on instrument changes
 	// QLayout::addWidget() uses QWidgetItemV2 with size hint caching
 	vlayout->insertItem(1, new QWidgetItem(m_tabWidget));
-	vlayout->addWidget( m_pianoView );
+	vlayout->addWidget(pianoSection);
 	setModel( _itv->model() );
+	updateRecordingControls();
+	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate,
+		this, &InstrumentTrackWindow::updateRecordingControls);
+	connect(m_track, &InstrumentTrack::midiNoteOn, this,
+		[this](const Note& note)
+	{
+		if (!m_waitingForInput) { return; }
+		m_waitingForInput = false;
+		m_recordTriggerNoteKey = note.key();
+		m_recordTriggerNoteChannel = note.midiChannel();
+		auto pianoRoll = getGUI()->pianoRoll();
+		if (pianoRoll->recordTrack(m_track))
+		{
+			pianoRoll->recordInputNoteOn(note);
+		}
+		else
+		{
+			m_recordTriggerNoteKey = -1;
+			m_recordTriggerNoteChannel = -1;
+		}
+		updateRecordingControls();
+	}, Qt::QueuedConnection);
+	connect(m_track, &InstrumentTrack::midiNoteOff, this,
+		[this](const Note& note)
+	{
+		if (m_recordTriggerNoteKey != note.key() || m_recordTriggerNoteChannel != note.midiChannel()) { return; }
+		m_recordTriggerNoteKey = -1;
+		m_recordTriggerNoteChannel = -1;
+		auto pianoRoll = getGUI()->pianoRoll();
+		if (pianoRoll->isRecordingTrack(m_track)) { pianoRoll->recordInputNoteOff(note); }
+	}, Qt::QueuedConnection);
 
 	QMdiSubWindow* subWin = getGUI()->mainWindow()->addWindowedWidget( this );
 
@@ -296,7 +414,7 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 }
 
 void InstrumentTrackWindow::resizeEvent(QResizeEvent * event) {
-	/* m_instrumentView->resize(QSize(size().width()-1, maxHeight)); */
+	QWidget::resizeEvent(event);
 	adjustTabSize(m_instrumentView);
 	adjustTabSize(m_instrumentFunctionsView);
 	adjustTabSize(m_ssView);
@@ -353,6 +471,11 @@ void InstrumentTrackWindow::modelChanged()
 	m_panningKnob->setModel( &m_track->m_panningModel );
 	m_mixerChannelNumber->setModel( &m_track->m_mixerChannelModel );
 	m_pianoView->setModel( &m_track->m_piano );
+	{
+		const QSignalBlocker blocker(m_recordChannelComboBox);
+		m_recordChannelComboBox->setCurrentIndex(
+			m_recordChannelComboBox->findData(m_track->midiPort()->outputChannel()));
+	}
 
 	if (m_track->instrument() && m_track->instrument()->isBendable())
 	{
@@ -397,6 +520,65 @@ void InstrumentTrackWindow::modelChanged()
 	updateName();
 
 	updateSubWindow();
+}
+
+
+void InstrumentTrackWindow::setRecordChannel(int channel)
+{
+	if (m_track) { m_track->midiPort()->setOutputChannel(channel); }
+}
+
+
+void InstrumentTrackWindow::startRecording()
+{
+	cancelArmedRecording();
+	getGUI()->pianoRoll()->recordTrack(m_track);
+	updateRecordingControls();
+}
+
+
+void InstrumentTrackWindow::armRecording(bool waitForInput)
+{
+	cancelArmedRecording();
+	m_waitingForInput = waitForInput;
+	if (!waitForInput) { m_recordStartTimer.start(3000); }
+	updateRecordingControls();
+}
+
+
+void InstrumentTrackWindow::cancelArmedRecording()
+{
+	m_recordStartTimer.stop();
+	m_waitingForInput = false;
+}
+
+
+void InstrumentTrackWindow::updateRecordingControls()
+{
+	auto pianoRoll = getGUI()->pianoRoll();
+	const auto outputChannel = m_track->midiPort()->outputChannel();
+	if (m_recordChannelComboBox->currentIndex() != outputChannel)
+	{
+		const QSignalBlocker blocker(m_recordChannelComboBox);
+		m_recordChannelComboBox->setCurrentIndex(outputChannel);
+	}
+	const bool recording = pianoRoll->isRecordingTrack(m_track);
+	const bool armed = m_recordStartTimer.isActive() || m_waitingForInput;
+	if (!recording && !m_waitingForInput)
+	{
+		m_recordTriggerNoteKey = -1;
+		m_recordTriggerNoteChannel = -1;
+	}
+	if (m_recordButton->isChecked() != (recording || armed))
+	{
+		const QSignalBlocker blocker(m_recordButton);
+		m_recordButton->setChecked(recording || armed);
+	}
+	m_recordButton->setText(recording ? tr("STOP") : armed ? tr("ARM") : tr("REC"));
+	m_recordButton->setToolTip(recording ? tr("Stop recording this instrument track") : armed ?
+		tr("Recording is armed; click to cancel. Right-click to change start mode.") :
+		tr("Record MIDI notes to this instrument track. Right-click for delayed or input-triggered start."));
+	m_recordButton->setEnabled(recording || !pianoRoll->isRecording());
 }
 
 
@@ -464,27 +646,17 @@ void InstrumentTrackWindow::updateInstrumentView()
 	if( m_track->m_instrument != nullptr )
 	{
 		m_instrumentView = m_track->m_instrument->createView( m_tabWidget );
+		m_instrumentViewAspect = m_instrumentView->sizeHint().expandedTo(m_instrumentView->minimumSizeHint())
+			.expandedTo(m_instrumentView->minimumSize());
+		if (!m_instrumentViewAspect.isValid() || m_instrumentViewAspect.isEmpty())
+		{
+			m_instrumentViewAspect = QSize(INSTRUMENT_WIDTH, INSTRUMENT_HEIGHT);
+		}
 		m_tabWidget->addTab( m_instrumentView, tr( "Plugin" ), "plugin_tab", 0 );
 		m_tabWidget->setActiveTab( 0 );
 
-		// If instrument is resizable, unset size constraints on tabs.
-		// Otherwise, prevent other tabs from exceeding the size of the
-		// instrument tab
-		const auto maxSize = m_instrumentView->isResizable()
-			? QSize{QWIDGETSIZE_MAX, QWIDGETSIZE_MAX}
-			: QSize{
-				std::max(INSTRUMENT_WIDTH, m_instrumentView->width()),
-				std::max(INSTRUMENT_HEIGHT, m_instrumentView->maximumHeight()),
-			};
-		m_tabWidget->setMaximumSize(maxSize);
-		// Individual tabs must also have their maximum widths set,
-		// otherwise they will remain wide, and their overflowing contents
-		// will get clipped.
-		m_ssView->setMaximumSize(maxSize);
-		m_instrumentFunctionsView->setMaximumSize(maxSize);
-		m_effectView->setMaximumSize(maxSize);
-		m_midiView->setMaximumSize(maxSize);
-		m_tuningView->setMaximumSize(maxSize);
+		m_tabWidget->setMinimumSize(m_instrumentViewAspect.width() + 4,
+			m_instrumentViewAspect.height() + GRAPHIC_TAB_HEIGHT - 1);
 
 		m_ssView->setFunctionsHidden(m_track->m_instrument->isSingleStreamed());
 
@@ -720,10 +892,25 @@ void InstrumentTrackWindow::viewPrevInstrument()
 
 void InstrumentTrackWindow::adjustTabSize(QWidget *w)
 {
-	// "-1" :
-	// in "TabWidget::addTab", under "Position tab's window", the widget is
-	// moved up by 1 pixel
-	w->resize(width() - 4, height() - 180);
+	if (!w) { return; }
+	const QSize available(std::max(1, m_tabWidget->width() - 4),
+		std::max(1, m_tabWidget->height() - GRAPHIC_TAB_HEIGHT));
+	if (w == m_instrumentView)
+	{
+		QSize pluginSize = m_instrumentViewAspect;
+		if (m_instrumentView->isResizable())
+		{
+			pluginSize.scale(available.boundedTo(m_instrumentView->maximumSize()), Qt::KeepAspectRatio);
+			pluginSize = pluginSize.expandedTo(m_instrumentView->minimumSize());
+		}
+		w->resize(pluginSize);
+		w->move(2 + std::max(0, (available.width() - w->width()) / 2), GRAPHIC_TAB_HEIGHT - 1);
+	}
+	else
+	{
+		w->move(2, GRAPHIC_TAB_HEIGHT - 1);
+		w->resize(available);
+	}
 	w->update();
 }
 
@@ -753,29 +940,9 @@ void InstrumentTrackWindow::updateSubWindow()
 	auto subWindow = findSubWindowInParents();
 	if (subWindow && m_instrumentView)
 	{
-		const auto instrumentViewResizable = m_instrumentView->isResizable();
-
-		if (instrumentViewResizable)
-		{
-			// TODO As of writing SlicerT is the only resizable instrument. Is this code specific to SlicerT?
-			// TODO Expand extraSpace in terms of specific widget sizes or replace with QLayout::setSizeConstraint.
-			const auto extraSpace = QSize(12, 208);
-			setMaximumSize(m_instrumentView->maximumSize() + extraSpace);
-			setMinimumSize(m_instrumentView->minimumSize() + extraSpace);
-		}
-		else
-		{
-			setFixedSize(sizeHint());
-
-			// The sub window might be reused from an instrument that was maximized. Show the sub window
-			// as normal, i.e. not maximized, if the instrument view is not resizable.
-			if (subWindow->isMaximized())
-			{
-				subWindow->showNormal();
-			}
-		}
-
-		subWindow->setWindowFlag(Qt::WindowMaximizeButtonHint, instrumentViewResizable);
+		setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+		setMinimumSize(layout()->minimumSize());
+		subWindow->setWindowFlag(Qt::WindowMaximizeButtonHint, true);
 
 		// TODO This is only needed if the sub window is implemented with MXM's own SubWindow class.
 		// If an QMdiSubWindow is used everything works automatically. It seems that SubWindow is

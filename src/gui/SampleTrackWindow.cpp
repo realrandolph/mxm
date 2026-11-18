@@ -25,13 +25,18 @@
 #include "SampleTrackWindow.h"
 
 #include <QCloseEvent>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
+#include "Engine.h"
 #include "EffectRackView.h"
 #include "embed.h"
 #include "GuiApplication.h"
@@ -147,6 +152,32 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 
 	generalSettingsLayout->addLayout(basicControlsLayout);
 
+	auto recordingControlsLayout = new QFormLayout;
+	recordingControlsLayout->setContentsMargins(0, 2, 0, 0);
+	recordingControlsLayout->setHorizontalSpacing(6);
+	recordingControlsLayout->setVerticalSpacing(2);
+
+	m_recordChannelComboBox = new QComboBox(this);
+	m_recordChannelComboBox->setObjectName("recordChannelComboBox");
+	m_recordChannelComboBox->addItem(tr("All channels (Auto)"), 0);
+	m_recordChannelComboBox->addItem(tr("Left channel only"), 1);
+	m_recordChannelComboBox->addItem(tr("Right channel only"), 2);
+	m_recordChannelComboBox->setToolTip(tr("Choose which output channel receives the audio input. Auto preserves the input layout, duplicating mono input to both channels."));
+	recordingControlsLayout->addRow(tr("Record to"), m_recordChannelComboBox);
+
+	m_inputMonitoringCheckBox = new QCheckBox(tr("Monitor input"), this);
+	m_inputMonitoringCheckBox->setObjectName("inputMonitoringCheckBox");
+	m_inputMonitoringCheckBox->setToolTip(tr("Send live input to this track while recording"));
+	recordingControlsLayout->addRow(QString{}, m_inputMonitoringCheckBox);
+	generalSettingsLayout->addLayout(recordingControlsLayout);
+
+	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+		m_track->setRecordChannel(m_recordChannelComboBox->itemData(index).toInt());
+	});
+	connect(m_inputMonitoringCheckBox, &QCheckBox::toggled, this, [this](bool enabled) {
+		m_track->setInputMonitoring(enabled);
+	});
+
 	m_effectRack = new EffectRackView(stv->model()->audioBusHandle()->effects());
 	m_effectRack->setFixedSize(EffectRackView::DEFAULT_WIDTH, 242);
 
@@ -196,6 +227,20 @@ void SampleTrackWindow::modelChanged()
 	m_volumeKnob->setModel(&m_track->m_volumeModel);
 	m_panningKnob->setModel(&m_track->m_panningModel);
 	m_mixerChannelNumber->setModel(&m_track->m_mixerChannelModel);
+	{
+		const QSignalBlocker blocker(m_recordChannelComboBox);
+		auto recordIndex = m_recordChannelComboBox->findData(m_track->recordChannel());
+		if (recordIndex < 0)
+		{
+			m_track->setRecordChannel(0);
+			recordIndex = m_recordChannelComboBox->findData(0);
+		}
+		m_recordChannelComboBox->setCurrentIndex(recordIndex);
+	}
+	{
+		const QSignalBlocker blocker(m_inputMonitoringCheckBox);
+		m_inputMonitoringCheckBox->setChecked(m_track->isInputMonitoring());
+	}
 
 	updateName();
 }

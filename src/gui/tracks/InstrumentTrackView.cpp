@@ -440,4 +440,5 @@ void InstrumentTrackView::corruptStateUpdate()
 	}
 }
 
+
 } // namespace mxm::gui

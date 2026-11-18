@@ -22,6 +22,7 @@
 
 #include <QKeyEvent>
 
+#include "InstrumentTrack.h"
 #include "MidiClip.h"
 #include "StepRecorderWidget.h"
 #include "PianoRoll.h"
@@ -88,10 +89,12 @@ void StepRecorder::notePressed(const Note & n)
 		stepForwards();
 	}
 
-	StepNote* stepNote = findCurStepNote(n.key());
+	StepNote* stepNote = findCurStepNote(n.key(), n.midiChannel());
 	if(stepNote == nullptr)
 	{
-		m_curStepNotes.push_back(new StepNote(Note(m_curStepLength, m_curStepStartPos, n.key(), n.getVolume(), n.getPanning())));
+		Note stepNote(m_curStepLength, m_curStepStartPos, n.key(), n.getVolume(), n.getPanning());
+		stepNote.setMidiChannel(n.midiChannel());
+		m_curStepNotes.push_back(new StepNote(stepNote));
 		m_pianoRoll.update();
 	}
 	else if (stepNote->isReleased())
@@ -102,7 +105,7 @@ void StepRecorder::notePressed(const Note & n)
 
 void StepRecorder::noteReleased(const Note & n)
 {
-	StepNote* stepNote = findCurStepNote(n.key());
+	StepNote* stepNote = findCurStepNote(n.key(), n.midiChannel());
 
 	if(stepNote != nullptr && stepNote->isPressed())
 	{
@@ -236,7 +239,13 @@ void StepRecorder::applyStep()
 
 	for (const StepNote* stepNote : m_curStepNotes)
 	{
-		m_midiClip->addNote(stepNote->m_note, false);
+		Note recordedNote(stepNote->m_note);
+		const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+		if (midiPort->outputChannel() != 0)
+		{
+			recordedNote.setMidiChannel(midiPort->realOutputChannel());
+		}
+		m_midiClip->addNote(recordedNote, false);
 	}
 
 	m_midiClip->rearrangeAllNotes();
@@ -365,11 +374,11 @@ bool StepRecorder::allCurStepNotesReleased()
 	return true;
 }
 
-StepRecorder::StepNote* StepRecorder::findCurStepNote(const int key)
+StepRecorder::StepNote* StepRecorder::findCurStepNote(int key, int midiChannel)
 {
 	for (StepNote* stepNote : m_curStepNotes)
 	{
-		if(stepNote->m_note.key() == key)
+		if (stepNote->m_note.key() == key && stepNote->m_note.midiChannel() == midiChannel)
 		{
 			return stepNote;
 		}

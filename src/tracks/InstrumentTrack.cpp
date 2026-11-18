@@ -42,9 +42,10 @@
 #include "Pitch.h"
 #include "Song.h"
 
+#include <algorithm>
+
 namespace mxm
 {
-
 
 InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	Track(Track::Type::Instrument, tc),
@@ -72,6 +73,7 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	m_piano(this),
 	m_microtuner()
 {
+	m_midiPort.setOutputChannel(0);
 	m_pitchModel.setCenterValue( 0 );
 	m_pitchModel.setStrictStepSize(true);
 	m_panningModel.setCenterValue( DefaultPanning );
@@ -313,6 +315,31 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 	}
 
 	bool eventHandled = false;
+	auto findMidiInputNote = [this, &event](int key) -> NotePlayHandle*
+	{
+		auto matchesInputChannel = [&event](const NotePlayHandle* note)
+		{
+			return static_cast<const Note&>(*note).midiChannel() == event.channel();
+		};
+
+		auto* current = m_notes[key];
+		if (current && current->origin() == NotePlayHandle::Origin::MidiInput &&
+			matchesInputChannel(current) && !current->isReleased())
+		{
+			return current;
+		}
+
+		for (auto* note : m_processHandles)
+		{
+			if (note->origin() == NotePlayHandle::Origin::MidiInput &&
+				note->key() == key && matchesInputChannel(note) &&
+				!note->isReleased())
+			{
+				return note;
+			}
+		}
+		return nullptr;
+	};
 
 	switch( event.type() )
 	{
@@ -322,8 +349,9 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 		case MidiNoteOn:
 			if( event.velocity() > 0 )
 			{
-				// play a note only if it is not already playing and if it is within configured bounds
-				if (m_notes[event.key()] == nullptr && event.key() >= firstKey() && event.key() <= lastKey())
+				// A pitch can be active on several MIDI channels at once.
+				if (findMidiInputNote(event.key()) == nullptr &&
+					event.key() >= firstKey() && event.key() <= lastKey())
 				{
 					NotePlayHandle* nph =
 						NotePlayHandleManager::acquire(
@@ -333,10 +361,10 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 										event.key(), event.volume(midiPort()->baseVelocity())),
 								nullptr, event.channel(),
 								NotePlayHandle::Origin::MidiInput);
-					m_notes[event.key()] = nph;
+					if (m_notes[event.key()] == nullptr) { m_notes[event.key()] = nph; }
 					if( ! Engine::audioEngine()->addPlayHandle( nph ) )
 					{
-						m_notes[event.key()] = nullptr;
+						if (m_notes[event.key()] == nph) { m_notes[event.key()] = nullptr; }
 					}
 				}
 				eventHandled = true;
@@ -344,30 +372,30 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 			}
 
 		case MidiNoteOff:
-			if( m_notes[event.key()] != nullptr )
+			if (auto* note = findMidiInputNote(event.key()))
 			{
 				// do actual note off and remove internal reference to NotePlayHandle (which itself will
 				// be deleted later automatically)
 				Engine::audioEngine()->requestChangeInModel();
-				m_notes[event.key()]->noteOff( offset );
+				note->noteOff( offset );
 				if (isSustainPedalPressed() &&
-					m_notes[event.key()]->origin() ==
+					note->origin() ==
 					NotePlayHandle::Origin::MidiInput)
 				{
-					m_sustainedNotes << m_notes[event.key()];
+					m_sustainedNotes << note;
 				}
-				m_notes[event.key()] = nullptr;
+				if (m_notes[event.key()] == note) { m_notes[event.key()] = nullptr; }
 				Engine::audioEngine()->doneChangeInModel();
 			}
 			eventHandled = true;
 			break;
 
 		case MidiKeyPressure:
-			if( m_notes[event.key()] != nullptr )
+			if (auto* note = findMidiInputNote(event.key()))
 			{
 				// setVolume() calls processOutEvent() with MidiKeyPressure so the
 				// attached instrument will receive the event as well
-				m_notes[event.key()]->setVolume( event.volume( midiPort()->baseVelocity() ) );
+				note->setVolume( event.volume( midiPort()->baseVelocity() ) );
 			}
 			eventHandled = true;
 			break;
@@ -422,10 +450,10 @@ void InstrumentTrack::processInEvent( const MidiEvent& event, const TimePos& tim
 			switch( event.metaEvent() )
 			{
 				case MidiNotePanning:
-					if( m_notes[event.key()] != nullptr )
+					if (auto* note = findMidiInputNote(event.key()))
 					{
 						eventHandled = true;
-						m_notes[event.key()]->setPanning( event.panning() );
+						note->setPanning(event.panning());
 					}
 					break;
 				default:
@@ -466,21 +494,24 @@ void InstrumentTrack::processOutEvent( const MidiEvent& event, const TimePos& ti
 	const auto handleEventOutputChannel = midiPort()->outputChannel() == 0
 		? event.channel()
 		: midiPort()->realOutputChannel();
+	const auto outputChannel = std::clamp(handleEventOutputChannel, 0, MidiChannelCount - 1);
 
 	switch( event.type() )
 	{
 		case MidiNoteOn:
 			m_midiNotesMutex.lock();
-			m_piano.setKeyState( event.key(), true );	// event.key() = original key
 
 			if( key >= 0 && key < NumKeys )
 			{
-				if( m_runningMidiNotes[key] > 0 )
+				auto& channelNoteCount = m_runningMidiNotesByChannel[outputChannel][key];
+				if (channelNoteCount > 0)
 				{
-					m_instrument->handleMidiEvent( MidiEvent( MidiNoteOff, handleEventOutputChannel, key, 0 ), time, offset );
+					m_instrument->handleMidiEvent(MidiEvent(MidiNoteOff, outputChannel, key, 0), time, offset);
 				}
+				++channelNoteCount;
 				++m_runningMidiNotes[key];
-				m_instrument->handleMidiEvent( MidiEvent( MidiNoteOn, handleEventOutputChannel, key, event.velocity() ), time, offset );
+				m_piano.setKeyState(event.key(), true);
+				m_instrument->handleMidiEvent(MidiEvent(MidiNoteOn, outputChannel, key, event.velocity()), time, offset);
 
 			}
 			m_midiNotesMutex.unlock();
@@ -489,11 +520,20 @@ void InstrumentTrack::processOutEvent( const MidiEvent& event, const TimePos& ti
 
 		case MidiNoteOff:
 			m_midiNotesMutex.lock();
-			m_piano.setKeyState( event.key(), false );	// event.key() = original key
 
-			if( key >= 0 && key < NumKeys && --m_runningMidiNotes[key] <= 0 )
+			if (key >= 0 && key < NumKeys)
 			{
-				m_instrument->handleMidiEvent( MidiEvent( MidiNoteOff, handleEventOutputChannel, key, 0 ), time, offset );
+				auto& channelNoteCount = m_runningMidiNotesByChannel[outputChannel][key];
+				if (channelNoteCount > 0)
+				{
+					--channelNoteCount;
+					m_runningMidiNotes[key] = std::max(0, m_runningMidiNotes[key] - 1);
+					m_piano.setKeyState(event.key(), m_runningMidiNotes[key] > 0);
+					if (channelNoteCount == 0)
+					{
+						m_instrument->handleMidiEvent(MidiEvent(MidiNoteOff, outputChannel, key, 0), time, offset);
+					}
+				}
 			}
 			m_midiNotesMutex.unlock();
 			emit endNote();
@@ -518,6 +558,10 @@ void InstrumentTrack::silenceAllNotes( bool removeIPH )
 	{
 		m_notes[i] = nullptr;
 		m_runningMidiNotes[i] = 0;
+		for (int channel = 0; channel < MidiChannelCount; ++channel)
+		{
+			m_runningMidiNotesByChannel[channel][i] = 0;
+		}
 	}
 	m_midiNotesMutex.unlock();
 
@@ -775,7 +819,8 @@ bool InstrumentTrack::play( const TimePos & _start, const f_cnt_t _frames,
 				? 0
 				: (currentNote->endPos() - cur_start - noteOverlap) * frames_per_tick;
 
-			NotePlayHandle* notePlayHandle = NotePlayHandleManager::acquire(this, _offset, noteFrames, *currentNote);
+			NotePlayHandle* notePlayHandle = NotePlayHandleManager::acquire(
+				this, _offset, noteFrames, *currentNote);
 			notePlayHandle->setPatternTrack(pattern_track);
 			// are we playing global song?
 			if( _clip_num < 0 )

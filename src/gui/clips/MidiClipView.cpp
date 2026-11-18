@@ -43,12 +43,32 @@
 #include "RenameDialog.h"
 #include "SongEditor.h"
 #include "TrackContainerView.h"
+#include "TrackContentWidget.h"
 #include "TrackView.h"
 
 namespace mxm::gui
 {
 
 constexpr int BeatStepButtonOffset = 4;
+constexpr int SongEditorClipAlpha = 160;
+
+QColor colorForMidiChannel(QColor color, int channel)
+{
+	int hue = color.hsvHue();
+	if (hue < 0) { hue = 210; }
+	hue = (hue + channel * 360 / MidiChannelCount) % 360;
+	color.setHsv(hue, std::max(color.hsvSaturation(), 96), color.value(), color.alpha());
+	return color;
+}
+
+QColor noteColorForMidiChannel(const QColor& baseColor, int channel)
+{
+	const QColor channelColor = colorForMidiChannel(baseColor, channel);
+	QColor noteColor;
+	noteColor.setHsl(channelColor.hslHue(), std::max(channelColor.hslSaturation(), 200),
+		baseColor.lightness() > 140 ? 65 : 215, 220);
+	return noteColor;
+}
 
 MidiClipView::MidiClipView( MidiClip* clip, TrackView* parent ) :
 	ClipView( clip, parent ),
@@ -61,6 +81,7 @@ MidiClipView::MidiClipView( MidiClip* clip, TrackView* parent ) :
 	// TODO if this option is ever added to the GUI, rename it to legacysepattern
 	m_legacySEPattern(ConfigManager::inst()->value("ui", "legacysebb", "0").toInt())
 {
+	setAttribute(Qt::WA_TranslucentBackground);
 	connect( getGUI()->pianoRoll(), SIGNAL(currentMidiClipChanged()),
 			this, SLOT(update()));
 	update();
@@ -84,6 +105,7 @@ void MidiClipView::update()
 	setToolTip(m_clip->name());
 
 	ClipView::update();
+	m_trackView->getTrackContentWidget()->updateNoteOverlay();
 }
 
 
@@ -552,6 +574,7 @@ static int computeNoteRange(int minKey, int maxKey)
 void MidiClipView::paintEvent( QPaintEvent * )
 {
 	QPainter painter( this );
+	const bool songEditorMelodyClip = !fixedClips() && m_clip->type() == MidiClip::Type::MelodyClip;
 
 	if( !needsUpdate() )
 	{
@@ -565,31 +588,60 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	{
 		m_paintPixmap = QPixmap(size());
 	}
+	m_paintPixmap.fill(Qt::transparent);
+	if (songEditorMelodyClip)
+	{
+		if (m_notePreview.size() != size()) { m_notePreview = QPixmap(size()); }
+		m_notePreview.fill(Qt::transparent);
+	}
+	else { m_notePreview = QPixmap(); }
 
 	QPainter p( &m_paintPixmap );
 
 	QColor c;
+	QColor noteColorBase;
 	bool const muted = m_clip->getTrack()->isMuted() || m_clip->isMuted();
 	bool current = getGUI()->pianoRoll()->currentMidiClip() == m_clip;
 	bool beatClip = m_clip->m_clipType == MidiClip::Type::BeatClip;
+	int midiChannel = -1;
+	bool hasMultipleChannels = false;
+	int maxKey = std::numeric_limits<int>::min();
+	int minKey = std::numeric_limits<int>::max();
+	for (const Note* note : m_clip->notes())
+	{
+		if (songEditorMelodyClip)
+		{
+			const int channel = note->midiChannel();
+			if (channel >= 0)
+			{
+				if (midiChannel >= 0 && midiChannel != channel) { hasMultipleChannels = true; }
+				else { midiChannel = channel; }
+			}
+		}
+		maxKey = std::max(maxKey, note->key());
+		minKey = std::min(minKey, note->key());
+	}
+	if (hasMultipleChannels) { midiChannel = -1; }
+	const QString channelLabel = midiChannel >= 0 ? QString::number(midiChannel + 1) : QString{};
 
 	if( beatClip )
 	{
 		// Do not paint PatternClips how we paint MidiClips
 		c = patternClipBackground();
+		noteColorBase = c;
 	}
 	else
 	{
 		c = getColorForDisplay( painter.background().color() );
+		noteColorBase = c;
+		if (midiChannel >= 0) { c = colorForMidiChannel(c, midiChannel); }
+		if (songEditorMelodyClip) { c.setAlpha(SongEditorClipAlpha); }
 	}
 
 	// invert the gradient for the background in the B&B editor
 	QLinearGradient lingrad( 0, 0, 0, height() );
 	lingrad.setColorAt( beatClip ? 0 : 1, c.darker( 300 ) );
 	lingrad.setColorAt( beatClip ? 1 : 0, c );
-
-	// paint a black rectangle under the clip to prevent glitches with transparent backgrounds
-	p.fillRect( rect(), QColor( 0, 0, 0 ) );
 
 	if( gradient() )
 	{
@@ -615,6 +667,15 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		QFontMetrics fontMetrics(labelFont);
 		textBoxHeight = fontMetrics.height() + 2 * textTop;
 	}
+
+	QFont channelFont = font();
+	channelFont.setPixelSize(std::max(8, QFontMetrics(font()).height() - 2));
+	const QFontMetrics channelFontMetrics(channelFont);
+	const int channelBadgeHeight = channelLabel.isEmpty() ? 0 : channelFontMetrics.height() + 2;
+	const int channelBadgeWidth = channelLabel.isEmpty()
+		? 0 : std::max(channelBadgeHeight, channelFontMetrics.horizontalAdvance(channelLabel) + 4);
+	const int channelLabelOffset = channelLabel.isEmpty() ? 0 : channelBadgeWidth + 4;
+	if (channelBadgeHeight > 0) { textBoxHeight = std::max(textBoxHeight, channelBadgeHeight + 2 * textTop); }
 
 	// Compute pixels per bar
 	const int baseWidth = fixedClips() ? parentWidget()->width() - 2 * BORDER_WIDTH
@@ -706,16 +767,6 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	{
 		// Compute the minimum and maximum key in the clip
 		// so that we know how much there is to draw.
-		int maxKey = std::numeric_limits<int>::min();
-		int minKey = std::numeric_limits<int>::max();
-
-		for (Note const * note : noteCollection)
-		{
-			int const key = note->key();
-			maxKey = qMax( maxKey, key );
-			minKey = qMin( minKey, key );
-		}
-
 		// If needed adjust the note range so that we always have paint a certain interval
 		int const minimalNoteRange = 12; // Always paint at least one octave
 		int const actualNoteRange = computeNoteRange(minKey, maxKey);
@@ -759,10 +810,13 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		int const notesBorder = 4; // Border for the notes towards the top and bottom in pixels
 
 		// The relevant painting code starts here
-		p.save();
+		QPainter notePainter;
+		if (songEditorMelodyClip) { notePainter.begin(&m_notePreview); }
+		QPainter& notes = songEditorMelodyClip ? notePainter : p;
+		notes.save();
 
-		p.translate(0., distanceToTop + notesBorder);
-		p.scale(width(), height() - distanceToTop - 2 * notesBorder);
+		notes.translate(0., distanceToTop + notesBorder);
+		notes.scale(width(), height() - distanceToTop - 2 * notesBorder);
 
 		// set colour based on mute status
 		QColor noteFillColor = muted ? getMutedNoteFillColor().lighter(200)
@@ -771,23 +825,14 @@ void MidiClipView::paintEvent( QPaintEvent * )
 									   : (hasCustomColor() ? c.lighter(200) : getNoteBorderColor());
 
 		bool const drawAsLines = height() < 64;
-		if (drawAsLines)
+		if (!drawAsLines)
 		{
-			p.setPen(noteFillColor);
+			notes.setRenderHint(QPainter::Antialiasing);
 		}
-		else
-		{
-			p.setPen(noteBorderColor);
-			p.setRenderHint(QPainter::Antialiasing);
-		}
-
-		// Needed for Qt5 although the documentation for QPainter::setPen(QColor) as it's used above
-		// states that it should already set a width of 0.
-		QPen pen = p.pen();
-		pen.setWidth(0);
-		p.setPen(pen);
 
 		float const noteHeight = 1. / adjustedNoteRange;
+		const float visibleNoteHeight = std::max(noteHeight,
+			2.f / std::max(1.f, height() - distanceToTop - 2 * notesBorder));
 
 		// scan through all the notes and draw them on the clip
 		for (Note const * currentNote : noteCollection)
@@ -801,20 +846,31 @@ void MidiClipView::paintEvent( QPaintEvent * )
 
 			float const noteStartY = invertedMappedNoteKey * noteHeight;
 
-			QRectF noteRectF( noteStartX, noteStartY, noteLength, noteHeight);
+			const float drawnNoteHeight = drawAsLines ? visibleNoteHeight : noteHeight;
+			QRectF noteRectF(noteStartX, noteStartY + (noteHeight - drawnNoteHeight) / 2,
+				noteLength, drawnNoteHeight);
+			const bool hasMidiChannel = songEditorMelodyClip && currentNote->midiChannel() >= 0;
+			const QColor fillColor = hasMidiChannel
+				? noteColorForMidiChannel(noteColorBase, currentNote->midiChannel()) : noteFillColor;
 			if (drawAsLines)
 			{
-				p.drawLine(QPointF(noteStartX, noteStartY + 0.5 * noteHeight),
-					   QPointF(noteStartX + noteLength, noteStartY + 0.5 * noteHeight));
+				notes.fillRect(noteRectF, fillColor);
 			}
 			else
 			{
-				p.fillRect( noteRectF, noteFillColor );
-				p.drawRect( noteRectF );
+				const QColor borderColor = hasMidiChannel
+					? (fillColor.lightness() > 128 ? fillColor.darker(150) : fillColor.lighter(150))
+					: noteBorderColor;
+				QPen notePen(borderColor);
+				notePen.setWidth(0);
+				notes.setPen(notePen);
+				notes.fillRect(noteRectF, fillColor);
+				notes.drawRect( noteRectF );
 			}
 		}
 
-		p.restore();
+		notes.restore();
+		if (songEditorMelodyClip) { notePainter.end(); }
 	}
 
 	// bar lines
@@ -836,11 +892,26 @@ void MidiClipView::paintEvent( QPaintEvent * )
 	// clip name
 	if (drawTextBox)
 	{
-		paintTextLabel(m_clip->name(), p);
+		paintTextLabel(m_clip->name(), p, channelLabelOffset);
+	}
+	if (!channelLabel.isEmpty())
+	{
+		const QRect badgeRect(BORDER_WIDTH, BORDER_WIDTH, channelBadgeWidth, channelBadgeHeight);
+		QColor badgeColor = c.darker(150);
+		badgeColor.setAlpha(240);
+		QColor badgeBorder = c.lighter(150);
+		badgeBorder.setAlpha(240);
+		p.setPen(badgeBorder);
+		p.setBrush(badgeColor);
+		p.drawRoundedRect(badgeRect, 2, 2);
+		p.setFont(channelFont);
+		p.setPen(badgeColor.lightness() < 128 ? Qt::white : Qt::black);
+		p.drawText(badgeRect, Qt::AlignCenter, channelLabel);
 	}
 
 	if( !( fixedClips() && beatClip ) )
 	{
+		p.setBrush(Qt::NoBrush);
 		// inner border
 		p.setPen( c.lighter( current ? 160 : 130 ) );
 		p.drawRect( 1, 1, rect().right() - BORDER_WIDTH,
@@ -866,7 +937,9 @@ void MidiClipView::paintEvent( QPaintEvent * )
 		p.drawLine(m_markerPos, rect().bottom(), m_markerPos, rect().top());
 	}
 
+	p.end();
 	painter.drawPixmap( 0, 0, m_paintPixmap );
+	if (songEditorMelodyClip) { m_trackView->getTrackContentWidget()->updateNoteOverlay(); }
 }
 
 

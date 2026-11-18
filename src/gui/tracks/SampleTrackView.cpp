@@ -24,12 +24,20 @@
 
 #include "SampleTrackView.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QProgressBar>
+#include <QSignalBlocker>
+#include <QTimer>
 #include <QSpacerItem>
+#include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AudioDevice.h"
 #include "ConfigManager.h"
 #include "DeprecationHelper.h"
 #include "MainWindow.h"
@@ -37,7 +45,6 @@
 #include "Engine.h"
 #include "FadeButton.h"
 #include "Mixer.h"
-#include "MixerChannelLcdSpinBox.h"
 #include "MixerView.h"
 #include "GuiApplication.h"
 #include "Knob.h"
@@ -65,9 +72,6 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 	m_tlb->setIcon(embed::getIconPixmap("sample_track"));
 	m_tlb->show();
 
-	m_mixerChannelNumber = new MixerChannelLcdSpinBox(2, getTrackSettingsWidget(), tr("Mixer channel"), this);
-	m_mixerChannelNumber->show();
-
 	m_volumeKnob = new VolumeKnob(KnobType::Small17, tr("VOL"), getTrackSettingsWidget(), Knob::LabelRendering::LegacyFixedFontSize, tr("Track volume"));
 	m_volumeKnob->setModel( &_t->m_volumeModel );
 	m_volumeKnob->setHintText(tr("Volume:"), "%");
@@ -82,13 +86,64 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 	m_activityIndicator->setFixedSize(8, 28);
 	m_activityIndicator->show();
 
+	auto recordControls = new QWidget(getTrackSettingsWidget());
+	auto recordControlsLayout = new QVBoxLayout(recordControls);
+	recordControlsLayout->setContentsMargins(0, 0, 0, 0);
+	recordControlsLayout->setSpacing(1);
+
+	m_recordButton = new QToolButton(recordControls);
+	m_recordButton->setObjectName("recordButton");
+	m_recordButton->setText(tr("REC"));
+	m_recordButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_recordButton->setCheckable(true);
+	m_recordButton->setFixedSize(30, 18);
+	m_recordButton->setToolTip(tr("Record audio to this sample track"));
+	m_recordButton->setStyleSheet(
+		"QToolButton { border: 1px solid palette(mid); border-radius: 2px; padding: 0; font-size: 8px; }"
+		"QToolButton:checked { background-color: #d32f2f; color: white; }");
+	m_recordButton->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_recordButton, &QToolButton::clicked, this, [this] {
+		auto track = model();
+		if (track->isRecording()) { track->stopRecording(); }
+		else if (m_recordStartTimer.isActive() || m_waitingForInput) { cancelArmedRecording(); }
+		else { startRecording(); }
+		updateRecordingControls();
+	});
+	connect(m_recordButton, &QToolButton::customContextMenuRequested, this, [this](const QPoint& pos) {
+		if (model()->isRecording()) { return; }
+		QMenu menu(m_recordButton);
+		auto* delayed = menu.addAction(tr("Start recording in 3 seconds"));
+		auto* onInput = menu.addAction(tr("Start recording when audio is detected"));
+		connect(delayed, &QAction::triggered, this, [this] { armRecording(false); });
+		connect(onInput, &QAction::triggered, this, [this] { armRecording(true); });
+		menu.exec(m_recordButton->mapToGlobal(pos));
+	});
+	m_recordStartTimer.setSingleShot(true);
+	connect(&m_recordStartTimer, &QTimer::timeout, this, [this] {
+		if (!m_waitingForInput) { startRecording(); }
+	});
+	recordControlsLayout->addWidget(m_recordButton);
+
+	m_inputLevelMeter = new QProgressBar(recordControls);
+	m_inputLevelMeter->setObjectName("inputLevelMeter");
+	m_inputLevelMeter->setRange(0, 100);
+	m_inputLevelMeter->setValue(0);
+	m_inputLevelMeter->setTextVisible(false);
+	m_inputLevelMeter->setFixedSize(30, 7);
+	m_inputLevelMeter->setToolTip(tr("Audio input level"));
+	m_inputLevelMeter->setAccessibleName(tr("Audio input level"));
+	m_inputLevelMeter->setStyleSheet(
+		"QProgressBar { border: 1px solid palette(mid); border-radius: 2px; background: palette(base); }"
+		"QProgressBar::chunk { background-color: #55b86a; }");
+	recordControlsLayout->addWidget(m_inputLevelMeter);
+
 	auto masterLayout = new QVBoxLayout(getTrackSettingsWidget());
 	masterLayout->setContentsMargins(0, 1, 0, 0);
 	auto layout = new QHBoxLayout();
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 	layout->addWidget(m_tlb);
-	layout->addWidget(m_mixerChannelNumber);
+	layout->addWidget(recordControls, 0, Qt::AlignVCenter);
 	layout->addWidget(m_activityIndicator);
 	layout->addWidget(m_volumeKnob);
 	layout->addWidget(m_panningKnob);
@@ -97,11 +152,13 @@ SampleTrackView::SampleTrackView( SampleTrack * _t, TrackContainerView* tcv ) :
 
 	connect(_t, SIGNAL(playingChanged()), this, SLOT(updateIndicator()));
 	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &SampleTrackView::corruptStateUpdate);
+	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate, this, &SampleTrackView::updateRecordingControls);
 
 	setModel( _t );
 
 	m_window = new SampleTrackWindow(this);
 	m_window->toggleVisibility(false);
+	updateRecordingControls();
 }
 
 
@@ -177,7 +234,7 @@ void SampleTrackView::modelChanged()
 {
 	auto st = castModel<SampleTrack>();
 	m_volumeKnob->setModel(&st->m_volumeModel);
-	m_mixerChannelNumber->setModel(&st->m_mixerChannelModel);
+	updateRecordingControls();
 
 	TrackView::modelChanged();
 }
@@ -257,6 +314,61 @@ void SampleTrackView::corruptStateUpdate()
 		m_activityIndicator->setState(FadeButton::State::Normal);
 		m_activityIndicator->setToolTip(QString{});
 	}
+}
+
+void SampleTrackView::updateRecordingControls()
+{
+	auto track = model();
+	if (m_waitingForInput && Engine::audioEngine()->inputPeak() >= 0.025f)
+	{
+		m_waitingForInput = false;
+		startRecording();
+	}
+	const bool recording = track->isRecording();
+	const bool armed = m_recordStartTimer.isActive() || m_waitingForInput;
+	track->updateRecordingClipLength();
+	if (m_recordButton->isChecked() != (recording || armed))
+	{
+		const QSignalBlocker blocker(m_recordButton);
+		m_recordButton->setChecked(recording || armed);
+	}
+	const auto audioDevice = Engine::audioEngine()->audioDev();
+	const bool captureAvailable = audioDevice && audioDevice->supportsCapture();
+	m_recordButton->setText(recording ? tr("STOP") : armed ? tr("ARM") : tr("REC"));
+	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") : armed ?
+		tr("Recording is armed; click to cancel. Right-click to change start mode.") :
+		(captureAvailable ?
+			tr("Record audio to this sample track. Right-click for delayed or input-triggered start.") :
+			tr("The selected audio device does not support input recording")));
+	m_recordButton->setEnabled(recording || captureAvailable);
+
+	const auto inputLevel = std::clamp(
+		armed ? Engine::audioEngine()->inputPeak() : track->takeInputLevel(), 0.f, 1.f);
+	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));
+}
+
+
+void SampleTrackView::armRecording(bool waitForInput)
+{
+	cancelArmedRecording();
+	m_waitingForInput = waitForInput;
+	if (!waitForInput) { m_recordStartTimer.start(3000); }
+	updateRecordingControls();
+}
+
+
+void SampleTrackView::cancelArmedRecording()
+{
+	m_recordStartTimer.stop();
+	m_waitingForInput = false;
+}
+
+
+void SampleTrackView::startRecording()
+{
+	cancelArmedRecording();
+	model()->startRecording();
+	updateRecordingControls();
 }
 
 

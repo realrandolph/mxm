@@ -169,6 +169,7 @@ PianoRoll::PianoRoll() :
 	m_midiClip( nullptr ),
 	m_currentPosition(),
 	m_recording( false ),
+	m_recordingTrack(false),
 	m_doAutoQuantization(ConfigManager::inst()->value("midi", "autoquantize").toInt() != 0),
 	m_currentNote( nullptr ),
 	m_action( Action::None ),
@@ -4351,6 +4352,7 @@ void PianoRoll::record()
 
 	m_midiClip->addJournalCheckPoint();
 	m_recording = true;
+	m_recordingTrack = false;
 
 	Engine::getSong()->playMidiClip( m_midiClip, false );
 
@@ -4374,6 +4376,7 @@ void PianoRoll::recordAccompany()
 
 	m_midiClip->addJournalCheckPoint();
 	m_recording = true;
+	m_recordingTrack = false;
 
 	if( m_midiClip->getTrack()->trackContainer() == Engine::getSong() )
 	{
@@ -4388,6 +4391,66 @@ void PianoRoll::recordAccompany()
 
 	songEditor->timeLine()->setRecording(true);
 	songEditor->positionLine()->setRecording(true);
+}
+
+
+
+
+bool PianoRoll::recordTrack(InstrumentTrack* track)
+{
+	if (!track || m_recording || track->trackContainer() != Engine::getSong()) { return false; }
+	if (m_stepRecorder.isRecording()) { m_stepRecorder.stop(); }
+
+	auto song = Engine::getSong();
+	const auto position = song->playMode() == Song::PlayMode::Song
+		? song->getPlayPos(Song::PlayMode::Song) : song->getPlayPos(Song::PlayMode::None);
+	if (song->playMode() != Song::PlayMode::None && song->playMode() != Song::PlayMode::Song)
+	{
+		song->stop();
+	}
+
+	auto clip = static_cast<MidiClip*>(track->createClip(position));
+	clip->setAutoResize(false);
+	clip->changeLength(TimePos(1));
+	setCurrentMidiClip(clip);
+	clip->addJournalCheckPoint();
+	m_recordingNotes.clear();
+	m_recording = true;
+	m_recordingTrack = true;
+	if (song->playMode() != Song::PlayMode::Song)
+	{
+		song->setPlayPos(position.getTicks(), Song::PlayMode::Song);
+	}
+	if (song->playMode() == Song::PlayMode::Song)
+	{
+		if (song->isPaused()) { song->togglePause(); }
+		else if (!song->isPlaying()) { song->playSong(); }
+	}
+	else { song->playSong(); }
+
+	auto* songEditor = GuiApplication::instance()->songEditor()->m_editor;
+	songEditor->timeLine()->setRecording(true);
+	songEditor->positionLine()->setRecording(true);
+	m_timeLine->setRecording(true);
+	m_positionLine->setRecording(true);
+	return true;
+}
+
+
+bool PianoRoll::isRecordingTrack(const InstrumentTrack* track) const
+{
+	return m_recording && m_recordingTrack && hasValidMidiClip() && m_midiClip->instrumentTrack() == track;
+}
+
+
+void PianoRoll::updateRecordingClipLength()
+{
+	if (!m_recording || !m_recordingTrack || !hasValidMidiClip()) { return; }
+	auto song = Engine::getSong();
+	if (song->playMode() != Song::PlayMode::Song) { return; }
+	const auto ticks = std::max(song->getPlayPos(Song::PlayMode::Song).getTicks() -
+		m_midiClip->startPosition().getTicks(), 1);
+	m_midiClip->changeLength(TimePos(ticks));
 }
 
 
@@ -4424,8 +4487,36 @@ bool PianoRoll::toggleStepRecording()
 
 void PianoRoll::stop()
 {
-	Engine::getSong()->stop();
+	auto song = Engine::getSong();
+	if (m_recordingTrack && hasValidMidiClip()) { updateRecordingClipLength(); }
+	if (m_recording && hasValidMidiClip() && song->playMode() != Song::PlayMode::None)
+	{
+		auto endPosition = song->getPlayPos(song->playMode());
+		if (song->playMode() == Song::PlayMode::Song)
+		{
+			endPosition -= m_midiClip->startPosition();
+		}
+		for (const auto& startedNote : m_recordingNotes)
+		{
+			const auto length = TimePos(std::max(endPosition.getTicks() - startedNote.pos().getTicks(), 1));
+			Note recordedNote(length, startedNote.pos(),
+				startedNote.key(), startedNote.getVolume(), startedNote.getPanning());
+			const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+			recordedNote.setMidiChannel(midiPort->outputChannel() == 0
+				? startedNote.midiChannel() : midiPort->realOutputChannel());
+			if (m_doAutoQuantization)
+			{
+				recordedNote.quantizeLength(quantization());
+				recordedNote.quantizePos(quantization());
+			}
+			recordedNote.setLength(std::max(recordedNote.length(), TimePos(1)));
+			m_midiClip->addNote(recordedNote, false);
+		}
+	}
+	m_recordingNotes.clear();
+	song->stop();
 	m_recording = false;
+	m_recordingTrack = false;
 	m_scrollBack = m_timeLine->autoScroll() != TimeLineWidget::AutoScrollState::Disabled;
 
 	auto* songEditor = GuiApplication::instance()->songEditor()->m_editor;
@@ -4434,6 +4525,19 @@ void PianoRoll::stop()
 	songEditor->positionLine()->setRecording(false);
 	m_timeLine->setRecording(false);
 	m_positionLine->setRecording(false);
+}
+
+
+
+
+void PianoRoll::stopRecording()
+{
+	if (m_recordingTrack && hasValidMidiClip())
+	{
+		updateRecordingClipLength();
+	}
+	m_recordingTrack = false;
+	m_recording = false;
 }
 
 
@@ -4456,6 +4560,7 @@ void PianoRoll::startRecordNote(const Note & n )
 			Note n1( 1, Engine::getSong()->getPlayPos(
 						Engine::getSong()->playMode() ) - sub,
 					n.key(), n.getVolume(), n.getPanning() );
+			n1.setMidiChannel(n.midiChannel());
 			if( n1.pos() >= 0 )
 			{
 				m_recordingNotes << n1;
@@ -4485,11 +4590,14 @@ void PianoRoll::finishRecordNote(const Note & n )
 			for( QList<Note>::Iterator it = m_recordingNotes.begin();
 						it != m_recordingNotes.end(); ++it )
 			{
-				if( it->key() == n.key() )
+				if (it->key() == n.key() && it->midiChannel() == n.midiChannel())
 				{
 					Note n1(n.length(), it->pos(),
 							it->key(), it->getVolume(),
 							it->getPanning(), n.detuning());
+					const auto* midiPort = m_midiClip->instrumentTrack()->midiPort();
+					n1.setMidiChannel(midiPort->outputChannel() == 0
+						? it->midiChannel() : midiPort->realOutputChannel());
 
 					if (m_doAutoQuantization)
 					{
@@ -5180,6 +5288,8 @@ PianoRollWindow::PianoRollWindow() :
 	m_editor(new PianoRoll())
 {
 	setCentralWidget( m_editor );
+	connect(getGUI()->mainWindow(), &MainWindow::periodicUpdate,
+		m_editor, &PianoRoll::updateRecordingClipLength);
 
 	m_playAction->setToolTip(tr( "Play/pause current clip (Space)" ) );
 	m_recordAction->setToolTip(tr( "Record notes from MIDI-device/channel-piano" ) );
@@ -5558,6 +5668,33 @@ void PianoRollWindow::record()
 	stopStepRecording(); //step recording mode is mutually exclusive with other record modes
 
 	m_editor->record();
+}
+
+
+
+
+bool PianoRollWindow::recordTrack(InstrumentTrack* track)
+{
+	stopStepRecording();
+	return m_editor->recordTrack(track);
+}
+
+
+bool PianoRollWindow::isRecordingTrack(const InstrumentTrack* track) const
+{
+	return m_editor->isRecordingTrack(track);
+}
+
+
+void PianoRollWindow::recordInputNoteOn(const Note& note)
+{
+	m_editor->recordInputNoteOn(note);
+}
+
+
+void PianoRollWindow::recordInputNoteOff(const Note& note)
+{
+	m_editor->recordInputNoteOff(note);
 }
 
 

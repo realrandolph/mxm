@@ -67,6 +67,7 @@ public:
 	static bool canMergeSelection(QVector<ClipView*> clipvs);
 	static void mergeClips(QVector<ClipView*> clipvs);
 	static void bulkClearNotesOutOfBounds(QVector<ClipView*> clipvs);
+	const QPixmap& notePreview() const { return m_notePreview; }
 
 public slots:
 	mxm::MidiClip* getMidiClip();
@@ -101,6 +102,7 @@ private:
 
 	MidiClip* m_clip;
 	QPixmap m_paintPixmap;
+	QPixmap m_notePreview;
 
 	QColor m_noteFillColor;
 	QColor m_noteBorderColor;

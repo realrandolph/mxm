@@ -291,6 +291,7 @@ private:
 	NotePlayHandleList m_sustainedNotes;
 
 	int m_runningMidiNotes[NumKeys];
+	int m_runningMidiNotesByChannel[MidiChannelCount][NumKeys]{};
 	QMutex m_midiNotesMutex;
 
 	bool m_sustainPedalPressed;

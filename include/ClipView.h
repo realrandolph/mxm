@@ -257,7 +257,7 @@ protected:
 	//! @param clips The trackContectObjects to save in a DataFile
 	DataFile createClipDataFiles(const QVector<ClipView *> & clips) const;
 
-	virtual void paintTextLabel(QString const & text, QPainter & painter);
+	virtual void paintTextLabel(QString const & text, QPainter & painter, int leftOffset = 0);
 
 	auto hasCustomColor() const -> bool;
 

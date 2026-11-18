@@ -26,6 +26,7 @@
 #ifndef MXM_NOTE_H
 #define MXM_NOTE_H
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -34,6 +35,7 @@
 #include "panning.h"
 #include "SerializingObject.h"
 #include "TimePos.h"
+#include "Midi.h"
 
 
 namespace mxm
@@ -221,6 +223,12 @@ public:
 		return m_key;
 	}
 
+	int midiChannel() const { return m_midiChannel; }
+	void setMidiChannel(int channel)
+	{
+		m_midiChannel = channel < 0 ? -1 : std::clamp(channel, 0, MidiChannelCount - 1);
+	}
+
 	inline volume_t getVolume() const
 	{
 		return m_volume;
@@ -275,6 +283,7 @@ private:
 	TimePos m_length;
 	TimePos m_pos;
 	std::shared_ptr<DetuningHelper> m_detuning;
+	int m_midiChannel{-1};
 
 	Type m_type = Type::Regular;
 };

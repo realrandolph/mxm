@@ -34,6 +34,7 @@
 
 #include "AutomationTrack.h"
 #include "AutomationEditor.h"
+#include "AudioEngine.h"
 #include "ConfigManager.h"
 #include "ControllerRackView.h"
 #include "ControllerConnection.h"
@@ -53,6 +54,7 @@
 #include "ProjectJournal.h"
 #include "ProjectNotes.h"
 #include "Scale.h"
+#include "SampleTrack.h"
 #include "SongEditor.h"
 #include "PeakController.h"
 
@@ -79,7 +81,6 @@ Song::Song() :
 	m_oldFileName(),
 	m_modified( false ),
 	m_loadOnLaunch( true ),
-	m_recording( false ),
 	m_exporting( false ),
 	m_exportLoop( false ),
 	m_renderBetweenMarkers( false ),
@@ -141,6 +142,10 @@ Song::Song() :
 Song::~Song()
 {
 	m_playing = false;
+	for (auto track : tracks())
+	{
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
+	}
 	delete m_globalAutomationTrack;
 }
 
@@ -222,7 +227,7 @@ void Song::processNextBuffer()
 	switch (m_playMode)
 	{
 		case PlayMode::Song:
-			trackList = tracks();
+			if (!m_recordingOnly) { trackList = tracks(); }
 			break;
 
 		case PlayMode::Pattern:
@@ -498,8 +503,6 @@ int Song::getExportProgress() const
 
 void Song::playSong()
 {
-	m_recording = false;
-
 	if( isStopped() == false )
 	{
 		stop();
@@ -517,21 +520,39 @@ void Song::playSong()
 }
 
 
-
-
-void Song::record()
+void Song::startTrackRecordingTransport(const TimePos& position)
 {
-	m_recording = true;
-	// TODO: Implement
+	if (m_playMode == PlayMode::Song)
+	{
+		if (m_paused)
+		{
+			m_playing = true;
+			m_paused = false;
+			m_vstSyncController.setPlaybackState(true);
+			emit playbackStateChanged();
+		}
+		return;
+	}
+	if (m_playMode != PlayMode::None) { return; }
+	getTimeline(PlayMode::Song).setTicks(position.getTicks());
+	m_recordingOnly = true;
+	m_playMode = PlayMode::Song;
+	m_playing = true;
+	m_paused = false;
+	m_vstSyncController.setPlaybackState(false);
+	savePlayStartPosition();
+	emit playbackStateChanged();
 }
 
 
-
-
-void Song::playAndRecord()
+void Song::trackRecordingStopped(bool stopTransport)
 {
-	playSong();
-	m_recording = true;
+	if (m_recordingTracks.fetch_sub(1, std::memory_order_relaxed) == 1 &&
+		stopTransport && m_playMode != PlayMode::None)
+	{
+		m_recordingOnly = true;
+		stopImpl(true);
+	}
 }
 
 
@@ -640,9 +661,53 @@ void Song::togglePause()
 
 void Song::stop()
 {
-	// do not stop/reset things again if we're stopped already
-	if( m_playMode == PlayMode::None )
+	stopImpl(false);
+}
+
+
+void Song::stopImpl(bool preserveRecordingPosition)
+{
+	if (m_playMode == PlayMode::None)
 	{
+		const bool wasRecording = isRecording();
+		if (wasRecording)
+		{
+			const auto guard = Engine::audioEngine()->requestChangesGuard();
+			for (auto track : tracks())
+			{
+				if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
+			}
+			Engine::audioEngine()->clear();
+		}
+		m_recordingOnly = false;
+		bool positionChanged = false;
+		if (!preserveRecordingPosition)
+		{
+			auto& timeline = getTimeline(PlayMode::Song);
+			const auto oldTicks = timeline.pos().getTicks();
+			switch (timeline.stopBehaviour())
+			{
+				case Timeline::StopBehaviour::BackToZero:
+					timeline.setTicks(0);
+					break;
+				case Timeline::StopBehaviour::BackToStart:
+					if (timeline.playStartPosition() >= 0)
+					{
+						timeline.setTicks(timeline.playStartPosition().getTicks());
+						timeline.setPlayStartPosition(-1);
+					}
+					break;
+				case Timeline::StopBehaviour::KeepPosition:
+					break;
+			}
+			getTimeline(PlayMode::None).setTicks(timeline.pos().getTicks());
+			positionChanged = oldTicks != timeline.pos().getTicks();
+		}
+		if (wasRecording || positionChanged)
+		{
+			emit stopped();
+			emit playbackStateChanged();
+		}
 		return;
 	}
 
@@ -650,13 +715,17 @@ void Song::stop()
 
 	// To avoid race conditions with the processing threads
 	Engine::audioEngine()->requestChangeInModel();
+	m_recordingOnly = false;
+	for (auto track : tracks())
+	{
+		if (auto sampleTrack = dynamic_cast<SampleTrack*>(track)) { sampleTrack->stopRecording(false); }
+	}
 
 	auto& timeline = getTimeline();
 	m_paused = false;
-	m_recording = true;
 	m_playing = false;
 
-	switch (timeline.stopBehaviour())
+	if (!preserveRecordingPosition) switch (timeline.stopBehaviour())
 	{
 		case Timeline::StopBehaviour::BackToZero:
 			if (m_playMode == PlayMode::MidiClip)

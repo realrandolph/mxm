@@ -26,14 +26,17 @@
 #define MXM_GUI_INSTRUMENT_TRACK_WINDOW_H
 
 #include <QWidget>
+#include <QTimer>
 
 #include "InstrumentTrack.h"
 #include "ModelView.h"
 #include "SerializingObject.h"
 
 class QLabel;
+class QComboBox;
 class QLineEdit;
 class QMdiSubWindow;
+class QToolButton;
 
 namespace mxm
 {
@@ -109,6 +112,7 @@ public slots:
 	void toggleVisibility( bool _on );
 	void updateName();
 	void updateInstrumentView();
+	void updateRecordingControls();
 
 
 protected:
@@ -134,6 +138,10 @@ private:
 
 	QMdiSubWindow* findSubWindowInParents();
 	void updateSubWindow();
+	void startRecording();
+	void armRecording(bool waitForInput);
+	void cancelArmedRecording();
+	void setRecordChannel(int channel);
 
 	InstrumentTrack * m_track;
 	InstrumentTrackView * m_itv;
@@ -150,12 +158,19 @@ private:
 	LcdSpinBox* m_pitchRangeSpinBox;
 	QLabel * m_pitchRangeLabel;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
+	QToolButton* m_recordButton;
+	QComboBox* m_recordChannelComboBox;
+	QTimer m_recordStartTimer;
+	bool m_waitingForInput{false};
+	int m_recordTriggerNoteKey{-1};
+	int m_recordTriggerNoteChannel{-1};
 
 
 
 	// tab-widget with all children
 	TabWidget * m_tabWidget;
 	PluginView * m_instrumentView;
+	QSize m_instrumentViewAspect;
 	InstrumentSoundShapingView * m_ssView;
 	InstrumentFunctionNoteStackingView* m_noteStackingView;
 	InstrumentFunctionArpeggioView* m_arpeggioView;

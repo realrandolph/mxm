@@ -26,6 +26,8 @@
 
 #ifdef MXM_HAVE_JACK
 
+#include <algorithm>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -105,7 +107,10 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 		connect(this, SIGNAL(zombified()), this, SLOT(restartAfterZombified()), Qt::QueuedConnection);
 	}
 
-	m_supportsCapture = true;
+	const auto inputChannels = std::count_if(m_inputPorts.begin(), m_inputPorts.end(),
+		[](jack_port_t* port) { return port != nullptr; });
+	m_supportsCapture = successful && inputChannels > 0;
+	setCaptureChannels(m_supportsCapture ? static_cast<ch_cnt_t>(inputChannels) : 0);
 }
 
 
@@ -202,6 +207,7 @@ bool AudioJack::initJackClient()
 
 	// set process-callback
 	jack_set_process_callback(m_client, staticProcessCallback, this);
+	jack_set_port_connect_callback(m_client, portConnectCallback, this);
 
 	// set shutdown-callback
 	jack_on_shutdown(m_client, shutdownCallback, this);
@@ -266,7 +272,7 @@ void AudioJack::attemptToReconnectOutput(size_t outputIndex, const QString& targ
 
 void AudioJack::attemptToReconnectInput(size_t inputIndex, const QString& sourcePort)
 {
-	if (inputIndex >= m_inputPorts.size()) { return; }
+	if (inputIndex >= m_inputPorts.size() || m_inputPorts[inputIndex] == nullptr) { return; }
 
 	if (sourcePort == disconnectedRepresentation)
 	{
@@ -422,11 +428,24 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 
 	for (int c = 0; c < channels(); ++c)
 	{
-		jack_default_audio_sample_t* jack_input_buffer = (jack_default_audio_sample_t*) jack_port_get_buffer(m_inputPorts[c], nframes);
+		jack_default_audio_sample_t* jack_input_buffer = m_inputPorts[c]
+			? static_cast<jack_default_audio_sample_t*>(jack_port_get_buffer(m_inputPorts[c], nframes))
+			: nullptr;
 
 		for (jack_nframes_t frame = 0; frame < nframes; frame++)
 		{
-			m_inputFrameBuffer[frame][c] = static_cast<sample_t>(jack_input_buffer[frame]);
+			m_inputFrameBuffer[frame][c] = jack_input_buffer
+				? static_cast<sample_t>(jack_input_buffer[frame]) : 0.f;
+		}
+	}
+	const auto monoInputPort = m_monoInputPort.load(std::memory_order_relaxed);
+	if (monoInputPort >= 0)
+	{
+		for (jack_nframes_t frame = 0; frame < nframes; ++frame)
+		{
+			const auto mono = m_inputFrameBuffer[frame][monoInputPort];
+			m_inputFrameBuffer[frame][0] = mono;
+			m_inputFrameBuffer[frame][1] = mono;
 		}
 	}
 	audioEngine()->pushInputFrames (m_inputFrameBuffer.data(), nframes);
@@ -439,6 +458,25 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 int AudioJack::staticProcessCallback(jack_nframes_t nframes, void* udata)
 {
 	return static_cast<AudioJack*>(udata)->processCallback(nframes);
+}
+
+
+void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* udata)
+{
+	auto* audioJack = static_cast<AudioJack*>(udata);
+	int connectedPort = -1;
+	for (int index = 0; index < static_cast<int>(audioJack->m_inputPorts.size()); ++index)
+	{
+		auto* port = audioJack->m_inputPorts[index];
+		if (!port || jack_port_connected(port) <= 0) { continue; }
+		if (connectedPort >= 0)
+		{
+			connectedPort = -1;
+			break;
+		}
+		connectedPort = index;
+	}
+	audioJack->m_monoInputPort.store(connectedPort, std::memory_order_relaxed);
 }
 
 

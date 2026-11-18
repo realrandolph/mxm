@@ -43,6 +43,7 @@ namespace gui
 
 class ClipView;  // IWYU pragma: keep
 class TrackView;
+class MidiNoteOverlay;
 
 class TrackContentWidget : public QWidget, public JournallingObject
 {
@@ -87,6 +88,8 @@ public:
 	//!
 	//! @param clipv The ClipView to remove.
 	void removeClipView(ClipView* clipv);
+	ClipView* nextOverlappingClip(ClipView* current, int x);
+	void updateNoteOverlay();
 
 	void removeClipView( int clipNum )
 	{
@@ -216,6 +219,9 @@ private:
 
 	using clipViewVector = QVector<ClipView*>;
 	clipViewVector m_clipViews;
+	MidiNoteOverlay* m_noteOverlay{nullptr};
+	int m_lastOverlapX = -1;
+	int m_lastOverlapIndex = -1;
 
 	QPixmap m_background;
 

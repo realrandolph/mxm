@@ -503,14 +503,15 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 
 	// Ifaces-settings-widget.
 	auto as_w = new QWidget(audio_w);
+	m_audioSetupWidgetContainer = as_w;
 
 	auto as_w_layout = new QHBoxLayout(as_w);
 	as_w_layout->setSpacing(0);
 	as_w_layout->setContentsMargins(0, 0, 0, 0);
 
 #ifdef MXM_HAVE_JACK
-	m_audioIfaceSetupWidgets[AudioJack::name()] =
-			new AudioJack::setupWidget(as_w);
+	// Create the JACK setup widget only if JACK is selected. Its constructor probes the server.
+	m_audioIfaceSetupWidgets[AudioJack::name()] = nullptr;
 #endif
 
 #ifdef MXM_HAVE_ALSA
@@ -551,9 +552,11 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	for(trMap::iterator it = m_audioIfaceNames.begin();
 		it != m_audioIfaceNames.end(); ++it)
 	{
-		QWidget * audioWidget = m_audioIfaceSetupWidgets[it.value()];
-		audioWidget->hide();
-		as_w_layout->addWidget(audioWidget);
+		if (auto* audioWidget = m_audioIfaceSetupWidgets.value(it.value()))
+		{
+			audioWidget->hide();
+			as_w_layout->addWidget(audioWidget);
+		}
 		m_audioInterfaces->addItem(it.key());
 	}
 
@@ -566,7 +569,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	}
 	m_audioInterfaces->
 		setCurrentIndex(m_audioInterfaces->findText(audioDevName));
-	m_audioIfaceSetupWidgets[audioDevName]->show();
+	audioInterfaceChanged(m_audioInterfaces->currentText());
 
 	connect(m_audioInterfaces, &QComboBox::textActivated, this, &SetupDialog::audioInterfaceChanged);
 
@@ -1063,7 +1066,7 @@ void SetupDialog::accept()
 	for(AswMap::iterator it = m_audioIfaceSetupWidgets.begin();
 		it != m_audioIfaceSetupWidgets.end(); ++it)
 	{
-		it.value()->saveSettings();
+		if (it.value()) { it.value()->saveSettings(); }
 	}
 	// Tell all MIDI-settings-widgets to save their settings.
 	for(MswMap::iterator it = m_midiIfaceSetupWidgets.begin();
@@ -1256,10 +1259,20 @@ void SetupDialog::audioInterfaceChanged(const QString & iface)
 	for(AswMap::iterator it = m_audioIfaceSetupWidgets.begin();
 		it != m_audioIfaceSetupWidgets.end(); ++it)
 	{
-		it.value()->hide();
+		if (it.value()) { it.value()->hide(); }
 	}
 
-	m_audioIfaceSetupWidgets[m_audioIfaceNames[iface]]->show();
+	const auto device = m_audioIfaceNames.value(iface);
+	auto* widget = m_audioIfaceSetupWidgets.value(device);
+#ifdef MXM_HAVE_JACK
+	if (!widget && device == AudioJack::name())
+	{
+		widget = new AudioJack::setupWidget(m_audioSetupWidgetContainer);
+		m_audioIfaceSetupWidgets[device] = widget;
+		m_audioSetupWidgetContainer->layout()->addWidget(widget);
+	}
+#endif
+	if (widget) { widget->show(); }
 }
 
 
