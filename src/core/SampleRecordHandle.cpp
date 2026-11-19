@@ -15,10 +15,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program (see COPYING); if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program (see COPYING); if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
@@ -26,13 +25,15 @@
 #include "SampleRecordHandle.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 #include <QMetaObject>
 
+#include "AudioChannelLayout.h"
 #include "AudioEngine.h"
 #include "Engine.h"
-#include "SampleBuffer.h"
+#include "SampleCapture.h"
 #include "SampleClip.h"
 #include "SampleTrack.h"
 
@@ -56,7 +57,6 @@ SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleR
 		if (m_inputMonitoring) { setAudioBusHandle(m_track->audioBusHandle()); }
 	}
 	setUsesBuffer(m_inputMonitoring);
-	m_recordedFrames.reserve(Engine::audioEngine()->outputSampleRate());
 }
 
 
@@ -64,19 +64,11 @@ SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleR
 
 SampleRecordHandle::~SampleRecordHandle()
 {
-	if (!m_clip) { return; }
+	// Capture finalization belongs to SampleTrack::stopRecording(), which runs
+	// on the UI thread. If no capture was ever started, remove the empty clip.
+	if (!m_clip || (m_session && m_session->capture)) { return; }
 	auto clip = m_clip;
-	if (m_recordedFrames.empty())
-	{
-		QMetaObject::invokeMethod(clip.data(), [clip] { if (clip) { delete clip.data(); } }, Qt::QueuedConnection);
-		return;
-	}
-	auto sampleBuffer = std::make_shared<const SampleBuffer>(std::move(m_recordedFrames),
-		Engine::audioEngine()->inputSampleRate());
-	QMetaObject::invokeMethod(clip.data(), [clip, sampleBuffer = std::move(sampleBuffer)]() mutable
-	{
-		if (clip) { clip->setSampleBuffer(std::move(sampleBuffer)); }
-	}, Qt::QueuedConnection);
+	QMetaObject::invokeMethod(clip.data(), [clip] { if (clip) { delete clip.data(); } }, Qt::QueuedConnection);
 }
 
 
@@ -86,21 +78,52 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
 	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
-	const auto recbuf = Engine::audioEngine()->inputBuffer();
-	const auto frames = Engine::audioEngine()->inputBufferFrames();
+	const auto input = Engine::audioEngine()->inputBuffer();
+	if (input.empty()) { return; }
+
 	if (m_inputMonitoring && workingBuffer)
 	{
-		const auto outputFrames = std::min(frames, Engine::audioEngine()->framesPerPeriod());
-		for (f_cnt_t frame = 0; frame < outputFrames; ++frame)
+		monitor(input, workingBuffer, std::min(input.frames(), Engine::audioEngine()->framesPerPeriod()));
+	}
+	writeBuffer(input);
+}
+
+
+
+
+void SampleRecordHandle::monitor(
+	PlanarBufferView<const float> input, SampleFrame* workingBuffer, f_cnt_t outputFrames)
+{
+	if (!m_session->capture) { return; }
+
+	const auto layout = m_session->capture->layout();
+	const auto channels = layout.channels();
+	const auto sourceChannel = channels <= 1 ? ch_cnt_t{0}
+		: static_cast<ch_cnt_t>(std::clamp(m_recordChannel - 1, 0, static_cast<int>(channels) - 1));
+
+	auto interleaved = std::array<float, MaxChannelsPerLayout>{};
+	for (f_cnt_t frame = 0; frame < outputFrames; ++frame)
+	{
+		auto& output = workingBuffer[frame];
+		switch (m_recordChannel)
 		{
-			const auto& input = recbuf[frame];
-			auto& output = workingBuffer[frame];
-			if (m_recordChannel == 1) { output[0] = input[0]; output[1] = 0.f; }
-			else if (m_recordChannel == 2) { output[0] = 0.f; output[1] = input[1]; }
-			else { output = input; }
+		case 1:
+			output[0] = input.bufferPtr(sourceChannel)[frame];
+			output[1] = 0.f;
+			break;
+		case 2:
+			output[0] = 0.f;
+			output[1] = input.bufferPtr(sourceChannel)[frame];
+			break;
+		default:
+			for (ch_cnt_t channel = 0; channel < channels; ++channel)
+			{
+				interleaved[channel] = input.bufferPtr(channel)[frame];
+			}
+			downmixFrameToStereo(interleaved.data(), layout, output[0], output[1]);
+			break;
 		}
 	}
-	writeBuffer(recbuf, frames);
 }
 
 
@@ -122,33 +145,24 @@ bool SampleRecordHandle::isFromTrack( const Track * _track ) const
 
 
 
-void SampleRecordHandle::writeBuffer( const SampleFrame* _ab, const f_cnt_t _frames )
+void SampleRecordHandle::writeBuffer( PlanarBufferView<const float> frames )
 {
-	if (_frames == 0) { return; }
-	float peak = 0.f;
-	for( f_cnt_t frame = 0; frame < _frames; ++frame )
+	if (frames.empty() || !m_session->capture) { return; }
+
+	auto peak = 0.f;
+	for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
 	{
-		SampleFrame recorded;
-		if (m_recordChannel == 1)
+		const auto* data = frames.bufferPtr(channel);
+		for (f_cnt_t frame = 0; frame < frames.frames(); ++frame)
 		{
-			recorded[0] = _ab[frame][0];
-			recorded[1] = 0.f;
+			peak = std::max(peak, std::abs(data[frame]));
 		}
-		else if (m_recordChannel == 2)
-		{
-			recorded[0] = 0.f;
-			recorded[1] = _ab[frame][1];
-		}
-		else
-		{
-			recorded = _ab[frame];
-		}
-		peak = std::max({peak, std::abs(recorded[0]), std::abs(recorded[1])});
-		m_recordedFrames.push_back(recorded);
 	}
+
+	m_session->capture->write(frames, m_recordChannel);
+	m_session->recordedFrames.store(m_session->capture->recordedFrames(), std::memory_order_relaxed);
 	if (m_track)
 	{
-		m_session->recordedFrames.fetch_add(_frames, std::memory_order_relaxed);
 		m_track->updateInputLevel(peak);
 	}
 }

@@ -2,6 +2,7 @@ set(MXM_SRCS
 	${MXM_SRCS}
 
 	core/AudioBuffer.cpp
+	core/AudioChannelLayout.cpp
 	core/AudioBusHandle.cpp
 	core/AudioEngine.cpp
 	core/AudioEngineProfiler.cpp
@@ -68,6 +69,7 @@ set(MXM_SRCS
 	core/RenderManager.cpp
 	core/RingBuffer.cpp
 	core/Sample.cpp
+	core/SampleCapture.cpp
 	core/SampleBuffer.cpp
 	core/SampleClip.cpp
 	core/SampleDecoder.cpp

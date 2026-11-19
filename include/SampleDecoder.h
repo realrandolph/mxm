@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#include "SampleFrame.h"
+#include "AudioChannelLayout.h"
 
 namespace mxm {
 class SampleDecoder
@@ -38,7 +38,10 @@ class SampleDecoder
 public:
 	struct Result
 	{
-		std::vector<SampleFrame> data;
+		//! Interleaved samples, `frames * channels` elements
+		std::vector<float> samples;
+		ch_cnt_t channels;
+		AudioChannelLayout layout;
 		int sampleRate;
 	};
 

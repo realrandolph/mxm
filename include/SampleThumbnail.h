@@ -139,6 +139,8 @@ private:
 	using ThumbnailCache = std::vector<Thumbnail>;
 	std::shared_ptr<ThumbnailCache> m_thumbnailCache = std::make_shared<ThumbnailCache>();
 	std::shared_ptr<const SampleBuffer> m_buffer = SampleBuffer::emptyBuffer();
+	//! Channel-summed samples used for drawing, so every captured channel is visible.
+	std::vector<float> m_displaySamples;
 	inline static std::unordered_map<SampleThumbnailEntry, std::shared_ptr<ThumbnailCache>, Hash> s_sampleThumbnailCacheMap;
 };
 

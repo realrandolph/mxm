@@ -24,6 +24,8 @@
 
 #include "Sample.h"
 
+#include "AudioChannelLayout.h"
+
 namespace mxm {
 
 Sample::Sample(const SampleFrame* data, size_t numFrames, int sampleRate)
@@ -165,10 +167,20 @@ f_cnt_t Sample::render(SampleFrame* dst, f_cnt_t size, PlaybackState* state, Loo
 			break;
 		}
 
-		const auto value
-			= m_buffer->data()[m_reversed ? m_buffer->size() - state->m_frameIndex - 1 : state->m_frameIndex]
-			* m_amplification;
-		dst[frame] = value;
+		const auto sourceFrame
+			= m_reversed ? m_buffer->size() - state->m_frameIndex - 1 : static_cast<size_t>(state->m_frameIndex);
+		const auto* samples = m_buffer->interleavedData() + sourceFrame * m_buffer->channels();
+		if (m_buffer->channels() == DEFAULT_CHANNELS)
+		{
+			dst[frame] = *reinterpret_cast<const SampleFrame*>(samples) * m_amplification;
+		}
+		else
+		{
+			float left = 0.f;
+			float right = 0.f;
+			downmixFrameToStereo(samples, m_buffer->layout(), left, right);
+			dst[frame] = SampleFrame{left * m_amplification, right * m_amplification};
+		}
 		state->m_backwards ? --state->m_frameIndex : ++state->m_frameIndex;
 	}
 

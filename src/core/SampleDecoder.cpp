@@ -26,6 +26,7 @@
 
 #include <QFile>
 #include <QString>
+#include <array>
 #include <memory>
 #include <sndfile.h>
 
@@ -56,6 +57,82 @@ static constexpr std::array<Decoder, 3> decoders = {&decodeSampleSF,
 #endif
 	&decodeSampleDS};
 
+auto channelLayoutFromSndfile(SNDFILE* sndFile, ch_cnt_t channels) -> AudioChannelLayout
+{
+	if (channels == 0) { return AudioChannelLayout::discrete(0); }
+	if (channels == 1) { return AudioChannelLayout::mono(); }
+	if (channels == 2) { return AudioChannelLayout::stereo(); }
+
+	auto map = std::array<int, MaxChannelsPerAudioBuffer>{};
+	if (sf_command(sndFile, SFC_GET_CHANNEL_MAP_INFO, map.data(), sizeof(map)) != SF_TRUE)
+	{
+		// A file without an explicit channel map is a discrete channel set, not
+		// necessarily a standard 5.1 or 7.1 speaker layout.
+		return AudioChannelLayout::discrete(channels);
+	}
+
+	auto roles = AudioChannelLayout::Roles{};
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
+	{
+		switch (map[channel])
+		{
+		case SF_CHANNEL_MAP_MONO:
+		case SF_CHANNEL_MAP_CENTER:
+		case SF_CHANNEL_MAP_FRONT_CENTER:
+			roles[channel] = SpeakerRole::FrontCenter;
+			break;
+		case SF_CHANNEL_MAP_LEFT:
+		case SF_CHANNEL_MAP_FRONT_LEFT:
+			roles[channel] = SpeakerRole::FrontLeft;
+			break;
+		case SF_CHANNEL_MAP_RIGHT:
+		case SF_CHANNEL_MAP_FRONT_RIGHT:
+			roles[channel] = SpeakerRole::FrontRight;
+			break;
+		case SF_CHANNEL_MAP_REAR_LEFT:
+			roles[channel] = SpeakerRole::BackLeft;
+			break;
+		case SF_CHANNEL_MAP_REAR_RIGHT:
+			roles[channel] = SpeakerRole::BackRight;
+			break;
+		case SF_CHANNEL_MAP_REAR_CENTER:
+			roles[channel] = SpeakerRole::BackCenter;
+			break;
+		case SF_CHANNEL_MAP_LFE:
+			roles[channel] = SpeakerRole::Lfe;
+			break;
+		case SF_CHANNEL_MAP_FRONT_LEFT_OF_CENTER:
+			roles[channel] = SpeakerRole::FrontLeftOfCenter;
+			break;
+		case SF_CHANNEL_MAP_FRONT_RIGHT_OF_CENTER:
+			roles[channel] = SpeakerRole::FrontRightOfCenter;
+			break;
+		case SF_CHANNEL_MAP_SIDE_LEFT:
+			roles[channel] = SpeakerRole::SideLeft;
+			break;
+		case SF_CHANNEL_MAP_SIDE_RIGHT:
+			roles[channel] = SpeakerRole::SideRight;
+			break;
+		case SF_CHANNEL_MAP_TOP_FRONT_LEFT:
+			roles[channel] = SpeakerRole::TopFrontLeft;
+			break;
+		case SF_CHANNEL_MAP_TOP_FRONT_RIGHT:
+			roles[channel] = SpeakerRole::TopFrontRight;
+			break;
+		case SF_CHANNEL_MAP_TOP_REAR_LEFT:
+			roles[channel] = SpeakerRole::TopBackLeft;
+			break;
+		case SF_CHANNEL_MAP_TOP_REAR_RIGHT:
+			roles[channel] = SpeakerRole::TopBackRight;
+			break;
+		default:
+			roles[channel] = SpeakerRole::Unknown;
+			break;
+		}
+	}
+	return AudioChannelLayout{channels, roles};
+}
+
 auto decodeSampleSF(const QString& audioFile) -> std::optional<SampleDecoder::Result>
 {
 	SNDFILE* sndFile = nullptr;
@@ -66,32 +143,26 @@ auto decodeSampleSF(const QString& audioFile) -> std::optional<SampleDecoder::Re
 	if (!file.open(QIODevice::ReadOnly)) { return std::nullopt; }
 
 	sndFile = sf_open_fd(file.handle(), SFM_READ, &sfInfo, false);
-	if (sf_error(sndFile) != 0) { return std::nullopt; }
+	if (sndFile == nullptr || sf_error(sndFile) != 0) { return std::nullopt; }
 
-	auto buf = std::vector<sample_t>(sfInfo.channels * sfInfo.frames);
-	sf_read_float(sndFile, buf.data(), buf.size());
+	if (sfInfo.channels <= 0 || sfInfo.channels > MaxChannelsPerAudioBuffer || sfInfo.frames < 0)
+	{
+		sf_close(sndFile);
+		return std::nullopt;
+	}
+
+	const auto channels = static_cast<ch_cnt_t>(sfInfo.channels);
+	auto samples = std::vector<float>(static_cast<std::size_t>(sfInfo.frames) * channels);
+	const auto framesRead = sf_readf_float(sndFile, samples.data(), sfInfo.frames);
+	const auto layout = channelLayoutFromSndfile(sndFile, channels);
 
 	sf_close(sndFile);
 	file.close();
 
-	auto result = std::vector<SampleFrame>(sfInfo.frames);
-	for (int i = 0; i < static_cast<int>(result.size()); ++i)
-	{
-		if (sfInfo.channels == 1)
-		{
-			// Upmix from mono to stereo
-			result[i] = {buf[i], buf[i]};
-		}
-		else if (sfInfo.channels > 1)
-		{
-			// TODO: Add support for higher number of channels (i.e., 5.1 channel systems)
-			// The current behavior assumes stereo in all cases excluding mono.
-			// This may not be the expected behavior, given some audio files with a higher number of channels.
-			result[i] = {buf[i * sfInfo.channels], buf[i * sfInfo.channels + 1]};
-		}
-	}
+	if (framesRead < 0) { return std::nullopt; }
+	samples.resize(static_cast<std::size_t>(framesRead) * channels);
 
-	return SampleDecoder::Result{std::move(result), static_cast<int>(sfInfo.samplerate)};
+	return SampleDecoder::Result{std::move(samples), channels, layout, static_cast<int>(sfInfo.samplerate)};
 }
 
 auto decodeSampleDS(const QString& audioFile) -> std::optional<SampleDecoder::Result>
@@ -106,10 +177,11 @@ auto decodeSampleDS(const QString& audioFile) -> std::optional<SampleDecoder::Re
 
 	if (frames <= 0 || !data) { return std::nullopt; }
 
-	auto result = std::vector<SampleFrame>(frames);
-	src_short_to_float_array(data.get(), &result[0][0], frames * DEFAULT_CHANNELS);
+	auto samples = std::vector<float>(static_cast<std::size_t>(frames) * DEFAULT_CHANNELS);
+	src_short_to_float_array(data.get(), samples.data(), frames * DEFAULT_CHANNELS);
 
-	return SampleDecoder::Result{std::move(result), static_cast<int>(engineRate)};
+	return SampleDecoder::Result{
+		std::move(samples), DEFAULT_CHANNELS, AudioChannelLayout::stereo(), static_cast<int>(engineRate)};
 }
 
 #ifdef MXM_HAVE_OGGVORBIS
@@ -152,35 +224,42 @@ auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDeco
 	const auto vorbisInfo = ov_info(&vorbisFile, -1);
 	if (vorbisInfo == nullptr) { return std::nullopt; }
 
-	const auto numChannels = vorbisInfo->channels;
+	const auto channels = static_cast<ch_cnt_t>(vorbisInfo->channels);
 	const auto sampleRate = vorbisInfo->rate;
 	const auto numSamples = ov_pcm_total(&vorbisFile, -1);
-	if (numSamples < 0) { return std::nullopt; }
-
-	auto buffer = std::vector<float>(numSamples);
-	auto output = static_cast<float**>(nullptr);
-
-	auto totalSamplesRead = 0;
-	while (true)
+	if (channels == 0 || channels > MaxChannelsPerAudioBuffer || sampleRate <= 0 || numSamples < 0)
 	{
-		auto samplesRead = ov_read_float(&vorbisFile, &output, numSamples, 0);
-
-		if (samplesRead < 0) { return std::nullopt; }
-		else if (samplesRead == 0) { break; }
-
-		std::copy_n(*output, samplesRead, buffer.begin() + totalSamplesRead);
-		totalSamplesRead += samplesRead;
+		ov_clear(&vorbisFile);
+		return std::nullopt;
 	}
 
-	auto result = std::vector<SampleFrame>(totalSamplesRead / numChannels);
-	for (auto i = std::size_t{0}; i < result.size(); ++i)
+	auto samples = std::vector<float>{};
+	if (numSamples > 0) { samples.reserve(static_cast<std::size_t>(numSamples) * channels); }
+	auto output = static_cast<float**>(nullptr);
+
+	while (true)
 	{
-		if (numChannels == 1) { result[i] = {buffer[i], buffer[i]}; }
-		else if (numChannels > 1) { result[i] = {buffer[i * numChannels], buffer[i * numChannels + 1]}; }
+		const auto framesRead = ov_read_float(&vorbisFile, &output, 4096, nullptr);
+
+		if (framesRead < 0)
+		{
+			ov_clear(&vorbisFile);
+			return std::nullopt;
+		}
+		else if (framesRead == 0) { break; }
+
+		for (long frame = 0; frame < framesRead; ++frame)
+		{
+			for (ch_cnt_t channel = 0; channel < channels; ++channel)
+			{
+				samples.push_back(output[channel][frame]);
+			}
+		}
 	}
 
 	ov_clear(&vorbisFile);
-	return SampleDecoder::Result{std::move(result), static_cast<int>(sampleRate)};
+	return SampleDecoder::Result{std::move(samples), channels,
+		AudioChannelLayout::standard(channels), static_cast<int>(sampleRate)};
 }
 #endif // MXM_HAVE_OGGVORBIS
 } // namespace

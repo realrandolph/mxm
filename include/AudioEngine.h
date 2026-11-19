@@ -34,6 +34,7 @@
 #include <memory>
 #include <vector>
 
+#include "AudioBuffer.h"
 #include "AudioBufferView.h"
 #include "AudioDevice.h"
 #include "MxmTypes.h"
@@ -230,12 +231,43 @@ public:
 
 	bool criticalXRuns() const;
 
-	void pushInputFrames( SampleFrame* _ab, const f_cnt_t _frames );
+	/**
+	 * @brief Publishes captured audio to the audio engine.
+	 *
+	 * The channel count is taken from @a frames, so backends do not need to
+	 * duplicate or truncate channels. Capture buffers are preallocated with
+	 * @ref setInputChannels() so this function does not allocate.
+	 */
+	void pushInputFrames(PlanarBufferView<const float> frames);
+	void pushInputFrames(InterleavedBufferView<const float> frames);
+
+	//! Legacy stereo entry point.
+	void pushInputFrames(const SampleFrame* frames, f_cnt_t frameCount)
+	{
+		pushInputFrames(InterleavedBufferView<const float>{reinterpret_cast<const float*>(frames), DEFAULT_CHANNELS, frameCount});
+	}
+
+	/**
+	 * @brief Preallocates the capture buffers for @a channels input channels.
+	 * Must be called from the model/UI thread when the device is configured.
+	 */
+	void setInputChannels(ch_cnt_t channels);
+	auto inputChannels() const -> ch_cnt_t { return m_inputChannels; }
+
+	//! @returns frames dropped because the real-time capture buffer was full
+	auto inputDroppedFrames() const -> std::uint64_t
+	{
+		return m_inputDroppedFrames.load(std::memory_order_relaxed);
+	}
+
 	float inputPeak() const { return m_inputPeak.load(std::memory_order_relaxed); }
 
-	inline const SampleFrame* inputBuffer()
+	//! @returns the captured audio for the current period, as planar channels.
+	auto inputBuffer() const -> PlanarBufferView<const float>
 	{
-		return m_inputBuffer[ m_inputBufferRead ];
+		if (!m_inputBuffer[m_inputBufferRead]) { return {}; }
+		return {m_inputBuffer[m_inputBufferRead]->allBuffers().data(), m_inputChannels,
+			m_inputBufferFrames[m_inputBufferRead]};
 	}
 
 	inline f_cnt_t inputBufferFrames() const
@@ -378,12 +410,14 @@ private:
 	f_cnt_t m_framesPerPeriod;
 	sample_rate_t m_baseSampleRate;
 
-	SampleFrame* m_inputBuffer[2];
+	std::unique_ptr<AudioBuffer> m_inputBuffer[2];
 	f_cnt_t m_inputBufferFrames[2];
-	f_cnt_t m_inputBufferSize[2];
+	f_cnt_t m_inputBufferCapacity = 0;
+	ch_cnt_t m_inputChannels = 0;
 	int m_inputBufferRead;
 	int m_inputBufferWrite;
 	std::atomic<float> m_inputPeak{0.f};
+	std::atomic<std::uint64_t> m_inputDroppedFrames{0};
 
 	std::unique_ptr<SampleFrame[]> m_outputBufferRead;
 	std::unique_ptr<SampleFrame[]> m_outputBufferWrite;

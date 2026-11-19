@@ -291,6 +291,8 @@ void SampleClip::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	}
 
 	_this.setAttribute( "sample_rate", m_sample.sampleRate());
+	_this.setAttribute("channels", m_sample.buffer()->channels());
+	_this.setAttribute("channel_layout", m_sample.buffer()->layout().toString());
 	if (const auto& c = color())
 	{
 		_this.setAttribute("color", c->name());
@@ -326,7 +328,9 @@ void SampleClip::loadSettings( const QDomElement & _this )
 		auto sampleRate = _this.hasAttribute("sample_rate") ? _this.attribute("sample_rate").toInt() :
 			Engine::audioEngine()->outputSampleRate();
 
-		auto buffer = SampleBuffer::fromBase64(_this.attribute("data"), sampleRate);
+		const auto channels = static_cast<ch_cnt_t>(_this.attribute("channels", "2").toUInt());
+		auto buffer = SampleBuffer::fromBase64(_this.attribute("data"), sampleRate, channels,
+			_this.attribute("channel_layout"));
 		m_sample = Sample(std::move(buffer));
 	}
 	changeLength( _this.attribute( "len" ).toInt() );
