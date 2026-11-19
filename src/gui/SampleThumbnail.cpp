@@ -74,6 +74,19 @@ SampleThumbnail::Thumbnail SampleThumbnail::Thumbnail::zoomOut(float factor) con
 SampleThumbnail::SampleThumbnail(const Sample& sample)
 	: m_buffer(sample.buffer())
 {
+	// The channel-summed display data is needed even when the peak cache hits,
+	// because zooming in draws the original frames.
+	m_displaySamples.resize(static_cast<size_t>(m_buffer->frames()));
+	for (f_cnt_t frame = 0; frame < m_buffer->frames(); ++frame)
+	{
+		auto sum = 0.f;
+		for (ch_cnt_t channel = 0; channel < m_buffer->channels(); ++channel)
+		{
+			sum += m_buffer->sample(frame, channel);
+		}
+		m_displaySamples[frame] = m_buffer->channels() > 0 ? sum / m_buffer->channels() : 0.f;
+	}
+
 	auto entry = SampleThumbnailEntry{sample.sampleFile(), QFileInfo{sample.sampleFile()}.lastModified()};
 	if (!entry.filePath.isEmpty())
 	{
@@ -94,16 +107,6 @@ SampleThumbnail::SampleThumbnail(const Sample& sample)
 		s_sampleThumbnailCacheMap[std::move(entry)] = m_thumbnailCache;
 	}
 
-	m_displaySamples.resize(static_cast<size_t>(m_buffer->frames()));
-	for (f_cnt_t frame = 0; frame < m_buffer->frames(); ++frame)
-	{
-		auto sum = 0.f;
-		for (ch_cnt_t channel = 0; channel < m_buffer->channels(); ++channel)
-		{
-			sum += m_buffer->sample(frame, channel);
-		}
-		m_displaySamples[frame] = m_buffer->channels() > 0 ? sum / m_buffer->channels() : 0.f;
-	}
 	m_thumbnailCache->emplace_back(m_displaySamples.data(), m_displaySamples.size(),
 		m_displaySamples.size() / AggregationPerZoomStep);
 
