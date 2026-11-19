@@ -28,7 +28,6 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
-#include <vector>
 
 #include <QPointer>
 

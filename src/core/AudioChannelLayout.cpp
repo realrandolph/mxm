@@ -25,7 +25,8 @@
 #include "AudioChannelLayout.h"
 
 #include <algorithm>
-#include <cmath>
+
+#include <QStringList>
 
 namespace mxm
 {

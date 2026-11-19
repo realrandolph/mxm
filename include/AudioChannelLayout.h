@@ -26,10 +26,8 @@
 #define MXM_AUDIO_CHANNEL_LAYOUT_H
 
 #include <array>
-#include <optional>
 
 #include <QString>
-#include <QStringList>
 
 #include "AudioBufferView.h"
 #include "MxmTypes.h"
@@ -97,7 +95,10 @@ public:
 	static auto rolesFor(ch_cnt_t channels) -> Roles;
 
 	//! Binds a channel count to a standard layout where one is known.
-	static auto standard(ch_cnt_t channels) -> AudioChannelLayout { return AudioChannelLayout{channels, rolesFor(channels)}; }
+	static auto standard(ch_cnt_t channels) -> AudioChannelLayout
+	{
+		return AudioChannelLayout{channels, rolesFor(channels)};
+	}
 
 	//! Parses "mono", "stereo", "5.1", "7.1" and "discrete:N".
 	static auto fromString(const QString& text, ch_cnt_t fallbackChannels = 2) -> AudioChannelLayout;
