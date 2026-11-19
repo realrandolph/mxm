@@ -36,6 +36,7 @@
 #include <QToolButton>
 #include <QStringList>
 
+#include "AudioBufferView.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 #include "GuiApplication.h"
@@ -49,6 +50,7 @@ namespace {
 
 const auto audioJackClass = QString{"audiojack"};
 const auto clientNameKey = QString{"clientname"};
+const auto inputChannelsKey = QString{"inputchannels"};
 const auto disconnectedRepresentation = QString{"-"};
 
 QString getOutputKeyByChannel(size_t channel)
@@ -110,7 +112,16 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 	const auto inputChannels = std::count_if(m_inputPorts.begin(), m_inputPorts.end(),
 		[](jack_port_t* port) { return port != nullptr; });
 	m_supportsCapture = successful && inputChannels > 0;
-	setCaptureChannels(m_supportsCapture ? static_cast<ch_cnt_t>(inputChannels) : 0);
+	if (m_supportsCapture)
+	{
+		setCaptureChannels(m_inputChannels);
+		if (m_inputChannels > DEFAULT_CHANNELS)
+		{
+			// JACK ports carry no speaker roles, so expose the channels as discrete.
+			setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
+		}
+	}
+	else { setCaptureChannels(0); }
 }
 
 
@@ -175,6 +186,16 @@ AudioJack* AudioJack::addMidiClient(MidiJack* midiClient)
 
 bool AudioJack::initJackClient()
 {
+	// "audiojack/inputchannels" selects the number of capture ports (default 2).
+	const auto configuredInputChannels = ConfigManager::inst()->value(audioJackClass, inputChannelsKey).toInt();
+	m_inputChannels = static_cast<ch_cnt_t>(std::clamp(
+		configuredInputChannels > 0 ? configuredInputChannels : static_cast<int>(DEFAULT_CHANNELS),
+		1, static_cast<int>(MaxChannelsPerAudioBuffer)));
+
+	m_outputPorts.clear();
+	m_inputPorts.clear();
+	m_monoInputPort.store(-1, std::memory_order_relaxed);
+
 	QString clientName = ConfigManager::inst()->value(audioJackClass, clientNameKey);
 	if (clientName.isEmpty()) { clientName = "mxm"; }
 
@@ -220,14 +241,18 @@ bool AudioJack::initJackClient()
 		m_outputPorts.push_back(
 			jack_port_register(m_client, name.toLatin1().constData(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
 
-		const QString input_name = buildInputName(ch);
-		m_inputPorts.push_back(jack_port_register(m_client, input_name.toLatin1().constData(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
-
 		if (m_outputPorts.back() == nullptr)
 		{
 			std::fprintf(stderr, "no more JACK-ports available!\n");
 			return false;
 		}
+	}
+
+	for (ch_cnt_t ch = 0; ch < m_inputChannels; ++ch)
+	{
+		const QString inputName = buildInputName(ch);
+		m_inputPorts.push_back(jack_port_register(m_client, inputName.toLatin1().constData(),
+			JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
 	}
 
 	return true;
@@ -238,7 +263,16 @@ bool AudioJack::initJackClient()
 
 void AudioJack::resizeInputBuffer(jack_nframes_t nframes)
 {
-	m_inputFrameBuffer.resize(nframes);
+	// Keep enough planar storage for the largest block the engine or JACK may deliver.
+	m_inputBufferFrames = std::max<jack_nframes_t>(nframes,
+		static_cast<jack_nframes_t>(audioEngine()->framesPerAudioBuffer()));
+	m_inputFrameBuffer.assign(static_cast<std::size_t>(m_inputBufferFrames) * m_inputChannels, 0.f);
+	m_inputChannelPtrs.resize(m_inputChannels);
+	for (ch_cnt_t ch = 0; ch < m_inputChannels; ++ch)
+	{
+		m_inputChannelPtrs[ch]
+			= m_inputFrameBuffer.data() + static_cast<std::size_t>(ch) * m_inputBufferFrames;
+	}
 }
 
 void AudioJack::attemptToConnect(size_t index, const char *mxm_port_type, const char *source_port, const char *destination_port)
@@ -310,7 +344,7 @@ void AudioJack::startProcessingImpl()
 		attemptToReconnectOutput(i, cm->value(audioJackClass, getOutputKeyByChannel(i)));
 	}
 
-	for (size_t i = 0; i < numberOfChannels; ++i)
+	for (size_t i = 0; i < m_inputChannels; ++i)
 	{
 		attemptToReconnectInput(i, cm->value(audioJackClass, getInputKeyByChannel(i)));
 	}
@@ -426,29 +460,33 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 		audioEngine()->renderNextBuffer({m_tempOutBufs, channels(), nframes});
 	}
 
-	for (int c = 0; c < channels(); ++c)
+	if (m_supportsCapture && m_inputChannels > 0 && nframes <= m_inputBufferFrames)
 	{
-		jack_default_audio_sample_t* jack_input_buffer = m_inputPorts[c]
-			? static_cast<jack_default_audio_sample_t*>(jack_port_get_buffer(m_inputPorts[c], nframes))
-			: nullptr;
+		for (ch_cnt_t c = 0; c < m_inputChannels; ++c)
+		{
+			auto* destination = m_inputChannelPtrs[c];
+			const auto* source = c < m_inputPorts.size() && m_inputPorts[c] != nullptr
+				? static_cast<const jack_default_audio_sample_t*>(
+					jack_port_get_buffer(m_inputPorts[c], nframes))
+				: nullptr;
+			if (source != nullptr) { std::copy_n(source, nframes, destination); }
+			else { std::fill_n(destination, nframes, 0.f); }
+		}
 
-		for (jack_nframes_t frame = 0; frame < nframes; frame++)
+		// Legacy behaviour: one connected source feeding a stereo capture is
+		// duplicated into both channels. Never applied to more than 2 channels.
+		const auto monoInputPort = m_monoInputPort.load(std::memory_order_relaxed);
+		if (m_inputChannels == DEFAULT_CHANNELS
+			&& monoInputPort >= 0 && monoInputPort < static_cast<int>(m_inputChannels))
 		{
-			m_inputFrameBuffer[frame][c] = jack_input_buffer
-				? static_cast<sample_t>(jack_input_buffer[frame]) : 0.f;
+			const auto* mono = m_inputChannelPtrs[monoInputPort];
+			auto* other = m_inputChannelPtrs[monoInputPort == 0 ? 1 : 0];
+			std::copy_n(mono, nframes, other);
 		}
+
+		audioEngine()->pushInputFrames(PlanarBufferView<const float>{
+			m_inputChannelPtrs.data(), m_inputChannels, nframes});
 	}
-	const auto monoInputPort = m_monoInputPort.load(std::memory_order_relaxed);
-	if (monoInputPort >= 0)
-	{
-		for (jack_nframes_t frame = 0; frame < nframes; ++frame)
-		{
-			const auto mono = m_inputFrameBuffer[frame][monoInputPort];
-			m_inputFrameBuffer[frame][0] = mono;
-			m_inputFrameBuffer[frame][1] = mono;
-		}
-	}
-	audioEngine()->pushInputFrames (m_inputFrameBuffer.data(), nframes);
 	return 0;
 }
 

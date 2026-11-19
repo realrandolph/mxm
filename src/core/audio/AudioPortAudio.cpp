@@ -30,6 +30,7 @@
 
 #ifdef MXM_HAVE_PORTAUDIO
 
+#include "AudioBufferView.h"
 #include "AudioEngine.h"
 #include "AudioPortAudio.h"
 #include "ConfigManager.h"
@@ -141,7 +142,7 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		if (maxInputChannels > 0)
 		{
 			inputDeviceChannels = std::clamp(inputDeviceChannels > 0 ? inputDeviceChannels : 2,
-			1, std::min(maxInputChannels, 2));
+			1, std::min(maxInputChannels, static_cast<int>(MaxChannelsPerAudioBuffer)));
 		}
 		else { inputDeviceIndex = paNoDevice; }
 	}
@@ -195,9 +196,13 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	setSampleRate(sampleRate);
 	setChannels(outputDeviceChannels);
 	m_inputChannels = inputDeviceIndex == paNoDevice ? 0 : static_cast<ch_cnt_t>(inputDeviceChannels);
-	setCaptureChannels(std::min<ch_cnt_t>(m_inputChannels, 2));
+	setCaptureChannels(m_inputChannels);
+	if (m_inputChannels > DEFAULT_CHANNELS)
+	{
+		// PortAudio cannot report speaker roles, so expose the captured channels as discrete.
+		setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
+	}
 	m_supportsCapture = m_inputChannels > 0;
-	if (m_supportsCapture) { m_inputBuffer.resize(framesPerBuffer); }
 }
 
 AudioPortAudio::~AudioPortAudio()
@@ -231,15 +236,8 @@ int AudioPortAudio::processCallback(const void* input, void* output, unsigned lo
 
 	if (input && device->m_inputChannels > 0)
 	{
-		const auto inputBuffer = static_cast<const float*>(input);
-		const auto frames = std::min<unsigned long>(frameCount, device->m_inputBuffer.size());
-		for (unsigned long frame = 0; frame < frames; ++frame)
-		{
-			const auto inputOffset = frame * device->m_inputChannels;
-			device->m_inputBuffer[frame][0] = inputBuffer[inputOffset];
-			device->m_inputBuffer[frame][1] = inputBuffer[inputOffset + std::min<ch_cnt_t>(1, device->m_inputChannels - 1)];
-		}
-		device->audioEngine()->pushInputFrames(device->m_inputBuffer.data(), frames);
+		device->audioEngine()->pushInputFrames(InterleavedBufferView<const float>{
+			static_cast<const float*>(input), device->m_inputChannels, frameCount});
 	}
 
 	if (outputBuffer) { device->audioEngine()->renderNextBuffer({outputBuffer, channels, frameCount}); }
@@ -293,7 +291,8 @@ public:
 	{
 		const auto maxChannelCount = maxChannels(Pa_GetDeviceInfo(deviceIndex), m_direction);
 		const auto channelCount = ConfigManager::inst()->value(tag(), channelsAttribute(m_direction)).toInt();
-		m_channelModel.setRange(1, m_direction == Direction::Input ? std::min(maxChannelCount, 2) : maxChannelCount);
+		m_channelModel.setRange(1, m_direction == Direction::Input
+			? std::min(maxChannelCount, static_cast<int>(MaxChannelsPerAudioBuffer)) : maxChannelCount);
 		m_channelModel.setValue(channelCount == 0 ? DEFAULT_CHANNELS : channelCount);
 		m_channelSpinBox->setNumDigits(QString::number(maxChannelCount).length());
 	}

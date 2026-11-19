@@ -102,7 +102,6 @@ public:
 
 private:
 	void writerLoop();
-	auto sourceChannelFor(int channel) const -> ch_cnt_t;
 	void copyBlock(PlanarBufferView<const float> frames, int selectedChannel);
 	bool openWriter();
 

@@ -48,13 +48,15 @@ auto gainsForRole(SpeakerRole role) -> StereoGains
 	switch (role)
 	{
 	case SpeakerRole::FrontLeft:
-	case SpeakerRole::SideLeft:
-	case SpeakerRole::BackLeft:
 		return {1.f, 0.f};
 	case SpeakerRole::FrontRight:
+		return {0.f, 1.f};
+	case SpeakerRole::SideLeft:
+	case SpeakerRole::BackLeft:
+		return {SurroundGain, 0.f};
 	case SpeakerRole::SideRight:
 	case SpeakerRole::BackRight:
-		return {0.f, 1.f};
+		return {0.f, SurroundGain};
 	case SpeakerRole::FrontCenter:
 	case SpeakerRole::FrontLeftOfCenter:
 	case SpeakerRole::FrontRightOfCenter:

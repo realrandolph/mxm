@@ -34,11 +34,9 @@
 #include <QString>
 #include <QWidget>
 #include <portaudio.h>
-#include <vector>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
-#include "SampleFrame.h"
 
 namespace mxm {
 
@@ -90,7 +88,6 @@ private:
 	detail::PortAudioInitializationGuard m_initGuard;
 	PaStream* m_paStream = nullptr;
 	ch_cnt_t m_inputChannels = 0;
-	std::vector<SampleFrame> m_inputBuffer;
 };
 } // namespace mxm
 

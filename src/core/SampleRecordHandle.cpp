@@ -98,8 +98,9 @@ void SampleRecordHandle::monitor(
 
 	const auto layout = m_session->capture->layout();
 	const auto channels = layout.channels();
-	const auto sourceChannel = channels <= 1 ? ch_cnt_t{0}
-		: static_cast<ch_cnt_t>(std::clamp(m_recordChannel - 1, 0, static_cast<int>(channels) - 1));
+	const auto inputChannels = input.channels();
+	const auto sourceChannel = inputChannels <= 1 ? ch_cnt_t{0}
+		: static_cast<ch_cnt_t>(std::clamp(m_recordChannel - 1, 0, static_cast<int>(inputChannels) - 1));
 
 	auto interleaved = std::array<float, MaxChannelsPerLayout>{};
 	for (f_cnt_t frame = 0; frame < outputFrames; ++frame)

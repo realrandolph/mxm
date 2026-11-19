@@ -520,6 +520,7 @@ void AudioEngine::restoreAudioDevice()
 		delete m_audioDev;
 
 		m_audioDev = m_oldAudioDev;
+		setInputChannels(m_audioDev ? m_audioDev->captureChannels() : 0);
 		emit sampleRateChanged();
 
 		startProcessing();

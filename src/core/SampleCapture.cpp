@@ -80,12 +80,6 @@ auto SampleCapture::errorString() const -> QString
 	return m_errorString;
 }
 
-auto SampleCapture::sourceChannelFor(int channel) const -> ch_cnt_t
-{
-	if (channel != 1 && channel != 2) { return 0; }
-	return m_layout.channels() == 1 ? 0 : static_cast<ch_cnt_t>(channel - 1);
-}
-
 void SampleCapture::write(PlanarBufferView<const float> frames)
 {
 	if (!m_accepting.load(std::memory_order_acquire) || frames.empty() || frames.channels() == 0) { return; }
@@ -137,7 +131,8 @@ void SampleCapture::write(PlanarBufferView<const float> frames, int channel)
 void SampleCapture::copyBlock(PlanarBufferView<const float> frames, int selectedChannel)
 {
 	const auto totalFrames = frames.frames();
-	const auto sourceChannel = sourceChannelFor(selectedChannel);
+	const auto sourceChannel = frames.channels() <= 1 ? ch_cnt_t{0}
+		: static_cast<ch_cnt_t>(std::clamp(selectedChannel - 1, 0, static_cast<int>(frames.channels()) - 1));
 	const auto legacyChannelRouting = (selectedChannel == 1 || selectedChannel == 2);
 	f_cnt_t frameOffset = 0;
 
@@ -266,6 +261,8 @@ void SampleCapture::writerLoop()
 	if (sf_close(file) != 0)
 	{
 		m_diskError.store(true, std::memory_order_relaxed);
+		const auto lock = std::lock_guard{m_wakeMutex};
+		if (m_errorString.isEmpty()) { m_errorString = QStringLiteral("finalizing the recording file failed"); }
 	}
 	m_wake.notify_all();
 }

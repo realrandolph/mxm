@@ -129,7 +129,12 @@ private:
 	std::vector<jack_port_t*> m_inputPorts;
 	std::atomic<int> m_monoInputPort{-1};
 	jack_default_audio_sample_t** m_tempOutBufs;
-	std::vector<SampleFrame> m_inputFrameBuffer;
+	// Number of capture ports, configured via "audiojack/inputchannels".
+	ch_cnt_t m_inputChannels = DEFAULT_CHANNELS;
+	// Planar capture storage: one block of m_inputBufferFrames per channel.
+	std::vector<float> m_inputFrameBuffer;
+	std::vector<float*> m_inputChannelPtrs;
+	jack_nframes_t m_inputBufferFrames = 0;
 
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	struct StereoPort

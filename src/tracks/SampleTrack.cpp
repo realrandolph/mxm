@@ -259,11 +259,15 @@ bool SampleTrack::startRecording()
 		delete clip;
 		return false;
 	}
+	if (layout.channels() != channels)
+	{
+		layout = AudioChannelLayout::discrete(channels);
+	}
 
 	m_recordingSession = std::make_shared<SampleRecordSession>();
 	m_recordingSession->capture = std::make_shared<SampleCapture>(
 		Engine::audioEngine()->inputSampleRate(), layout,
-		Engine::audioEngine()->framesPerAudioBuffer(), 64);
+		Engine::audioEngine()->framesPerPeriod(), 64);
 	m_recordingClip = clip;
 	clip->changeLength(TimePos(1));
 	song->trackRecordingStarted();

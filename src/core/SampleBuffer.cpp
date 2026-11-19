@@ -164,7 +164,7 @@ bool SampleBuffer::toWaveFile(const QString& path) const
 		{
 			map[channel] = sndfileChannelForRole(m_layout.role(channel));
 		}
-		sf_command(file, SFC_SET_CHANNEL_MAP_INFO, map.data(), sizeof(map));
+		sf_command(file, SFC_SET_CHANNEL_MAP_INFO, map.data(), m_channels * sizeof(int));
 	}
 
 	const auto written = sf_writef_float(file, m_samples.data(), static_cast<sf_count_t>(m_frames));

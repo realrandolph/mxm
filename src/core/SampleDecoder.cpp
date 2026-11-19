@@ -26,6 +26,7 @@
 
 #include <QFile>
 #include <QString>
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <sndfile.h>
@@ -64,7 +65,7 @@ auto channelLayoutFromSndfile(SNDFILE* sndFile, ch_cnt_t channels) -> AudioChann
 	if (channels == 2) { return AudioChannelLayout::stereo(); }
 
 	auto map = std::array<int, MaxChannelsPerAudioBuffer>{};
-	if (sf_command(sndFile, SFC_GET_CHANNEL_MAP_INFO, map.data(), sizeof(map)) != SF_TRUE)
+	if (sf_command(sndFile, SFC_GET_CHANNEL_MAP_INFO, map.data(), channels * sizeof(int)) != SF_TRUE)
 	{
 		// A file without an explicit channel map is a discrete channel set, not
 		// necessarily a standard 5.1 or 7.1 speaker layout.
@@ -145,7 +146,8 @@ auto decodeSampleSF(const QString& audioFile) -> std::optional<SampleDecoder::Re
 	sndFile = sf_open_fd(file.handle(), SFM_READ, &sfInfo, false);
 	if (sndFile == nullptr || sf_error(sndFile) != 0) { return std::nullopt; }
 
-	if (sfInfo.channels <= 0 || sfInfo.channels > MaxChannelsPerAudioBuffer || sfInfo.frames < 0)
+	if (sfInfo.channels <= 0 || sfInfo.channels > MaxChannelsPerAudioBuffer || sfInfo.frames < 0
+		|| sfInfo.samplerate <= 0)
 	{
 		sf_close(sndFile);
 		return std::nullopt;

@@ -51,8 +51,10 @@ boundary:
 
 | Source channel | Stereo mapping |
 | --- | --- |
-| FL, BL, SL | left |
-| FR, BR, SR | right |
+| FL | left |
+| FR | right |
+| BL, SL | left at -3 dB |
+| BR, SR | right at -3 dB |
 | FC, FLC, FRC | both at -3 dB |
 | LFE | both at -6 dB |
 | BC, top channels | both at -3 dB |

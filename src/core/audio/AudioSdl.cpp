@@ -27,12 +27,11 @@
 
 #ifdef MXM_HAVE_SDL
 
-#include <algorithm>
-
 #include <QFormLayout>
 #include <QComboBox>
 #include <SDL.h>
 
+#include "AudioBufferView.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 
@@ -165,11 +164,16 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 			SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
 	}
 
-	if (m_inputDevice != 0 && actual.format == AUDIO_F32SYS && actual.channels > 0)
+	if (m_inputDevice != 0 && actual.format == AUDIO_F32SYS && actual.channels > 0
+		&& actual.channels <= MaxChannelsPerAudioBuffer)
 	{
 		m_inputChannels = actual.channels;
-		setCaptureChannels(std::min<ch_cnt_t>(m_inputChannels, 2));
-		m_inputBuffer.resize(std::max<std::size_t>(actual.samples, _audioEngine->framesPerAudioBuffer()));
+		setCaptureChannels(m_inputChannels);
+		if (m_inputChannels > DEFAULT_CHANNELS)
+		{
+			// SDL does not report speaker roles, so expose the captured channels as discrete.
+			setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
+		}
 		m_supportsCapture = true;
 	}
 	else
@@ -252,16 +256,18 @@ void AudioSdl::sdlInputAudioCallback(void *_udata, Uint8 *_buf, int _len) {
 
 void AudioSdl::sdlInputAudioCallback(Uint8 *_buf, int _len) {
 	if (m_inputChannels == 0 || _len <= 0) { return; }
-	const auto frames = static_cast<f_cnt_t>(_len) / (sizeof(float) * m_inputChannels);
-	if (frames > m_inputBuffer.size()) { return; }
-	const auto samples = reinterpret_cast<const float*>(_buf);
-	for (f_cnt_t frame = 0; frame < frames; ++frame)
+
+	const auto bytesPerFrame = sizeof(float) * m_inputChannels;
+	const auto frames = static_cast<f_cnt_t>(_len) / bytesPerFrame;
+	if (frames == 0) { return; }
+	if (frames > audioEngine()->framesPerAudioBuffer())
 	{
-		const auto source = frame * m_inputChannels;
-		m_inputBuffer[frame][0] = samples[source];
-		m_inputBuffer[frame][1] = samples[source + std::min<ch_cnt_t>(1, m_inputChannels - 1)];
+		qWarning("SDL capture block of %llu frames exceeds the audio engine buffer size; dropping the block",
+			static_cast<unsigned long long>(frames));
+		return;
 	}
-	audioEngine()->pushInputFrames(m_inputBuffer.data(), frames);
+	audioEngine()->pushInputFrames(InterleavedBufferView<const float>{
+		reinterpret_cast<const float*>(_buf), m_inputChannels, frames});
 }
 
 QString AudioSdl::setupWidget::s_systemDefaultDevice = AudioDeviceSetupWidget::tr("[System Default]");
