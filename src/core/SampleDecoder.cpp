@@ -235,6 +235,7 @@ auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDeco
 		return std::nullopt;
 	}
 
+	const auto channelMap = SampleDecoder::vorbisChannelMap(channels);
 	auto samples = std::vector<float>{};
 	if (numSamples > 0) { samples.reserve(static_cast<std::size_t>(numSamples) * channels); }
 	auto output = static_cast<float**>(nullptr);
@@ -254,17 +255,88 @@ auto decodeSampleOggVorbis(const QString& audioFile) -> std::optional<SampleDeco
 		{
 			for (ch_cnt_t channel = 0; channel < channels; ++channel)
 			{
-				samples.push_back(output[channel][frame]);
+				const auto source = channels <= 8 ? channelMap.order[channel] : channel;
+				samples.push_back(output[source][frame]);
 			}
 		}
 	}
 
 	ov_clear(&vorbisFile);
-	return SampleDecoder::Result{std::move(samples), channels,
-		AudioChannelLayout::standard(channels), static_cast<int>(sampleRate)};
+	return SampleDecoder::Result{
+		std::move(samples), channels, channelMap.layout, static_cast<int>(sampleRate)};
 }
 #endif // MXM_HAVE_OGGVORBIS
 } // namespace
+
+auto SampleDecoder::vorbisChannelMap(ch_cnt_t channels) -> VorbisChannelMap
+{
+	auto map = VorbisChannelMap{};
+	map.layout = AudioChannelLayout::discrete(channels);
+	for (ch_cnt_t channel = 0; channel < std::min<ch_cnt_t>(channels, 8); ++channel)
+	{
+		map.order[channel] = channel;
+	}
+
+	auto roles = AudioChannelLayout::Roles{};
+	switch (channels)
+	{
+	case 1:
+		map.layout = AudioChannelLayout::mono();
+		map.order[0] = 0;
+		break;
+	case 2:
+		map.layout = AudioChannelLayout::stereo();
+		map.order[0] = 0;
+		map.order[1] = 1;
+		break;
+	case 3:
+		roles[0] = SpeakerRole::FrontLeft;
+		roles[1] = SpeakerRole::FrontRight;
+		roles[2] = SpeakerRole::FrontCenter;
+		map.layout = AudioChannelLayout{3, roles};
+		map.order = {0, 2, 1};
+		break;
+	case 4:
+		roles[0] = SpeakerRole::FrontLeft;
+		roles[1] = SpeakerRole::FrontRight;
+		roles[2] = SpeakerRole::BackLeft;
+		roles[3] = SpeakerRole::BackRight;
+		map.layout = AudioChannelLayout{4, roles};
+		map.order = {0, 1, 2, 3};
+		break;
+	case 5:
+		roles[0] = SpeakerRole::FrontLeft;
+		roles[1] = SpeakerRole::FrontRight;
+		roles[2] = SpeakerRole::FrontCenter;
+		roles[3] = SpeakerRole::BackLeft;
+		roles[4] = SpeakerRole::BackRight;
+		map.layout = AudioChannelLayout{5, roles};
+		map.order = {0, 2, 1, 3, 4};
+		break;
+	case 6:
+		map.layout = AudioChannelLayout::surround51();
+		map.order = {0, 2, 1, 5, 3, 4};
+		break;
+	case 7:
+		roles[0] = SpeakerRole::FrontLeft;
+		roles[1] = SpeakerRole::FrontRight;
+		roles[2] = SpeakerRole::FrontCenter;
+		roles[3] = SpeakerRole::Lfe;
+		roles[4] = SpeakerRole::SideLeft;
+		roles[5] = SpeakerRole::SideRight;
+		roles[6] = SpeakerRole::BackCenter;
+		map.layout = AudioChannelLayout{7, roles};
+		map.order = {0, 2, 1, 6, 3, 4, 5};
+		break;
+	case 8:
+		map.layout = AudioChannelLayout::surround71();
+		map.order = {0, 2, 1, 7, 5, 6, 3, 4};
+		break;
+	default:
+		break;
+	}
+	return map;
+}
 
 auto SampleDecoder::supportedAudioTypes() -> const std::vector<AudioType>&
 {

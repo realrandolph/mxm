@@ -31,8 +31,12 @@ the existing embedded sample data, so old stereo projects load unchanged.
 * Backends without capture support report that explicitly through
   `AudioDevice::supportsCapture()`.
 * `AudioEngine::pushInputFrames()` accepts planar or interleaved blocks with a
-  runtime channel count. Capture buffers are preallocated by
+  runtime channel count. Capture data is handed to the render thread through a
+  bounded single-producer/single-consumer ring; buffers are preallocated by
   `AudioEngine::setInputChannels()` and never grow on the audio callback.
+* Vorbis multichannel imports are reordered from the Vorbis I channel order to
+  MXM's canonical WAV/SMPTE-style order before storage, so speaker roles and
+  downmixes stay correct.
 
 ## Recording and storage
 

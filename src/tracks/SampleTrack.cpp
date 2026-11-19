@@ -265,6 +265,7 @@ bool SampleTrack::startRecording()
 	}
 
 	m_recordingSession = std::make_shared<SampleRecordSession>();
+	m_recordingSession->engineDroppedAtStart = Engine::audioEngine()->inputDroppedFrames();
 	m_recordingSession->capture = std::make_shared<SampleCapture>(
 		Engine::audioEngine()->inputSampleRate(), layout,
 		Engine::audioEngine()->framesPerPeriod(), 64);
@@ -303,7 +304,9 @@ void SampleTrack::stopRecording(bool stopTransport)
 				// is stopped, so no accepted block can be published afterwards.
 				const auto guard = Engine::audioEngine()->requestChangesGuard();
 				recorded = m_recordingSession->capture->finish();
-				const auto dropped = m_recordingSession->capture->droppedFrames();
+				const auto engineDropped = Engine::audioEngine()->inputDroppedFrames()
+					- m_recordingSession->engineDroppedAtStart;
+				const auto dropped = m_recordingSession->capture->droppedFrames() + engineDropped;
 				if (dropped > 0 && Engine::getSong())
 				{
 					Engine::getSong()->collectError(tr("Recording overflowed: %1 frames were dropped.")

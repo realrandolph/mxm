@@ -76,8 +76,6 @@ AudioEngine::AudioEngine(bool renderOnly)
 	, m_framesPerPeriod(std::min(m_framesPerAudioBuffer, DEFAULT_BUFFER_SIZE))
 	, m_baseSampleRate(
 		std::max(ConfigManager::inst()->value("audioengine", "samplerate").toInt(), SUPPORTED_SAMPLERATES.front()))
-	, m_inputBufferRead(0)
-	, m_inputBufferWrite(1)
 	, m_outputBufferRead(nullptr)
 	, m_outputBufferWrite(nullptr)
 	, m_outputBufferReadIndex(0)
@@ -92,11 +90,6 @@ AudioEngine::AudioEngine(bool renderOnly)
 	, m_clearSignal(false)
 	, m_sanitizationEnabled(ConfigManager::inst()->value("audioengine", "sanitizemix", "1").toInt())
 {
-	for( int i = 0; i < 2; ++i )
-	{
-		m_inputBufferFrames[i] = 0;
-	}
-
 	BufferManager::init( m_framesPerPeriod );
 	m_outputBufferRead = std::make_unique<SampleFrame[]>(m_framesPerPeriod);
 	m_outputBufferWrite = std::make_unique<SampleFrame[]>(m_framesPerPeriod);
@@ -151,6 +144,7 @@ void AudioEngine::initDevices()
 		m_audioDev = tryAudioDevices();
 		m_midiClient = tryMidiClients();
 	}
+	setInputChannels(m_audioDev ? m_audioDev->captureChannels() : 0);
 	// Loading audio device may have changed the sample rate
 	emit sampleRateChanged();
 }
@@ -165,25 +159,63 @@ bool AudioEngine::criticalXRuns() const
 
 void AudioEngine::setInputChannels(ch_cnt_t channels)
 {
-	if (channels == m_inputChannels && m_inputBufferCapacity > 0) { return; }
 	if (channels > MaxChannelsPerAudioBuffer) { channels = MaxChannelsPerAudioBuffer; }
 	if (channels == 0)
 	{
-		for (auto& buffer : m_inputBuffer) { buffer.reset(); }
+		m_inputQueue.reset();
+		m_inputSnapshot.reset();
+		m_inputBlockFrames.clear();
+		m_inputQueueBlockFrames = 0;
+		m_inputSnapshotFrames = 0;
 		m_inputChannels = 0;
-		m_inputBufferCapacity = 0;
-		for (auto& frames : m_inputBufferFrames) { frames = 0; }
+		m_inputReadIndex.store(0, std::memory_order_relaxed);
+		m_inputWriteIndex.store(0, std::memory_order_relaxed);
 		return;
 	}
 
-	const auto capacity = std::max<f_cnt_t>(m_framesPerAudioBuffer * 8, 1024);
-	for (auto& buffer : m_inputBuffer)
+	const auto blockFrames = std::max<f_cnt_t>(m_framesPerPeriod, 1);
+	for (auto* buffer : {&m_inputQueue, &m_inputSnapshot})
 	{
-		buffer = std::make_unique<AudioBuffer>(capacity, channels);
+		*buffer = std::make_unique<AudioBuffer>(blockFrames * InputCaptureBlocks, channels);
 	}
+	m_inputBlockFrames.assign(InputCaptureBlocks, 0);
+	m_inputQueueBlockFrames = blockFrames;
+	m_inputSnapshotFrames = 0;
 	m_inputChannels = channels;
-	m_inputBufferCapacity = capacity;
-	for (auto& frames : m_inputBufferFrames) { frames = 0; }
+	m_inputReadIndex.store(0, std::memory_order_relaxed);
+	m_inputWriteIndex.store(0, std::memory_order_relaxed);
+}
+
+void AudioEngine::drainInputFrames()
+{
+	m_inputSnapshotFrames = 0;
+	if (!m_inputQueue || !m_inputSnapshot || m_inputQueueBlockFrames == 0) { return; }
+
+	auto read = m_inputReadIndex.load(std::memory_order_relaxed);
+	const auto write = m_inputWriteIndex.load(std::memory_order_acquire);
+	f_cnt_t outputFrames = 0;
+	const auto capacity = m_inputQueueBlockFrames * InputCaptureBlocks;
+
+	while (read != write)
+	{
+		const auto frames = m_inputBlockFrames[read];
+		const auto copied = std::min(frames, capacity - outputFrames);
+		for (ch_cnt_t channel = 0; channel < m_inputChannels; ++channel)
+		{
+			const auto* source = m_inputQueue->buffer(channel).data() + read * m_inputQueueBlockFrames;
+			auto* destination = m_inputSnapshot->buffer(channel).data() + outputFrames;
+			std::copy_n(source, copied, destination);
+		}
+		outputFrames += copied;
+		if (copied < frames)
+		{
+			m_inputDroppedFrames.fetch_add(frames - copied, std::memory_order_relaxed);
+		}
+		read = (read + 1) % InputCaptureBlocks;
+	}
+
+	m_inputReadIndex.store(read, std::memory_order_release);
+	m_inputSnapshotFrames = outputFrames;
 }
 
 void AudioEngine::pushInputFrames(InterleavedBufferView<const float> frames)
@@ -205,33 +237,36 @@ void AudioEngine::pushInputFrames(InterleavedBufferView<const float> frames)
 	{
 	}
 
-	if (!m_inputBuffer[m_inputBufferWrite] || frames.channels() != m_inputChannels)
+	if (!m_inputQueue || frames.channels() != m_inputChannels)
 	{
 		m_inputDroppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
 		return;
 	}
 
-	requestChangeInModel();
-
-	const auto used = m_inputBufferFrames[m_inputBufferWrite];
-	const auto available = m_inputBufferCapacity - used;
-	const auto copied = std::min(available, frames.frames());
-	auto* dst = m_inputBuffer[m_inputBufferWrite].get();
-	for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
+	f_cnt_t frameOffset = 0;
+	while (frameOffset < frames.frames())
 	{
-		auto* channelDst = dst->buffer(channel).data() + used;
-		for (f_cnt_t frame = 0; frame < copied; ++frame)
+		const auto write = m_inputWriteIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % InputCaptureBlocks;
+		if (next == m_inputReadIndex.load(std::memory_order_acquire))
 		{
-			channelDst[frame] = frames.framePtr(frame)[channel];
+			m_inputDroppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
+			return;
 		}
-	}
-	m_inputBufferFrames[m_inputBufferWrite] += copied;
-	if (copied < frames.frames())
-	{
-		m_inputDroppedFrames.fetch_add(frames.frames() - copied, std::memory_order_relaxed);
-	}
 
-	doneChangeInModel();
+		const auto copied = std::min(frames.frames() - frameOffset, m_inputQueueBlockFrames);
+		for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
+		{
+			auto* destination = m_inputQueue->buffer(channel).data() + write * m_inputQueueBlockFrames;
+			for (f_cnt_t frame = 0; frame < copied; ++frame)
+			{
+				destination[frame] = frames.framePtr(frameOffset + frame)[channel];
+			}
+		}
+		m_inputBlockFrames[write] = copied;
+		m_inputWriteIndex.store(next, std::memory_order_release);
+		frameOffset += copied;
+	}
 }
 
 void AudioEngine::pushInputFrames(PlanarBufferView<const float> frames)
@@ -253,36 +288,41 @@ void AudioEngine::pushInputFrames(PlanarBufferView<const float> frames)
 	{
 	}
 
-	if (!m_inputBuffer[m_inputBufferWrite] || frames.channels() != m_inputChannels)
+	if (!m_inputQueue || frames.channels() != m_inputChannels)
 	{
 		m_inputDroppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
 		return;
 	}
 
-	requestChangeInModel();
-
-	const auto used = m_inputBufferFrames[m_inputBufferWrite];
-	const auto available = m_inputBufferCapacity - used;
-	const auto copied = std::min(available, frames.frames());
-	auto* dst = m_inputBuffer[m_inputBufferWrite].get();
-	for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
+	f_cnt_t frameOffset = 0;
+	while (frameOffset < frames.frames())
 	{
-		auto* channelDst = dst->buffer(channel).data() + used;
-		const auto* channelSrc = frames.bufferPtr(channel);
-		std::copy_n(channelSrc, copied, channelDst);
-	}
-	m_inputBufferFrames[m_inputBufferWrite] += copied;
-	if (copied < frames.frames())
-	{
-		m_inputDroppedFrames.fetch_add(frames.frames() - copied, std::memory_order_relaxed);
-	}
+		const auto write = m_inputWriteIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % InputCaptureBlocks;
+		if (next == m_inputReadIndex.load(std::memory_order_acquire))
+		{
+			m_inputDroppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
+			return;
+		}
 
-	doneChangeInModel();
+		const auto copied = std::min(frames.frames() - frameOffset, m_inputQueueBlockFrames);
+		for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
+		{
+			const auto* source = frames.bufferPtr(channel) + frameOffset;
+			auto* destination = m_inputQueue->buffer(channel).data() + write * m_inputQueueBlockFrames;
+			std::copy_n(source, copied, destination);
+		}
+		m_inputBlockFrames[write] = copied;
+		m_inputWriteIndex.store(next, std::memory_order_release);
+		frameOffset += copied;
+	}
 }
 
 void AudioEngine::renderStageNoteSetup()
 {
 	AudioEngineProfiler::Probe profilerProbe(m_profiler, AudioEngineProfiler::DetailType::NoteSetup);
+
+	drainInputFrames();
 
 	if( m_clearSignal )
 	{
@@ -420,10 +460,6 @@ std::span<const SampleFrame> AudioEngine::renderNextPeriod()
 
 void AudioEngine::swapBuffers()
 {
-	m_inputBufferWrite = (m_inputBufferWrite + 1) % 2;
-	m_inputBufferRead = (m_inputBufferRead + 1) % 2;
-	m_inputBufferFrames[m_inputBufferWrite] = 0;
-
 	std::swap(m_outputBufferRead, m_outputBufferWrite);
 	zeroSampleFrames(m_outputBufferWrite.get(), m_framesPerPeriod);
 }

@@ -169,6 +169,62 @@ private slots:
 		QCOMPARE(engine->inputDroppedFrames(), droppedBefore);
 	}
 
+	//! Blocks larger than one capture block are split and fully preserved
+	void PushInputFrames_SplitsLargeBlocks()
+	{
+		constexpr auto channels = ch_cnt_t{4};
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		engine->setInputChannels(channels);
+
+		const auto frames = engine->framesPerPeriod() * 3;
+		auto block = std::vector<std::vector<float>>(channels, std::vector<float>(frames));
+		for (ch_cnt_t channel = 0; channel < channels; ++channel)
+		{
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				block[channel][frame] = inputValue(frame, channel);
+			}
+		}
+		const auto pointers = channelPointers(block);
+
+		engine->pushInputFrames(PlanarBufferView<const float>{pointers.data(), channels, frames});
+		engine->renderNextPeriod();
+
+		const auto input = engine->inputBuffer();
+		QCOMPARE(input.channels(), channels);
+		QCOMPARE(input.frames(), frames);
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			for (ch_cnt_t channel = 0; channel < channels; ++channel)
+			{
+				QCOMPARE(input.bufferPtr(channel)[frame], inputValue(frame, channel));
+			}
+		}
+	}
+
+	//! A full queue reports every frame it cannot accept
+	void PushInputFrames_QueueOverflowIsReported()
+	{
+		constexpr auto channels = ch_cnt_t{2};
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		engine->setInputChannels(channels);
+
+		const auto frames = engine->framesPerPeriod() * 80;
+		auto block = std::vector<std::vector<float>>(channels, std::vector<float>(frames, 0.25f));
+		const auto pointers = channelPointers(block);
+		const auto droppedBefore = engine->inputDroppedFrames();
+
+		engine->pushInputFrames(PlanarBufferView<const float>{pointers.data(), channels, frames});
+		engine->renderNextPeriod();
+
+		const auto dropped = engine->inputDroppedFrames() - droppedBefore;
+		const auto input = engine->inputBuffer();
+		QVERIFY(dropped > 0);
+		QCOMPARE(dropped + input.frames(), static_cast<std::uint64_t>(frames));
+	}
+
 	//! A block with the wrong channel count is reported, not silently mixed
 	void PushInputFrames_ChannelMismatchIsReported()
 	{

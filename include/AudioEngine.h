@@ -262,18 +262,14 @@ public:
 
 	float inputPeak() const { return m_inputPeak.load(std::memory_order_relaxed); }
 
-	//! @returns the captured audio for the current period, as planar channels.
+	//! @returns the captured audio drained for the current period, as planar channels.
 	auto inputBuffer() const -> PlanarBufferView<const float>
 	{
-		if (!m_inputBuffer[m_inputBufferRead]) { return {}; }
-		return {m_inputBuffer[m_inputBufferRead]->allBuffers().data(), m_inputChannels,
-			m_inputBufferFrames[m_inputBufferRead]};
+		if (!m_inputSnapshot) { return {}; }
+		return {m_inputSnapshot->allBuffers().data(), m_inputChannels, m_inputSnapshotFrames};
 	}
 
-	inline f_cnt_t inputBufferFrames() const
-	{
-		return m_inputBufferFrames[ m_inputBufferRead ];
-	}
+	inline f_cnt_t inputBufferFrames() const { return m_inputSnapshotFrames; }
 
 	/**
 	 * @returns The internal buffer size used by audio plugins and other processing done within the audio engine.
@@ -392,6 +388,7 @@ private:
 	AudioDevice * tryAudioDevices();
 	MidiClient * tryMidiClients();
 
+	void drainInputFrames();
 	void renderStageNoteSetup();
 	void renderStageInstruments();
 	void renderStageEffects();
@@ -410,12 +407,22 @@ private:
 	f_cnt_t m_framesPerPeriod;
 	sample_rate_t m_baseSampleRate;
 
-	std::unique_ptr<AudioBuffer> m_inputBuffer[2];
-	f_cnt_t m_inputBufferFrames[2];
-	f_cnt_t m_inputBufferCapacity = 0;
+	/**
+	 * Capture handoff from the device callback to the render thread.
+	 *
+	 * The callback writes preallocated blocks into a single-producer/single-
+	 * consumer ring without locks. The render thread drains the ring into a
+	 * contiguous snapshot that play handles can read.
+	 */
+	static constexpr auto InputCaptureBlocks = 64;
+	std::unique_ptr<AudioBuffer> m_inputQueue;
+	std::unique_ptr<AudioBuffer> m_inputSnapshot;
+	std::vector<f_cnt_t> m_inputBlockFrames;
+	f_cnt_t m_inputQueueBlockFrames = 0;
+	f_cnt_t m_inputSnapshotFrames = 0;
 	ch_cnt_t m_inputChannels = 0;
-	int m_inputBufferRead;
-	int m_inputBufferWrite;
+	std::atomic<std::uint32_t> m_inputReadIndex{0};
+	std::atomic<std::uint32_t> m_inputWriteIndex{0};
 	std::atomic<float> m_inputPeak{0.f};
 	std::atomic<std::uint64_t> m_inputDroppedFrames{0};
 

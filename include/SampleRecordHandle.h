@@ -47,6 +47,7 @@ struct SampleRecordSession
 {
 	std::atomic_bool active{true};
 	std::atomic_uint64_t recordedFrames{0};
+	std::uint64_t engineDroppedAtStart = 0;
 	std::shared_ptr<SampleCapture> capture;
 };
 
