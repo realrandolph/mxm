@@ -105,6 +105,9 @@ public:
 	//! Serializes to a stable, human-readable string suitable for project files.
 	auto toString() const -> QString;
 
+	//! @returns a short display name such as "Stereo" or "6-channel discrete".
+	auto displayName() const -> QString;
+
 	auto channels() const -> ch_cnt_t { return m_channels; }
 	auto role(ch_cnt_t channel) const -> SpeakerRole;
 	auto roles() const -> const Roles& { return m_roles; }

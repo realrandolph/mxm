@@ -200,6 +200,17 @@ auto AudioChannelLayout::toString() const -> QString
 	return QStringLiteral("roles:") + names.join(',');
 }
 
+auto AudioChannelLayout::displayName() const -> QString
+{
+	if (m_channels == 0) { return QStringLiteral("Empty"); }
+	if (*this == mono()) { return QStringLiteral("Mono"); }
+	if (*this == stereo()) { return QStringLiteral("Stereo"); }
+	if (*this == surround51()) { return QStringLiteral("5.1 surround"); }
+	if (*this == surround71()) { return QStringLiteral("7.1 surround"); }
+	if (!hasKnownRoles()) { return QStringLiteral("%1-channel discrete").arg(m_channels); }
+	return QStringLiteral("%1-channel (%2)").arg(m_channels).arg(toString());
+}
+
 auto AudioChannelLayout::role(ch_cnt_t channel) const -> SpeakerRole
 {
 	return channel < m_channels ? m_roles[channel] : SpeakerRole::Unknown;

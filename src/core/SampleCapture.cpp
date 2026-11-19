@@ -97,33 +97,35 @@ void SampleCapture::write(InterleavedBufferView<const float> frames)
 	if (!m_accepting.load(std::memory_order_acquire) || frames.empty() || frames.channels() == 0) { return; }
 
 	const auto channels = std::min(frames.channels(), m_layout.channels());
-	const auto frameCount = std::min<f_cnt_t>(frames.frames(), m_blockFrames);
-	const auto write = m_writeIndex.load(std::memory_order_relaxed);
-	const auto next = (write + 1) % static_cast<std::uint32_t>(m_blockCount);
-	if (next == m_readIndex.load(std::memory_order_acquire))
-	{
-		m_droppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
-		return;
-	}
+	const auto totalFrames = frames.frames();
+	f_cnt_t frameOffset = 0;
 
-	auto* buffer = m_buffer.get();
-	for (ch_cnt_t channel = 0; channel < m_layout.channels(); ++channel)
+	while (frameOffset < totalFrames)
 	{
-		auto* dst = buffer->buffer(channel).data() + write * m_blockFrames;
-		for (f_cnt_t frame = 0; frame < frameCount; ++frame)
+		const auto write = m_writeIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % static_cast<std::uint32_t>(m_blockCount);
+		if (next == m_readIndex.load(std::memory_order_acquire))
 		{
-			dst[frame] = channel < channels ? frames.framePtr(frame)[channel] : 0.f;
+			m_droppedFrames.fetch_add(totalFrames - frameOffset, std::memory_order_relaxed);
+			return;
 		}
-	}
 
-	m_blockFrameCounts[write] = frameCount;
-	m_writeIndex.store(next, std::memory_order_release);
-	m_recordedFrames.fetch_add(frameCount, std::memory_order_relaxed);
-	if (frameCount < frames.frames())
-	{
-		m_droppedFrames.fetch_add(frames.frames() - frameCount, std::memory_order_relaxed);
+		const auto frameCount = std::min<f_cnt_t>(totalFrames - frameOffset, m_blockFrames);
+		for (ch_cnt_t channel = 0; channel < m_layout.channels(); ++channel)
+		{
+			auto* dst = m_buffer->buffer(channel).data() + write * m_blockFrames;
+			for (f_cnt_t frame = 0; frame < frameCount; ++frame)
+			{
+				dst[frame] = channel < channels ? frames.framePtr(frameOffset + frame)[channel] : 0.f;
+			}
+		}
+
+		m_blockFrameCounts[write] = frameCount;
+		m_writeIndex.store(next, std::memory_order_release);
+		m_recordedFrames.fetch_add(frameCount, std::memory_order_relaxed);
+		m_wake.notify_one();
+		frameOffset += frameCount;
 	}
-	m_wake.notify_one();
 }
 
 void SampleCapture::write(PlanarBufferView<const float> frames, int channel)
@@ -134,58 +136,58 @@ void SampleCapture::write(PlanarBufferView<const float> frames, int channel)
 
 void SampleCapture::copyBlock(PlanarBufferView<const float> frames, int selectedChannel)
 {
-	const auto frameCount = std::min<f_cnt_t>(frames.frames(), m_blockFrames);
-	const auto write = m_writeIndex.load(std::memory_order_relaxed);
-	const auto next = (write + 1) % static_cast<std::uint32_t>(m_blockCount);
-	if (next == m_readIndex.load(std::memory_order_acquire))
-	{
-		m_droppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
-		return;
-	}
-
+	const auto totalFrames = frames.frames();
 	const auto sourceChannel = sourceChannelFor(selectedChannel);
 	const auto legacyChannelRouting = (selectedChannel == 1 || selectedChannel == 2);
+	f_cnt_t frameOffset = 0;
 
-	auto* buffer = m_buffer.get();
-	for (ch_cnt_t channel = 0; channel < m_layout.channels(); ++channel)
+	while (frameOffset < totalFrames)
 	{
-		auto* dst = buffer->buffer(channel).data() + write * m_blockFrames;
-
-		if (legacyChannelRouting)
+		const auto write = m_writeIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % static_cast<std::uint32_t>(m_blockCount);
+		if (next == m_readIndex.load(std::memory_order_acquire))
 		{
-			if (m_layout.channels() == 1)
+			m_droppedFrames.fetch_add(totalFrames - frameOffset, std::memory_order_relaxed);
+			return;
+		}
+
+		const auto frameCount = std::min<f_cnt_t>(totalFrames - frameOffset, m_blockFrames);
+		for (ch_cnt_t channel = 0; channel < m_layout.channels(); ++channel)
+		{
+			auto* dst = m_buffer->buffer(channel).data() + write * m_blockFrames;
+
+			if (legacyChannelRouting)
 			{
-				std::copy_n(frames.bufferPtr(sourceChannel), frameCount, dst);
+				const auto selectedDest = m_layout.channels() == 1 ? ch_cnt_t{0}
+					: static_cast<ch_cnt_t>(selectedChannel - 1);
+				if (channel == selectedDest)
+				{
+					const auto* source = frames.bufferPtr(sourceChannel) + frameOffset;
+					std::copy_n(source, frameCount, dst);
+				}
+				else
+				{
+					std::fill_n(dst, frameCount, 0.f);
+				}
+				continue;
 			}
-			else if (channel == 0)
-			{
-				std::copy_n(frames.bufferPtr(sourceChannel), frameCount, dst);
-			}
-			else
+
+			if (channel >= frames.channels())
 			{
 				std::fill_n(dst, frameCount, 0.f);
 			}
-			continue;
+			else
+			{
+				std::copy_n(frames.bufferPtr(channel) + frameOffset, frameCount, dst);
+			}
 		}
 
-		if (channel >= frames.channels())
-		{
-			std::fill_n(dst, frameCount, 0.f);
-		}
-		else
-		{
-			std::copy_n(frames.bufferPtr(channel), frameCount, dst);
-		}
+		m_blockFrameCounts[write] = frameCount;
+		m_writeIndex.store(next, std::memory_order_release);
+		m_recordedFrames.fetch_add(frameCount, std::memory_order_relaxed);
+		m_wake.notify_one();
+		frameOffset += frameCount;
 	}
-
-	m_blockFrameCounts[write] = frameCount;
-	m_writeIndex.store(next, std::memory_order_release);
-	m_recordedFrames.fetch_add(frameCount, std::memory_order_relaxed);
-	if (frameCount < frames.frames())
-	{
-		m_droppedFrames.fetch_add(frames.frames() - frameCount, std::memory_order_relaxed);
-	}
-	m_wake.notify_one();
 }
 
 bool SampleCapture::openWriter()

@@ -79,6 +79,9 @@ public:
 	friend void swap(SampleBuffer& first, SampleBuffer& second) noexcept;
 	auto toBase64() const -> QString;
 
+	//! Writes the buffer to a WAV file, preserving channel count and known speaker roles.
+	auto toWaveFile(const QString& path) const -> bool;
+
 	auto audioFile() const -> const QString& { return m_audioFile; }
 	auto sampleRate() const -> sample_rate_t { return m_sampleRate; }
 

@@ -33,6 +33,8 @@
 #include "PathUtil.h"
 #include "SampleDecoder.h"
 
+#include <sndfile.h>
+
 namespace mxm {
 
 SampleBuffer::SampleBuffer(const SampleFrame* data, size_t numFrames, int sampleRate)
@@ -112,6 +114,62 @@ void swap(SampleBuffer& first, SampleBuffer& second) noexcept
 	swap(first.m_channels, second.m_channels);
 	swap(first.m_layout, second.m_layout);
 	swap(first.m_frames, second.m_frames);
+}
+
+namespace
+{
+
+auto sndfileChannelForRole(SpeakerRole role) -> int
+{
+	switch (role)
+	{
+	case SpeakerRole::FrontLeft: return SF_CHANNEL_MAP_FRONT_LEFT;
+	case SpeakerRole::FrontRight: return SF_CHANNEL_MAP_FRONT_RIGHT;
+	case SpeakerRole::FrontCenter: return SF_CHANNEL_MAP_FRONT_CENTER;
+	case SpeakerRole::Lfe: return SF_CHANNEL_MAP_LFE;
+	case SpeakerRole::BackLeft: return SF_CHANNEL_MAP_REAR_LEFT;
+	case SpeakerRole::BackRight: return SF_CHANNEL_MAP_REAR_RIGHT;
+	case SpeakerRole::SideLeft: return SF_CHANNEL_MAP_SIDE_LEFT;
+	case SpeakerRole::SideRight: return SF_CHANNEL_MAP_SIDE_RIGHT;
+	case SpeakerRole::FrontLeftOfCenter: return SF_CHANNEL_MAP_FRONT_LEFT_OF_CENTER;
+	case SpeakerRole::FrontRightOfCenter: return SF_CHANNEL_MAP_FRONT_RIGHT_OF_CENTER;
+	case SpeakerRole::BackCenter: return SF_CHANNEL_MAP_REAR_CENTER;
+	case SpeakerRole::TopFrontLeft: return SF_CHANNEL_MAP_TOP_FRONT_LEFT;
+	case SpeakerRole::TopFrontRight: return SF_CHANNEL_MAP_TOP_FRONT_RIGHT;
+	case SpeakerRole::TopBackLeft: return SF_CHANNEL_MAP_TOP_REAR_LEFT;
+	case SpeakerRole::TopBackRight: return SF_CHANNEL_MAP_TOP_REAR_RIGHT;
+	case SpeakerRole::Unknown: return SF_CHANNEL_MAP_INVALID;
+	}
+	return SF_CHANNEL_MAP_INVALID;
+}
+
+} // namespace
+
+bool SampleBuffer::toWaveFile(const QString& path) const
+{
+	if (empty()) { return false; }
+
+	auto info = SF_INFO{};
+	info.samplerate = static_cast<int>(m_sampleRate);
+	info.channels = static_cast<int>(m_channels);
+	info.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+
+	auto* file = sf_open(path.toUtf8().constData(), SFM_WRITE, &info);
+	if (file == nullptr) { return false; }
+
+	if (m_layout.hasKnownRoles())
+	{
+		auto map = std::array<int, MaxChannelsPerLayout>{};
+		for (ch_cnt_t channel = 0; channel < m_channels; ++channel)
+		{
+			map[channel] = sndfileChannelForRole(m_layout.role(channel));
+		}
+		sf_command(file, SFC_SET_CHANNEL_MAP_INFO, map.data(), sizeof(map));
+	}
+
+	const auto written = sf_writef_float(file, m_samples.data(), static_cast<sf_count_t>(m_frames));
+	const auto closeResult = sf_close(file);
+	return written == static_cast<sf_count_t>(m_frames) && closeResult == 0;
 }
 
 QString SampleBuffer::toBase64() const

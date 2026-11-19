@@ -25,7 +25,9 @@
 #include "SampleClipView.h"
 
 #include <QApplication>
+#include <QFileInfo>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPainter>
 
 #include "FileDialog.h"
@@ -70,12 +72,17 @@ void SampleClipView::updateSample()
 
 	m_sampleThumbnail = SampleThumbnail{m_clip->m_sample};
 
-	// set tooltip to filename so that user can see what sample this
-	// sample-clip contains
+	// set tooltip to filename and channel format so that user can see what
+	// sample this sample-clip contains and how it will be mapped on playback
+	const auto& sample = m_clip->m_sample;
+	const auto format = tr("%1, %2 channels, %3 Hz")
+		.arg(sample.buffer()->layout().displayName())
+		.arg(sample.buffer()->channels())
+		.arg(sample.sampleRate());
 	setToolTip(
-		!m_clip->m_sample.sampleFile().isEmpty()
-			? PathUtil::toAbsolute(m_clip->m_sample.sampleFile())
-			: tr("Double-click to open sample")
+		!sample.sampleFile().isEmpty()
+			? tr("%1\n%2").arg(PathUtil::toAbsolute(sample.sampleFile()), format)
+			: tr("Double-click to open sample\n%1").arg(format)
 	);
 }
 
@@ -100,6 +107,33 @@ void SampleClipView::constructContextMenu(QMenu* cm)
 		SLOT(setAutomationGhost())
 	);
 
+	cm->addAction(tr("Export sample..."), this, SLOT(exportSample()));
+}
+
+
+
+
+void SampleClipView::exportSample()
+{
+	const auto& sample = m_clip->m_sample;
+	if (sample.sampleSize() == 0) { return; }
+
+	const auto source = QFileInfo{sample.sampleFile()};
+	auto suggested = source.fileName().isEmpty() ? QStringLiteral("sample.wav") : source.fileName();
+	if (QFileInfo{suggested}.suffix().isEmpty()) { suggested += QStringLiteral(".wav"); }
+
+	auto dialog = FileDialog{this, tr("Export sample"), source.absolutePath()};
+	dialog.setAcceptMode(FileDialog::AcceptSave);
+	dialog.setFileMode(FileDialog::AnyFile);
+	dialog.setDefaultSuffix(QStringLiteral("wav"));
+	dialog.selectFile(suggested);
+	if (dialog.exec() != FileDialog::Accepted || dialog.selectedFiles().isEmpty()) { return; }
+
+	const auto path = dialog.selectedFiles().first();
+	if (!sample.buffer()->toWaveFile(path))
+	{
+		QMessageBox::warning(this, tr("Export failed"), tr("Could not write %1.").arg(path));
+	}
 }
 
 
