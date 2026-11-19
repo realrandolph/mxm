@@ -260,14 +260,16 @@ void AudioSdl::sdlInputAudioCallback(Uint8 *_buf, int _len) {
 	const auto bytesPerFrame = sizeof(float) * m_inputChannels;
 	const auto frames = static_cast<f_cnt_t>(_len) / bytesPerFrame;
 	if (frames == 0) { return; }
-	if (frames > audioEngine()->framesPerAudioBuffer())
+
+	const auto input = InterleavedBufferView<const float>{
+		reinterpret_cast<const float*>(_buf), m_inputChannels, frames};
+	// Split larger device blocks so the engine's bounded capture buffer is not
+	// overflowed by a single callback.
+	const auto chunkFrames = std::max<f_cnt_t>(audioEngine()->framesPerAudioBuffer(), 1);
+	for (f_cnt_t offset = 0; offset < frames; offset += chunkFrames)
 	{
-		qWarning("SDL capture block of %llu frames exceeds the audio engine buffer size; dropping the block",
-			static_cast<unsigned long long>(frames));
-		return;
+		audioEngine()->pushInputFrames(input.subspan(offset, std::min(chunkFrames, frames - offset)));
 	}
-	audioEngine()->pushInputFrames(InterleavedBufferView<const float>{
-		reinterpret_cast<const float*>(_buf), m_inputChannels, frames});
 }
 
 QString AudioSdl::setupWidget::s_systemDefaultDevice = AudioDeviceSetupWidget::tr("[System Default]");

@@ -75,9 +75,11 @@ void SampleClipView::updateSample()
 	// set tooltip to filename and channel format so that user can see what
 	// sample this sample-clip contains and how it will be mapped on playback
 	const auto& sample = m_clip->m_sample;
-	const auto format = tr("%1, %2 channels, %3 Hz")
+	const auto channelCount = sample.buffer()->channels();
+	const auto format = tr("%1, %2 %3, %4 Hz")
 		.arg(sample.buffer()->layout().displayName())
-		.arg(sample.buffer()->channels())
+		.arg(channelCount)
+		.arg(channelCount == 1 ? tr("channel") : tr("channels"))
 		.arg(sample.sampleRate());
 	setToolTip(
 		!sample.sampleFile().isEmpty()

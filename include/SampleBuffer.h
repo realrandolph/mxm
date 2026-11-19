@@ -86,14 +86,8 @@ public:
 	auto sampleRate() const -> sample_rate_t { return m_sampleRate; }
 
 	auto interleavedData() const -> const float* { return m_samples.data(); }
-	auto interleavedData() -> float* { return m_samples.data(); }
 
 	auto interleavedView() const -> InterleavedBufferView<const float>
-	{
-		return {m_samples.data(), m_channels, m_frames};
-	}
-
-	auto interleavedView() -> InterleavedBufferView<float>
 	{
 		return {m_samples.data(), m_channels, m_frames};
 	}

@@ -6,11 +6,16 @@ set(CMAKE_AUTOMOC ON)
 set(MXM_TESTS
 	src/core/ArrayVectorTest.cpp
 	src/core/AudioBufferTest.cpp
+	src/core/AudioChannelLayoutTest.cpp
+	src/core/AudioEngineCaptureTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
 	src/core/NoteTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
+	src/core/SampleBufferTest.cpp
+	src/core/SampleCaptureTest.cpp
+	src/core/SampleClipChannelTest.cpp
 	src/core/TimelineTest.cpp
 	src/tracks/AutomationTrackTest.cpp
 )

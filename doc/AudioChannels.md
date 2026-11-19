@@ -43,6 +43,14 @@ overflow, disk errors and the number of recorded frames are exposed through
 `SampleCapture`. `SampleTrack::stopRecording()` finalizes the take on the UI
 thread and reports overflow or disk failures in the project error list.
 
+## Import and export
+
+File import preserves the channel count and, when the file carries a channel
+mask, the speaker roles. The clip context menu offers **Export sample...**,
+which writes the stored channels to a WAV file and writes the known speaker
+roles into the file's channel mask. Multichannel clips are never exported as
+silently truncated stereo.
+
 ## Playback and monitoring
 
 The existing mixer, instrument and plugin paths are stereo. Multichannel clips

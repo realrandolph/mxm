@@ -152,20 +152,20 @@ bool SampleBuffer::toWaveFile(const QString& path) const
 	auto info = SF_INFO{};
 	info.samplerate = static_cast<int>(m_sampleRate);
 	info.channels = static_cast<int>(m_channels);
-	info.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+	info.format = (m_channels > DEFAULT_CHANNELS && m_layout.hasKnownRoles() ? SF_FORMAT_WAVEX
+		: SF_FORMAT_WAV) | SF_FORMAT_FLOAT;
 
 	auto* file = sf_open(path.toUtf8().constData(), SFM_WRITE, &info);
 	if (file == nullptr) { return false; }
 
-	if (m_layout.hasKnownRoles())
+	// Write the channel map explicitly, including unknown roles, so a discrete
+	// multichannel take is not mistaken for a standard surround layout on import.
+	auto map = std::array<int, MaxChannelsPerLayout>{};
+	for (ch_cnt_t channel = 0; channel < m_channels; ++channel)
 	{
-		auto map = std::array<int, MaxChannelsPerLayout>{};
-		for (ch_cnt_t channel = 0; channel < m_channels; ++channel)
-		{
-			map[channel] = sndfileChannelForRole(m_layout.role(channel));
-		}
-		sf_command(file, SFC_SET_CHANNEL_MAP_INFO, map.data(), m_channels * sizeof(int));
+		map[channel] = sndfileChannelForRole(m_layout.role(channel));
 	}
+	sf_command(file, SFC_SET_CHANNEL_MAP_INFO, map.data(), m_channels * sizeof(int));
 
 	const auto written = sf_writef_float(file, m_samples.data(), static_cast<sf_count_t>(m_frames));
 	const auto closeResult = sf_close(file);
