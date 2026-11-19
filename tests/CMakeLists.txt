@@ -42,6 +42,12 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
 
+if(MXM_HAVE_OGGVORBIS)
+	target_compile_definitions(SampleDecoderChannelTest PRIVATE
+		MXM_TEST_HAVE_OGGVORBIS
+		MXM_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+endif()
+
 # Native VST3 host adapter test (no GUI session required).
 if(MXM_HAVE_VST3 AND TARGET vst3base)
 	add_executable(Vst3AdapterTest src/core/Vst3AdapterTest.cpp)

@@ -127,6 +127,21 @@ private slots:
 			}
 		}
 	}
+
+	//! Ogg/Vorbis files accepted by libsndfile still take the Vorbis remap path
+	void DecodeMultichannelOgg_UsesCanonicalLayout()
+	{
+#ifdef MXM_TEST_HAVE_OGGVORBIS
+		const auto path = QStringLiteral(MXM_TEST_DATA_DIR "/vorbis-6ch.ogg");
+		const auto decoded = SampleDecoder::decode(path);
+		QVERIFY(decoded.has_value());
+		QCOMPARE(decoded->channels, ch_cnt_t{6});
+		QVERIFY(decoded->layout == AudioChannelLayout::surround51());
+		QVERIFY(!decoded->samples.empty());
+#else
+		QSKIP("Ogg/Vorbis decoder is not enabled in this build");
+#endif
+	}
 };
 
 QTEST_GUILESS_MAIN(SampleDecoderChannelTest)

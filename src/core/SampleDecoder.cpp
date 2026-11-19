@@ -153,6 +153,19 @@ auto decodeSampleSF(const QString& audioFile) -> std::optional<SampleDecoder::Re
 		return std::nullopt;
 	}
 
+#ifdef MXM_HAVE_OGGVORBIS
+	if ((sfInfo.format & SF_FORMAT_TYPEMASK) == SF_FORMAT_OGG
+		&& (sfInfo.format & SF_FORMAT_SUBMASK) == SF_FORMAT_VORBIS)
+	{
+		if (auto decoded = decodeSampleOggVorbis(audioFile))
+		{
+			sf_close(sndFile);
+			file.close();
+			return decoded;
+		}
+	}
+#endif
+
 	const auto channels = static_cast<ch_cnt_t>(sfInfo.channels);
 	auto samples = std::vector<float>(static_cast<std::size_t>(sfInfo.frames) * channels);
 	const auto framesRead = sf_readf_float(sndFile, samples.data(), sfInfo.frames);
