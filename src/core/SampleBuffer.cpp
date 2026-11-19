@@ -82,6 +82,9 @@ SampleBuffer::SampleBuffer(
 auto SampleBuffer::fromInterleaved(const float* samples, f_cnt_t frames, ch_cnt_t channels,
 	AudioChannelLayout layout, int sampleRate, const QString& audioFile) -> std::shared_ptr<SampleBuffer>
 {
+	if (channels == 0) { throw std::invalid_argument{"sample channel count cannot be zero"}; }
+	if (frames == 0) { return std::make_shared<SampleBuffer>(); }
+
 	const auto count = static_cast<std::size_t>(frames) * channels;
 	return std::make_shared<SampleBuffer>(std::vector<float>(samples, samples + count), channels,
 		std::move(layout), sampleRate, audioFile);
@@ -91,6 +94,7 @@ auto SampleBuffer::fromPlanar(PlanarBufferView<const float> samples, AudioChanne
 	const QString& audioFile) -> std::shared_ptr<SampleBuffer>
 {
 	if (samples.channels() != layout.channels()) { throw std::invalid_argument{"planar layout mismatch"}; }
+	if (samples.frames() == 0) { return std::make_shared<SampleBuffer>(); }
 
 	auto interleaved = std::vector<float>(static_cast<std::size_t>(samples.frames()) * samples.channels());
 	for (f_cnt_t frame = 0; frame < samples.frames(); ++frame)

@@ -296,6 +296,33 @@ private slots:
 		}
 	}
 
+	//! Block downmixers duplicate a mono block exactly like the frame mapping
+	void DownmixBlocks_MonoDuplicated()
+	{
+		constexpr auto frames = f_cnt_t{3};
+		const auto layout = AudioChannelLayout::mono();
+		auto mono = std::vector<float>{0.25f, -0.5f, 1.f};
+		const auto* monoPointers = mono.data();
+
+		auto interleavedDestination = std::vector<float>(frames * 2, 0.f);
+		downmixToStereo(PlanarBufferView<const float>{&monoPointers, 1, frames}, layout,
+			InterleavedBufferView<float, 2>{interleavedDestination.data(), frames});
+
+		auto planarLeft = std::vector<float>(frames, 0.f);
+		auto planarRight = std::vector<float>(frames, 0.f);
+		const auto planarDestination = std::array<float*, 2>{planarLeft.data(), planarRight.data()};
+		downmixToStereo(InterleavedBufferView<const float>{mono.data(), 1, frames}, layout,
+			PlanarBufferView<float, 2>{planarDestination.data(), frames});
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(interleavedDestination[frame * 2], mono[frame]);
+			QCOMPARE(interleavedDestination[frame * 2 + 1], mono[frame]);
+			QCOMPARE(planarLeft[frame], mono[frame]);
+			QCOMPARE(planarRight[frame], mono[frame]);
+		}
+	}
+
 	//! The planar and interleaved block downmixers agree with the frame mapping
 	void DownmixBlocks_MatchFrameMapping()
 	{

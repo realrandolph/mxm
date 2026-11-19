@@ -311,6 +311,14 @@ void downmixToStereo(
 		float left = 0.f;
 		float right = 0.f;
 		const auto channels = layout.channels();
+		if (channels == 1)
+		{
+			left = right = src.bufferPtr(0)[frame];
+			auto* out = dst.framePtr(frame);
+			out[0] = left;
+			out[1] = right;
+			continue;
+		}
 		for (ch_cnt_t channel = 0; channel < channels; ++channel)
 		{
 			const auto role = layout.role(channel);

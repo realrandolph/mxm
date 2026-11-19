@@ -24,6 +24,7 @@
 #include "SampleCapture.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 #include <QDir>
@@ -227,7 +228,10 @@ void SampleCapture::writerLoop()
 			if (!m_accepting.load(std::memory_order_acquire)) { break; }
 
 			auto lock = std::unique_lock{m_wakeMutex};
-			m_wake.wait(lock, [this] {
+			// The producer does not take this mutex, so use a bounded wait to
+			// avoid a lost wakeup if a block is published between the check and
+			// the wait. This never affects the audio callback.
+			m_wake.wait_for(lock, std::chrono::milliseconds{100}, [this] {
 				return m_readIndex.load(std::memory_order_relaxed) != m_writeIndex.load(std::memory_order_acquire)
 					|| !m_accepting.load(std::memory_order_acquire);
 			});
