@@ -186,6 +186,32 @@ void AudioEngine::setInputChannels(ch_cnt_t channels)
 	m_inputWriteIndex.store(0, std::memory_order_relaxed);
 }
 
+auto AudioEngine::inputSources() const -> std::vector<AudioInputSource>
+{
+	if (!m_audioDev || !m_audioDev->supportsCapture() || m_inputChannels == 0)
+	{
+		return {};
+	}
+
+	const auto& layout = m_audioDev->captureLayout();
+	const auto deviceLayout = layout.channels() == m_inputChannels
+		? layout : AudioChannelLayout::discrete(m_inputChannels);
+	return makeDeviceInputSources(m_inputChannels, deviceLayout, m_audioDevName);
+}
+
+auto AudioEngine::inputSource(const QString& id) const -> std::optional<AudioInputSource>
+{
+	const auto sources = inputSources();
+	const auto found = std::ranges::find_if(sources, [&id](const AudioInputSource& source) {
+		return source.id == id;
+	});
+	if (found == sources.end()) { return std::nullopt; }
+	return *found;
+}
+
+
+
+
 void AudioEngine::drainInputFrames()
 {
 	m_inputSnapshotFrames = 0;

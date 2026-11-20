@@ -32,10 +32,12 @@
 #include <samplerate.h>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "AudioBuffer.h"
 #include "AudioBufferView.h"
+#include "AudioInputSource.h"
 #include "AudioDevice.h"
 #include "MxmTypes.h"
 #include "SampleFrame.h"
@@ -256,6 +258,18 @@ public:
 	 */
 	void setInputChannels(ch_cnt_t channels);
 	auto inputChannels() const -> ch_cnt_t { return m_inputChannels; }
+
+	/**
+	 * @brief Selectable capture sources for recordable tracks.
+	 *
+	 * Sources map explicitly onto channels of @ref inputBuffer(). A newly
+	 * configured device yields mono channels, adjacent stereo pairs and an
+	 * Auto/all-inputs entry.
+	 */
+	auto inputSources() const -> std::vector<AudioInputSource>;
+
+	//! @returns the source with @a id, or std::nullopt when it is unavailable.
+	auto inputSource(const QString& id) const -> std::optional<AudioInputSource>;
 
 	//! @returns frames dropped because the real-time capture buffer was full
 	auto inputDroppedFrames() const -> std::uint64_t
