@@ -23,6 +23,7 @@
 
 #include "Mixer.h"
 
+#include <QDomDocument>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -160,6 +161,33 @@ private slots:
 			QVERIFY(isClose(output.bufferPtr(0)[frame], expectedLeft));
 			QVERIFY(isClose(output.bufferPtr(1)[frame], expectedRight));
 		}
+	}
+
+	//! Mixer project data round-trips custom and preset layouts.
+	void ProjectSettings_RoundTripLayouts()
+	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
+		auto* mixer = Engine::mixer();
+		const auto index = mixer->createChannel();
+		mixer->mixerChannel(index)->setChannelLayout(AudioChannelLayout::surround712());
+		mixer->mixerChannel(0)->setChannelLayout(AudioChannelLayout::surround61());
+
+		QDomDocument doc;
+		auto root = doc.createElement(QStringLiteral("mixer"));
+		doc.appendChild(root);
+		mixer->saveSettings(doc, root);
+
+		mixer->mixerChannel(index)->setChannelLayout(AudioChannelLayout::stereo());
+		mixer->mixerChannel(0)->setChannelLayout(AudioChannelLayout::stereo());
+		mixer->loadSettings(root);
+
+		QCOMPARE(mixer->mixerChannel(index)->channelLayout().channels(), ch_cnt_t{10});
+		QVERIFY(mixer->mixerChannel(index)->channelLayout() == AudioChannelLayout::surround712());
+		QCOMPARE(mixer->mixerChannel(0)->channelLayout().channels(), ch_cnt_t{7});
+		QVERIFY(mixer->mixerChannel(0)->channelLayout() == AudioChannelLayout::surround61());
+		QCOMPARE(Engine::audioEngine()->masterLayout().channels(), ch_cnt_t{7});
+
+		mixer->deleteChannel(index);
 	}
 
 	//! WAV export keeps all master channels and their order.
