@@ -145,22 +145,18 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	if (inputDeviceIndex == paNoDevice && inputDeviceName.isEmpty())
 	{
 		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
-		const auto defaultInput = hostApiInfo && hostApiInfo->defaultInputDevice != paNoDevice
-			? hostApiInfo->defaultInputDevice : Pa_GetDefaultInputDevice();
-		if (defaultInput != paNoDevice)
+		if (hostApiInfo && hostApiInfo->defaultInputDevice != paNoDevice)
 		{
-			inputDeviceIndex = defaultInput;
+			inputDeviceIndex = hostApiInfo->defaultInputDevice;
 		}
 	}
 
 	if (outputDeviceIndex == paNoDevice && outputDeviceName.isEmpty())
 	{
 		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
-		const auto defaultOutput = hostApiInfo && hostApiInfo->defaultOutputDevice != paNoDevice
-			? hostApiInfo->defaultOutputDevice : Pa_GetDefaultOutputDevice();
-		if (defaultOutput != paNoDevice)
+		if (hostApiInfo && hostApiInfo->defaultOutputDevice != paNoDevice)
 		{
-			outputDeviceIndex = defaultOutput;
+			outputDeviceIndex = hostApiInfo->defaultOutputDevice;
 		}
 	}
 
