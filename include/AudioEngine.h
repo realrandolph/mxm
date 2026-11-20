@@ -371,7 +371,7 @@ signals:
 private:
 	void renderNextBuffer(AudioBufferView<float> auto dst)
 	{
-		if (!m_masterBufferRead) { return; }
+		if (!m_masterBufferRead || dst.channels() == 0) { return; }
 
 		const auto source = logicalBuffers(*m_masterBufferRead, m_masterLayout);
 		const auto sourceChannels = source.channels();

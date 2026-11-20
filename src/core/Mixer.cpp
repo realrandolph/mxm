@@ -115,12 +115,12 @@ void MixerChannel::setChannelLayout(const AudioChannelLayout& layout)
 	m_buffer = createChannelBuffer(Engine::audioEngine()->framesPerPeriod(), m_channelLayout);
 	m_peaks.assign(m_channelLayout.channels(), 0.f);
 
-	auto choice = AudioChannelLayout::presetIndex(layout);
-	if (choice < 0)
+	auto found = std::find(m_layoutChoices.begin(), m_layoutChoices.end(), layout);
+	auto choice = static_cast<int>(found - m_layoutChoices.begin());
+	if (found == m_layoutChoices.end())
 	{
 		// Persisted custom/discrete layouts stay selectable instead of being
 		// silently replaced by the nearest preset.
-		choice = static_cast<int>(m_layoutChoices.size());
 		m_layoutChoices.push_back(layout);
 		m_channelLayoutModel.addItem(layout.displayName());
 	}
