@@ -33,6 +33,8 @@
 #include <QThread>
 #include <sndio.h>
 
+#include <atomic>
+
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
 
@@ -59,6 +61,8 @@ public:
 		return QT_TRANSLATE_NOOP( "AudioDeviceSetupWidget", "sndio" );
 	}
 
+	static QString resolvedDefaultDevice();
+
 	class setupWidget : public gui::AudioDeviceSetupWidget
 	{
 	public:
@@ -79,6 +83,8 @@ private:
 
 	struct sio_hdl *m_hdl;
 	struct sio_par m_par;
+	QString m_monitoredDevice;
+	std::atomic_bool m_errorReported{false};
 };
 
 } // namespace mxm

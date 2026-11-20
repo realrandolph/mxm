@@ -6,11 +6,17 @@ set(CMAKE_AUTOMOC ON)
 set(MXM_TESTS
 	src/core/ArrayVectorTest.cpp
 	src/core/AudioBufferTest.cpp
+	src/core/AudioChannelLayoutTest.cpp
+	src/core/AudioEngineCaptureTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
 	src/core/NoteTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
+	src/core/SampleBufferTest.cpp
+	src/core/SampleCaptureTest.cpp
+	src/core/SampleDecoderChannelTest.cpp
+	src/core/SampleClipChannelTest.cpp
 	src/core/TimelineTest.cpp
 	src/tracks/AutomationTrackTest.cpp
 )
@@ -35,6 +41,12 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_features(${MXM_TEST_NAME} PRIVATE cxx_std_20)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
+
+if(MXM_HAVE_OGGVORBIS)
+	target_compile_definitions(SampleDecoderChannelTest PRIVATE
+		MXM_TEST_HAVE_OGGVORBIS
+		MXM_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+endif()
 
 # Native VST3 host adapter test (no GUI session required).
 if(MXM_HAVE_VST3 AND TARGET vst3base)

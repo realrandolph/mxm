@@ -51,6 +51,7 @@ public:
 public slots:
 	void updateSample();
 	void reverseSample();
+	void exportSample();
 	void setAutomationGhost();
 
 

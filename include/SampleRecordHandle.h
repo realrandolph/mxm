@@ -28,10 +28,10 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
-#include <vector>
 
 #include <QPointer>
 
+#include "AudioBufferView.h"
 #include "PlayHandle.h"
 
 namespace mxm
@@ -39,6 +39,7 @@ namespace mxm
 
 
 class SampleBuffer;
+class SampleCapture;
 class SampleClip;
 class SampleTrack;
 
@@ -46,6 +47,8 @@ struct SampleRecordSession
 {
 	std::atomic_bool active{true};
 	std::atomic_uint64_t recordedFrames{0};
+	std::uint64_t engineDroppedAtStart = 0;
+	std::shared_ptr<SampleCapture> capture;
 };
 
 
@@ -61,10 +64,9 @@ public:
 	bool isFromTrack( const Track * _track ) const override;
 
 private:
-	void writeBuffer(const SampleFrame* _ab,
-						const f_cnt_t _frames );
-
-	std::vector<SampleFrame> m_recordedFrames;
+	void writeBuffer(PlanarBufferView<const float> frames);
+	void monitor(PlanarBufferView<const float> frames, SampleFrame* workingBuffer,
+		f_cnt_t outputFrames);
 
 	SampleTrack * m_track;
 	QPointer<SampleClip> m_clip;

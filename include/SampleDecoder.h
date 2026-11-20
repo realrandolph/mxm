@@ -26,11 +26,12 @@
 #define MXM_SAMPLE_DECODER_H
 
 #include <QString>
+#include <array>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "SampleFrame.h"
+#include "AudioChannelLayout.h"
 
 namespace mxm {
 class SampleDecoder
@@ -38,7 +39,10 @@ class SampleDecoder
 public:
 	struct Result
 	{
-		std::vector<SampleFrame> data;
+		//! Interleaved samples, `frames * channels` elements
+		std::vector<float> samples;
+		ch_cnt_t channels;
+		AudioChannelLayout layout;
 		int sampleRate;
 	};
 
@@ -47,6 +51,23 @@ public:
 		std::string name;
 		std::string extension;
 	};
+
+	struct VorbisChannelMap
+	{
+		AudioChannelLayout layout;
+		//! Target channel index -> interleaved Vorbis channel index, for up to 8 channels.
+		std::array<ch_cnt_t, 8> order{};
+	};
+
+	/**
+	 * @brief Describes the Vorbis I output channel order and the equivalent
+	 *        MXM channel layout in WAV/SMPTE order.
+	 *
+	 * Vorbis orders multichannel streams differently from WAV. The Ogg decoder
+	 * remaps samples with @ref VorbisChannelMap::order so stored clips and
+	 * exports use MXM's canonical channel order.
+	 */
+	static auto vorbisChannelMap(ch_cnt_t channels) -> VorbisChannelMap;
 
 	static auto decode(const QString& audioFile) -> std::optional<Result>;
 	static auto supportedAudioTypes() -> const std::vector<AudioType>&;

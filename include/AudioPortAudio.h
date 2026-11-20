@@ -33,12 +33,12 @@
 #include <QFormLayout>
 #include <QString>
 #include <QWidget>
+#include <QTimer>
+#include <atomic>
 #include <portaudio.h>
-#include <vector>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
-#include "SampleFrame.h"
 
 namespace mxm {
 
@@ -86,11 +86,17 @@ private:
 
 	static int processCallback(const void* input, void* output, unsigned long frameCount,
 		const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData);
+	static void streamFinishedCallback(void* userData);
+	void handleStreamFinished();
+	void checkStreamStatus();
 
 	detail::PortAudioInitializationGuard m_initGuard;
 	PaStream* m_paStream = nullptr;
 	ch_cnt_t m_inputChannels = 0;
-	std::vector<SampleFrame> m_inputBuffer;
+	QString m_monitoredOutputDevice;
+	QString m_monitoredInputDevice;
+	std::atomic_bool m_streamFinishedReported{false};
+	QTimer m_streamMonitor;
 };
 } // namespace mxm
 

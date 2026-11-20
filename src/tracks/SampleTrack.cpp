@@ -41,6 +41,7 @@
 #include "PatternTrack.h"
 #include "SampleClip.h"
 #include "SamplePlayHandle.h"
+#include "SampleCapture.h"
 #include "SampleRecordHandle.h"
 #include "SampleTrackView.h"
 #include "Song.h"
@@ -243,7 +244,31 @@ bool SampleTrack::startRecording()
 		? song->getPlayPos(Song::PlayMode::None) : song->getPlayPos(Song::PlayMode::Song);
 	auto clip = static_cast<SampleClip*>(createClip(position));
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
+
+	auto layout = audioDevice->captureLayout();
+	auto channels = audioDevice->captureChannels();
+	if (recordChannel() == 1 || recordChannel() == 2)
+	{
+		// Left/Right takes preserve the existing stereo destination contract.
+		channels = DEFAULT_CHANNELS;
+		layout = AudioChannelLayout::stereo();
+	}
+	if (channels == 0)
+	{
+		m_recording.store(false, std::memory_order_relaxed);
+		delete clip;
+		return false;
+	}
+	if (layout.channels() != channels)
+	{
+		layout = AudioChannelLayout::discrete(channels);
+	}
+
 	m_recordingSession = std::make_shared<SampleRecordSession>();
+	m_recordingSession->engineDroppedAtStart = Engine::audioEngine()->inputDroppedFrames();
+	m_recordingSession->capture = std::make_shared<SampleCapture>(
+		Engine::audioEngine()->inputSampleRate(), layout,
+		Engine::audioEngine()->framesPerPeriod(), 64);
 	m_recordingClip = clip;
 	clip->changeLength(TimePos(1));
 	song->trackRecordingStarted();
@@ -269,7 +294,39 @@ void SampleTrack::stopRecording(bool stopTransport)
 {
 	if (m_recording.exchange(false, std::memory_order_relaxed))
 	{
-		if (m_recordingSession) { m_recordingSession->active.store(false, std::memory_order_relaxed); }
+		std::shared_ptr<const SampleBuffer> recorded;
+		if (m_recordingSession)
+		{
+			m_recordingSession->active.store(false, std::memory_order_relaxed);
+			if (m_recordingSession->capture)
+			{
+				// Wait for an in-flight audio period to finish before the writer
+				// is stopped, so no accepted block can be published afterwards.
+				const auto guard = Engine::audioEngine()->requestChangesGuard();
+				recorded = m_recordingSession->capture->finish();
+				const auto engineDropped = Engine::audioEngine()->inputDroppedFrames()
+					- m_recordingSession->engineDroppedAtStart;
+				const auto dropped = m_recordingSession->capture->droppedFrames() + engineDropped;
+				if (dropped > 0 && Engine::getSong())
+				{
+					Engine::getSong()->collectError(tr("Recording overflowed: %1 frames were dropped.")
+						.arg(static_cast<qulonglong>(dropped)));
+				}
+				if (m_recordingSession->capture->diskError() && Engine::getSong())
+				{
+					Engine::getSong()->collectError(tr("Recording could not be written to disk: %1")
+						.arg(m_recordingSession->capture->errorString()));
+				}
+			}
+		}
+
+		if (m_recordingClip)
+		{
+			if (recorded && !recorded->empty()) { m_recordingClip->setSampleBuffer(std::move(recorded)); }
+			else { delete m_recordingClip; }
+		}
+		m_recordingClip = nullptr;
+		m_recordingSession.reset();
 		if (auto song = Engine::getSong()) { song->trackRecordingStopped(stopTransport); }
 	}
 }

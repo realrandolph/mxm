@@ -35,6 +35,8 @@
 #include <alsa/asoundlib.h>
 #include <QThread>
 
+#include <atomic>
+
 #include "AudioDevice.h"
 
 namespace mxm
@@ -107,6 +109,10 @@ private:
 
 	snd_pcm_hw_params_t * m_hwParams;
 	snd_pcm_sw_params_t * m_swParams;
+
+	QString m_monitoredDevice;
+	std::atomic_bool m_deviceDisconnected{false};
+	std::atomic_bool m_disconnectionReported{false};
 } ;
 
 } // namespace mxm

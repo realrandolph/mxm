@@ -74,6 +74,19 @@ SampleThumbnail::Thumbnail SampleThumbnail::Thumbnail::zoomOut(float factor) con
 SampleThumbnail::SampleThumbnail(const Sample& sample)
 	: m_buffer(sample.buffer())
 {
+	// The channel-summed display data is needed even when the peak cache hits,
+	// because zooming in draws the original frames.
+	m_displaySamples.resize(static_cast<size_t>(m_buffer->frames()));
+	for (f_cnt_t frame = 0; frame < m_buffer->frames(); ++frame)
+	{
+		auto sum = 0.f;
+		for (ch_cnt_t channel = 0; channel < m_buffer->channels(); ++channel)
+		{
+			sum += m_buffer->sample(frame, channel);
+		}
+		m_displaySamples[frame] = m_buffer->channels() > 0 ? sum / m_buffer->channels() : 0.f;
+	}
+
 	auto entry = SampleThumbnailEntry{sample.sampleFile(), QFileInfo{sample.sampleFile()}.lastModified()};
 	if (!entry.filePath.isEmpty())
 	{
@@ -94,9 +107,8 @@ SampleThumbnail::SampleThumbnail(const Sample& sample)
 		s_sampleThumbnailCacheMap[std::move(entry)] = m_thumbnailCache;
 	}
 
-	const auto flatBuffer = m_buffer->data()->data();
-	const auto flatBufferSize = m_buffer->size() * DEFAULT_CHANNELS;
-	m_thumbnailCache->emplace_back(flatBuffer, flatBufferSize, flatBufferSize / AggregationPerZoomStep);
+	m_thumbnailCache->emplace_back(m_displaySamples.data(), m_displaySamples.size(),
+		m_displaySamples.size() / AggregationPerZoomStep);
 
 	while (m_thumbnailCache->back().width() >= AggregationPerZoomStep)
 	{
@@ -121,7 +133,7 @@ void SampleThumbnail::visualize(VisualizeParameters parameters, QPainter& painte
 		[&](const auto& thumbnail) { return thumbnail.width() >= targetThumbnailWidth; });
 
 	const auto useOriginalBuffer = finerThumbnail == m_thumbnailCache->rend();
-	const auto drawOriginalBuffer = static_cast<size_t>(targetThumbnailWidth) == m_buffer->size();
+	const auto drawOriginalBuffer = static_cast<size_t>(targetThumbnailWidth) == m_displaySamples.size();
 
 	painter.save();
 	painter.setRenderHint(QPainter::Antialiasing, true);
@@ -132,7 +144,7 @@ void SampleThumbnail::visualize(VisualizeParameters parameters, QPainter& painte
 	const auto thumbnailEnd = parameters.reversed ? targetThumbnailWidth - thumbnailEndForward : thumbnailEndForward;
 	const auto advanceThumbnailBy = parameters.reversed ? -1 : 1;
 
-	const auto finerThumbnailWidth = useOriginalBuffer ? m_buffer->size() : finerThumbnail->width();
+	const auto finerThumbnailWidth = useOriginalBuffer ? m_displaySamples.size() : finerThumbnail->width();
 	const auto finerThumbnailScaleFactor = static_cast<double>(finerThumbnailWidth) / targetThumbnailWidth;
 	const auto yScale = renderRect.height() / 2 * parameters.amplification;
 
@@ -141,7 +153,7 @@ void SampleThumbnail::visualize(VisualizeParameters parameters, QPainter& painte
 	{
 		if (useOriginalBuffer && drawOriginalBuffer)
 		{
-			const auto value = m_buffer->data()->data()[i];
+			const auto value = m_displaySamples[i];
 			painter.drawPoint(x, renderRect.center().y() - value * yScale);
 			continue;
 		}
@@ -155,8 +167,8 @@ void SampleThumbnail::visualize(VisualizeParameters parameters, QPainter& painte
 
 			if (useOriginalBuffer)
 			{
-				const auto flatBuffer = m_buffer->data()->data();
-				const auto [min, max] = std::minmax_element(flatBuffer + beginIndex, flatBuffer + endIndex);
+				const auto [min, max] = std::minmax_element(
+					m_displaySamples.data() + beginIndex, m_displaySamples.data() + endIndex);
 				minPeak = *min;
 				maxPeak = *max;
 			}

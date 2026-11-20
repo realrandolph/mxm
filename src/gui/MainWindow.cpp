@@ -33,8 +33,10 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QShortcut>
+#include <QStatusBar>
 #include <QSplitter>
 
+#include "AudioEngine.h"
 #include "AboutDialog.h"
 #include "AutomationEditor.h"
 #include "ControllerRackView.h"
@@ -90,6 +92,21 @@ MainWindow::MainWindow() :
 	m_session( SessionState::Normal )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
+	connect(Engine::audioEngine(), &AudioEngine::audioDeviceChanged, this,
+		[this](bool input, const QString& previousDevice, const QString& currentDevice, bool available) {
+			const auto direction = input ? tr("input") : tr("output");
+			const auto message = !available
+				? previousDevice.isEmpty()
+					? tr("Warning: audio %1 device is unavailable; recording or playback may be silent.")
+						.arg(direction)
+					: tr("Warning: audio %1 device is unavailable; recording or playback may be silent: %2")
+						.arg(direction, previousDevice)
+				: previousDevice.isEmpty() || currentDevice.isEmpty() || previousDevice == currentDevice
+					? tr("Audio %1 settings changed: %2")
+						.arg(direction, currentDevice.isEmpty() ? previousDevice : currentDevice)
+					: tr("Audio %1 device changed from %2 to %3").arg(direction, previousDevice, currentDevice);
+			statusBar()->showMessage(message, 8000);
+		}, Qt::QueuedConnection);
 
 	auto main_widget = new QWidget(this);
 	auto vbox = new QVBoxLayout(main_widget);

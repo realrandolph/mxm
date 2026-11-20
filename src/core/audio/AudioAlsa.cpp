@@ -88,6 +88,7 @@ AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 		fcntl( fd, F_SETFD, oldflags );
 	}
 	delete[] ufds;
+	m_monitoredDevice = probeDevice();
 	_success_ful = true;
 }
 
@@ -173,6 +174,10 @@ AudioAlsa::DeviceInfoCollection AudioAlsa::getAvailableDevices()
 
 int AudioAlsa::handleError( int _err )
 {
+	if (_err == -ENODEV || _err == -EBADFD)
+	{
+		return _err;
+	}
 	if( _err == -EPIPE )
 	{
 		// under-run
@@ -226,11 +231,25 @@ void AudioAlsa::run()
 	auto buf = std::vector<float>(framesPerAudioBuffer * channels());
 	while (AudioDevice::isRunning())
 	{
+		if (m_deviceDisconnected.load(std::memory_order_relaxed))
+		{
+			msleep(100);
+			continue;
+		}
+
 		audioEngine()->renderNextBuffer({buf.data(), channels(), framesPerAudioBuffer});
 
 		if (const auto framesWritten = snd_pcm_writei(m_handle, buf.data(), framesPerAudioBuffer); framesWritten < 0)
 		{
-			handleError(framesWritten);
+			const auto err = handleError(framesWritten);
+			if (err == -ENODEV || err == -EBADFD || (m_handle && snd_pcm_state(m_handle) == SND_PCM_STATE_DISCONNECTED))
+			{
+				m_deviceDisconnected.store(true, std::memory_order_release);
+				if (!m_disconnectionReported.exchange(true, std::memory_order_acq_rel))
+				{
+					reportDeviceChange(false, m_monitoredDevice, QString{}, false);
+				}
+			}
 			continue;
 		}
 	}

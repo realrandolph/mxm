@@ -24,6 +24,7 @@
 
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QShowEvent>
 
 #include "AudioPulseAudio.h"
 
@@ -55,6 +56,7 @@ AudioPulseAudio::AudioPulseAudio(bool& _success_ful, AudioEngine* _audioEngine)
 	m_sampleSpec.rate = sampleRate();
 	m_sampleSpec.channels = channels();
 
+	m_monitoredDevice = probeDevice();
 	_success_ful = true;
 }
 
@@ -70,6 +72,41 @@ QString AudioPulseAudio::probeDevice()
 		return "default";
 	}
 	return dev;
+}
+
+QString AudioPulseAudio::resolvedDefaultDevice()
+{
+	if (getenv("PULSE_SINK") != nullptr)
+	{
+		return QString::fromLatin1(getenv("PULSE_SINK"));
+	}
+	if (getenv("AUDIODEV") != nullptr)
+	{
+		return QString::fromLatin1(getenv("AUDIODEV"));
+	}
+	if (Engine::audioEngine() && Engine::audioEngine()->audioDev())
+	{
+		auto* activeDev = dynamic_cast<AudioPulseAudio*>(Engine::audioEngine()->audioDev());
+		if (activeDev)
+		{
+			const auto device = activeDev->monitoredDevice();
+			if (!device.isEmpty() && device != QStringLiteral("default")) { return device; }
+		}
+	}
+
+	return QStringLiteral("default");
+}
+
+QString AudioPulseAudio::monitoredDevice() const
+{
+	const std::lock_guard<std::mutex> lock(m_monitoredDeviceMutex);
+	return m_monitoredDevice;
+}
+
+void AudioPulseAudio::setMonitoredDevice(const QString& device)
+{
+	const std::lock_guard<std::mutex> lock(m_monitoredDeviceMutex);
+	m_monitoredDevice = device;
 }
 
 
@@ -89,8 +126,29 @@ void AudioPulseAudio::stopProcessingImpl()
 }
 
 
-/* This routine is called whenever the stream state changes */
+static void stream_moved_callback(pa_stream* s, void* userdata)
+{
+	static_cast<AudioPulseAudio*>(userdata)->streamMovedCallback(s);
+}
+
+void AudioPulseAudio::streamMovedCallback(pa_stream* s)
+{
+	const char* sinkName = pa_stream_get_device_name(s);
+	const QString newDevice = sinkName ? QString::fromUtf8(sinkName) : QString{};
+	const auto previousDevice = monitoredDevice();
+	if (!newDevice.isEmpty() && newDevice != previousDevice)
+	{
+		setMonitoredDevice(newDevice);
+		reportDeviceChange(false, previousDevice, newDevice, true);
+	}
+}
+
 static void stream_state_callback( pa_stream *s, void * userdata )
+{
+	static_cast<AudioPulseAudio*>(userdata)->streamStateCallback(s);
+}
+
+void AudioPulseAudio::streamStateCallback( pa_stream *s )
 {
 	switch( pa_stream_get_state( s ) )
 	{
@@ -99,23 +157,40 @@ static void stream_state_callback( pa_stream *s, void * userdata )
 			break;
 
 		case PA_STREAM_READY:
+		{
 			qDebug( "Stream successfully created\n" );
+			const char* sinkName = pa_stream_get_device_name(s);
+			if (sinkName)
+			{
+				setMonitoredDevice(QString::fromUtf8(sinkName));
+			}
 			break;
+		}
 
 		case PA_STREAM_FAILED:
 		default:
+		{
 			qCritical( "Stream error: %s\n",
 					pa_strerror(pa_context_errno(
 						pa_stream_get_context( s ) ) ) );
+			if (AudioDevice::isRunning() && !m_streamFailureReported.exchange(true, std::memory_order_acq_rel))
+			{
+				reportDeviceChange(false, monitoredDevice(), QString{}, false);
+			}
+			break;
+		}
 	}
 }
 
 
 
-/* This is called whenever the context status changes */
 static void context_state_callback(pa_context *c, void *userdata)
 {
-	auto _this = static_cast<AudioPulseAudio*>(userdata);
+	static_cast<AudioPulseAudio*>(userdata)->contextStateCallback(c);
+}
+
+void AudioPulseAudio::contextStateCallback(pa_context *c)
+{
 	switch( pa_context_get_state( c ) )
 	{
 		case PA_CONTEXT_CONNECTING:
@@ -126,9 +201,10 @@ static void context_state_callback(pa_context *c, void *userdata)
 		case PA_CONTEXT_READY:
 		{
 			qDebug( "Connection established.\n" );
-			_this->m_s = pa_stream_new( c, "mxm", &_this->m_sampleSpec,  nullptr);
-			pa_stream_set_state_callback( _this->m_s, stream_state_callback, _this );
-			pa_stream_set_write_callback( _this->m_s, stream_write_callback, _this );
+			m_s = pa_stream_new( c, "mxm", &m_sampleSpec,  nullptr);
+			pa_stream_set_state_callback( m_s, stream_state_callback, this );
+			pa_stream_set_write_callback( m_s, stream_write_callback, this );
+			pa_stream_set_moved_callback( m_s, stream_moved_callback, this );
 
 			pa_buffer_attr buffer_attr;
 
@@ -141,13 +217,13 @@ static void context_state_callback(pa_context *c, void *userdata)
 			buffer_attr.fragsize = (uint32_t)(-1);
 
 			// ask PulseAudio for the desired latency (which might not be approved)
-			buffer_attr.tlength = pa_usec_to_bytes(_this->m_latency * PA_USEC_PER_MSEC, &_this->m_sampleSpec);
+			buffer_attr.tlength = pa_usec_to_bytes(m_latency * PA_USEC_PER_MSEC, &m_sampleSpec);
 
-			pa_stream_connect_playback( _this->m_s, nullptr, &buffer_attr,
+			pa_stream_connect_playback( m_s, nullptr, &buffer_attr,
 										PA_STREAM_ADJUST_LATENCY,
 										nullptr,	// volume
 										nullptr );
-			_this->signalConnected( true );
+			signalConnected( true );
 			break;
 		}
 
@@ -156,8 +232,15 @@ static void context_state_callback(pa_context *c, void *userdata)
 
 		case PA_CONTEXT_FAILED:
 		default:
+		{
 			qCritical( "Connection failure: %s\n", pa_strerror( pa_context_errno( c ) ) );
-			_this->signalConnected( false );
+			signalConnected( false );
+			if (m_connected && AudioDevice::isRunning() && !m_streamFailureReported.exchange(true, std::memory_order_acq_rel))
+			{
+				reportDeviceChange(false, monitoredDevice(), QString{}, false);
+			}
+			break;
+		}
 	}
 }
 
@@ -256,7 +339,10 @@ AudioPulseAudio::setupWidget::setupWidget( QWidget * _parent ) :
 {
 	QFormLayout * form = new QFormLayout(this);
 
-	m_device = new QLineEdit( AudioPulseAudio::probeDevice(), this );
+	const auto dev = ConfigManager::inst()->value( "audiopa", "device" );
+
+	m_device = new QLineEdit( dev == QStringLiteral("default") ? QString{} : dev, this );
+	m_device->setPlaceholderText( tr("[System Default]") );
 	form->addRow(tr("Device"), m_device);
 
 	auto m = new gui::LcdSpinBoxModel();
@@ -269,6 +355,17 @@ AudioPulseAudio::setupWidget::setupWidget( QWidget * _parent ) :
 	m_channels->setModel( m );
 
 	form->addRow(tr("Channels"), m_channels);
+}
+
+void AudioPulseAudio::setupWidget::showEvent( QShowEvent * _event )
+{
+	AudioDeviceSetupWidget::showEvent(_event);
+
+	const auto resolvedDefault = AudioPulseAudio::resolvedDefaultDevice();
+	const auto placeholder = resolvedDefault.isEmpty() || resolvedDefault == QStringLiteral("default")
+		? tr("[System Default]")
+		: QStringLiteral("%1 [%2]").arg(tr("[System Default]"), resolvedDefault);
+	m_device->setPlaceholderText(placeholder);
 }
 
 
@@ -293,4 +390,3 @@ void AudioPulseAudio::setupWidget::saveSettings()
 } // namespace mxm
 
 #endif // MXM_HAVE_PULSEAUDIO
-

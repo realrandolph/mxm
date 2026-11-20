@@ -58,6 +58,15 @@ void AudioDevice::stopProcessing()
 	stopProcessingImpl();
 }
 
+void AudioDevice::reportDeviceChange(
+	bool input, const QString& previousDevice, const QString& currentDevice, bool available)
+{
+	if (m_audioEngine)
+	{
+		m_audioEngine->notifyAudioDeviceChanged(input, previousDevice, currentDevice, available);
+	}
+}
+
 void AudioDevice::stopProcessingThread( QThread * thread )
 {
 	if( !thread->wait( 30000 ) )

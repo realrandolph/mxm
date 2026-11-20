@@ -49,6 +49,7 @@ AudioSndio::AudioSndio(bool& _success_ful, AudioEngine* _audioEngine)
 	_success_ful = false;
 
 	QString dev = ConfigManager::inst()->value( "audiosndio", "device" );
+	m_monitoredDevice = dev.isEmpty() ? QStringLiteral("default") : dev;
 
 	if (dev == "")
 	{
@@ -149,17 +150,44 @@ void AudioSndio::run()
 			ibuf[i] = static_cast<int_sample_t>(AudioEngine::clip(fbuf[i]) * OUTPUT_SAMPLE_MULTIPLIER);
 		}
 
-		sio_write(m_hdl, ibuf.data(), ibuf.size() * sizeof(int_sample_t));
+		const auto written = sio_write(m_hdl, ibuf.data(), ibuf.size() * sizeof(int_sample_t));
+		if (written == 0 || sio_eof(m_hdl))
+		{
+			if (AudioDevice::isRunning() && !m_errorReported.exchange(true, std::memory_order_acq_rel))
+			{
+				reportDeviceChange(false, m_monitoredDevice, QString{}, false);
+			}
+			break;
+		}
 	}
 }
 
+
+// Note: sndio does not provide an API to enumerate audio devices or resolve hardware names.
+// It relies on the AUDIODEVICE environment variable or the system default ("default").
+QString AudioSndio::resolvedDefaultDevice()
+{
+	const char* envDev = getenv("AUDIODEVICE");
+	if (envDev != nullptr && *envDev != '\0')
+	{
+		return QString::fromLatin1(envDev);
+	}
+	return QString{};
+}
 
 AudioSndio::setupWidget::setupWidget( QWidget * _parent ) :
 	AudioDeviceSetupWidget( AudioSndio::name(), _parent )
 {
 	QFormLayout * form = new QFormLayout(this);
 
-	m_device = new QLineEdit( "", this );
+	const auto dev = ConfigManager::inst()->value( "audiosndio", "device" );
+	const auto resolvedDefault = AudioSndio::resolvedDefaultDevice();
+	const auto defaultText = resolvedDefault.isEmpty()
+		? tr("[System Default]")
+		: QStringLiteral("%1 [%2]").arg(tr("[System Default]"), resolvedDefault);
+
+	m_device = new QLineEdit( dev == QStringLiteral("default") ? QString{} : dev, this );
+	m_device->setPlaceholderText( defaultText );
 	form->addRow(tr("Device"), m_device);
 
 	gui::LcdSpinBoxModel * m = new gui::LcdSpinBoxModel( /* this */ );

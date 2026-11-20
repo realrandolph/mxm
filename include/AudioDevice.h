@@ -28,6 +28,7 @@
 #include <QMutex>
 #include <samplerate.h>
 
+#include "AudioChannelLayout.h"
 #include "MxmTypes.h"
 
 class QThread;
@@ -64,6 +65,12 @@ public:
 		return m_captureChannels;
 	}
 
+	//! @returns the channel layout reported by the backend, if it is known.
+	inline const AudioChannelLayout& captureLayout() const
+	{
+		return m_captureLayout;
+	}
+
 	inline sample_rate_t sampleRate() const
 	{
 		return m_sampleRate;
@@ -90,12 +97,26 @@ protected:
 
 	void setSampleRate(const sample_rate_t _new_sr) { m_sampleRate = _new_sr; }
 	void setChannels(const ch_cnt_t channels) { m_channels = channels; }
-	void setCaptureChannels(const ch_cnt_t channels) { m_captureChannels = channels; }
+	void setCaptureChannels(const ch_cnt_t channels)
+	{
+		m_captureChannels = channels;
+		m_captureLayout = channels <= DEFAULT_CHANNELS
+			? AudioChannelLayout::standard(channels) : AudioChannelLayout::discrete(channels);
+	}
+	void setCaptureLayout(AudioChannelLayout layout)
+	{
+		m_captureChannels = layout.channels();
+		m_captureLayout = std::move(layout);
+	}
+	//! Report backend-detected runtime route changes through the backend-independent UI signal.
+	void reportDeviceChange(
+		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 
 	static void stopProcessingThread( QThread * thread );
 protected:
 	bool m_supportsCapture;
 	ch_cnt_t m_captureChannels;
+	AudioChannelLayout m_captureLayout;
 
 private:
 	virtual void startProcessingImpl() = 0;
