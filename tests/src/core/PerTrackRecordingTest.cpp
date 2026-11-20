@@ -115,6 +115,43 @@ private slots:
 			QCOMPARE(result->sample(frame, 1), -0.25f);
 		}
 
+		// A second track reads a different pair from the same capture snapshot
+		// during the same period.
+		auto otherTrack = SampleTrack{song};
+		otherTrack.setInputMonitoring(true);
+		auto otherClip = SampleClip{&otherTrack};
+		auto otherSession = std::make_shared<SampleRecordSession>();
+		otherSession->source = AudioInputSource{
+			QStringLiteral("device:0+1"),
+			QStringLiteral("Inputs 1 + 2"),
+			2,
+			AudioChannelLayout::stereo(),
+			{0, 1},
+			false,
+		};
+		otherSession->destinationChannels = {0, 1};
+		otherSession->capture = std::make_shared<SampleCapture>(
+			engine->inputSampleRate(), AudioChannelLayout::stereo(), frames, 8);
+
+		auto otherHandle = SampleRecordHandle{&otherClip, otherSession};
+		auto otherMonitor = std::vector<SampleFrame>(frames);
+		otherHandle.play(otherMonitor.data());
+
+		QCOMPARE(otherTrack.takeInputLevel(), 0.75f);
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QVERIFY(otherMonitor[frame][0] == 0.75f);
+			QVERIFY(otherMonitor[frame][1] == 0.75f);
+		}
+		const auto otherResult = otherSession->capture->finish();
+		QVERIFY(otherResult != nullptr);
+		QVERIFY(!otherResult->empty());
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(otherResult->sample(frame, 0), 0.75f);
+			QCOMPARE(otherResult->sample(frame, 1), 0.75f);
+		}
+
 		engine->setInputChannels(0);
 	}
 
