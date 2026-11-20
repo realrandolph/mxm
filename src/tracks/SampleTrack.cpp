@@ -26,6 +26,7 @@
 #include "SampleTrack.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include <QColor>
@@ -475,6 +476,34 @@ void SampleTrack::stopRecording(bool stopTransport)
 		if (auto song = Engine::getSong()) { song->trackRecordingStopped(stopTransport); }
 	}
 }
+
+
+float SampleTrack::inputPeak() const
+{
+	auto* engine = Engine::audioEngine();
+	if (!engine) { return 0.f; }
+
+	const auto source = resolvedInputSource();
+	if (!source || source->trackPort) { return 0.f; }
+
+	const auto input = engine->inputBuffer();
+	if (input.empty()) { return 0.f; }
+
+	const auto& channels = inputSourceChannels(*source, m_inputChannels);
+	auto peak = 0.f;
+	for (const auto channel : channels)
+	{
+		if (channel >= input.channels()) { return 0.f; }
+		const auto* data = input.bufferPtr(channel);
+		for (f_cnt_t frame = 0; frame < input.frames(); ++frame)
+		{
+			peak = std::max(peak, std::abs(data[frame]));
+		}
+	}
+	return peak;
+}
+
+
 
 
 void SampleTrack::updateInputLevel(float level)

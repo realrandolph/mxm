@@ -103,6 +103,9 @@ public:
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
 	void updateInputLevel(float level);
 	float takeInputLevel() { return m_inputLevel.exchange(0.f, std::memory_order_relaxed); }
+
+	//! @returns the current peak of this track's assigned capture source.
+	float inputPeak() const;
 	void updateRecordingClipLength();
 
 	inline IntModel * mixerChannelModel()

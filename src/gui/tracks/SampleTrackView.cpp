@@ -319,7 +319,7 @@ void SampleTrackView::corruptStateUpdate()
 void SampleTrackView::updateRecordingControls()
 {
 	auto track = model();
-	if (m_waitingForInput && Engine::audioEngine()->inputPeak() >= 0.025f)
+	if (m_waitingForInput && track->inputPeak() >= 0.025f)
 	{
 		m_waitingForInput = false;
 		startRecording();
@@ -343,7 +343,7 @@ void SampleTrackView::updateRecordingControls()
 	m_recordButton->setEnabled(recording || captureAvailable);
 
 	const auto inputLevel = std::clamp(
-		armed ? Engine::audioEngine()->inputPeak() : track->takeInputLevel(), 0.f, 1.f);
+		armed ? track->inputPeak() : track->takeInputLevel(), 0.f, 1.f);
 	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));
 }
 
