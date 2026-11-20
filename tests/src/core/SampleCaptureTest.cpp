@@ -187,6 +187,70 @@ private slots:
 		}
 	}
 
+	//! A mapped mono source lands in the requested capture channel only
+	void Capture_MappedMonoDestination()
+	{
+		constexpr auto blockFrames = f_cnt_t{16};
+		constexpr auto frames = f_cnt_t{32};
+		const auto layout = AudioChannelLayout::stereo();
+
+		auto capture = SampleCapture{TestSampleRate, layout, blockFrames, size_t{8}};
+
+		const auto block = makePlanarBlock(1, frames, 0);
+		const auto pointers = blockPointers(block);
+		capture.write(
+			PlanarBufferView<const float>{pointers.data(), ch_cnt_t{1}, frames},
+			std::vector<ch_cnt_t>{1});
+
+		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(frames));
+		QCOMPARE(capture.droppedFrames(), std::uint64_t{0});
+		QVERIFY(!capture.diskError());
+
+		const auto result = capture.finish();
+		QVERIFY(result != nullptr);
+		QVERIFY(!result->empty());
+		QCOMPARE(result->channels(), ch_cnt_t{2});
+		QCOMPARE(result->layout(), layout);
+		QCOMPARE(result->frames(), frames);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(result->sample(frame, 0), 0.f);
+			QCOMPARE(result->sample(frame, 1), expectedSample(0, 0, frame));
+		}
+	}
+
+	//! Destination maps reorder source channels and silence unmapped ones
+	void Capture_MappedDestinationsReorder()
+	{
+		constexpr auto blockFrames = f_cnt_t{16};
+		constexpr auto frames = f_cnt_t{32};
+		const auto layout = AudioChannelLayout::stereo();
+
+		auto capture = SampleCapture{TestSampleRate, layout, blockFrames, size_t{8}};
+
+		const auto block = makePlanarBlock(2, frames, 0);
+		const auto pointers = blockPointers(block);
+		capture.write(
+			PlanarBufferView<const float>{pointers.data(), ch_cnt_t{2}, frames},
+			std::vector<ch_cnt_t>{1, 0});
+
+		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(frames));
+		QCOMPARE(capture.droppedFrames(), std::uint64_t{0});
+
+		const auto result = capture.finish();
+		QVERIFY(result != nullptr);
+		QVERIFY(!result->empty());
+		QCOMPARE(result->channels(), ch_cnt_t{2});
+		QCOMPARE(result->frames(), frames);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(result->sample(frame, 0), expectedSample(0, 1, frame));
+			QCOMPARE(result->sample(frame, 1), expectedSample(0, 0, frame));
+		}
+	}
+
 	//! Overflow is reported instead of silently discarding frames
 	void Overflow_AccountsForEveryFrame()
 	{
