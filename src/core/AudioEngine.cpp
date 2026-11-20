@@ -190,7 +190,7 @@ void AudioEngine::setInputChannels(ch_cnt_t channels)
 
 auto AudioEngine::inputSources() const -> std::vector<AudioInputSource>
 {
-	if (!m_audioDev || !m_audioDev->supportsCapture() || m_inputChannels == 0)
+	if (!m_audioDev || m_inputChannels == 0)
 	{
 		return {};
 	}
