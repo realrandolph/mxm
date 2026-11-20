@@ -100,7 +100,9 @@ This conversion is implemented by `addFrameConverted()` and
 
 Stereo-only effects and plugins still receive the front stereo pair. Remaining
 surround channels pass through the effect chain untouched, so a stereo plugin
-never silently removes surround content.
+never silently removes surround content. Stereo instrument plugins feed the
+front pair of a surround track bus; native multichannel instrument outputs are
+part of #7's multi-I/O plugin routing.
 
 ## Playback and monitoring
 

@@ -107,6 +107,12 @@ void SamplePlayHandle::play( SampleFrame* buffer )
 
 	if (!multichannelEligible)
 	{
+		if (m_useMultichannel && m_multichannelState)
+		{
+			// Preserve the playback position if the destination layout changes
+			// from surround back to stereo mid-clip.
+			m_state.setFrameIndex(m_multichannelState->frameIndex());
+		}
 		m_useMultichannel = false;
 
 		if( framesDone() >= totalFrames() )
@@ -160,7 +166,8 @@ void SamplePlayHandle::play( SampleFrame* buffer )
 		|| m_multichannelBuffer->frames() != fpp
 		|| !m_multichannelState || m_multichannelState->channels() != nativeChannels)
 	{
-		const int currentIndex = m_multichannelState ? m_multichannelState->frameIndex() : 0;
+		const int currentIndex = m_multichannelState
+			? m_multichannelState->frameIndex() : m_state.frameIndex();
 		m_multichannelLayout = busLayout;
 		m_multichannelBuffer = createChannelBuffer(fpp, m_multichannelLayout);
 		m_multichannelState = std::make_unique<Sample::PlaybackState>(

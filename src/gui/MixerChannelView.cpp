@@ -99,7 +99,14 @@ MixerChannelView::MixerChannelView(QWidget* parent, MixerView* mixerView, int ch
 
 	const auto mixerChannel = Engine::mixer()->mixerChannel(channelIndex);
 	const auto mixerName = mixerChannel->m_name;
-	setToolTip(QStringLiteral("%1\n%2").arg(mixerName, mixerChannel->channelLayout().displayName()));
+	auto updateLayoutTooltip = [this] {
+		const auto channel = this->mixerChannel();
+		setToolTip(QStringLiteral("%1\n%2").arg(channel->m_name,
+			channel->channelLayout().displayName()));
+	};
+	updateLayoutTooltip();
+	connect(&mixerChannel->m_channelLayoutModel, &ComboBoxModel::dataChanged,
+		this, updateLayoutTooltip);
 
 	m_renameLineEdit = new QLineEdit{mixerName, nullptr};
 	m_renameLineEdit->setFixedWidth(65);
@@ -221,7 +228,7 @@ void MixerChannelView::paintEvent(QPaintEvent*)
 	static constexpr auto innerBorderSize = 3;
 	static constexpr auto outerBorderSize = 1;
 
-	const auto channel = mixerChannel();
+	const auto channel = this->mixerChannel();
 	const auto isActive = m_mixerView->currentMixerChannel() == this;
 	const auto width = rect().width();
 	const auto height = rect().height();
@@ -320,7 +327,7 @@ void MixerChannelView::resetColor()
 
 void MixerChannelView::selectColor()
 {
-	const auto channel = mixerChannel();
+	const auto channel = this->mixerChannel();
 
 	const auto initialColor = channel->color().value_or(backgroundActive().color());
 	const auto* colorChooser = ColorChooser{this}.withPalette(ColorChooser::Palette::Mixer);
