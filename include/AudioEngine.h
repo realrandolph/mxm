@@ -379,6 +379,7 @@ public:
 signals:
 	void qualitySettingsChanged();
 	void sampleRateChanged();
+	void inputSourcesChanged();
 	void audioDeviceChanged(
 		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 	void nextAudioBuffer(const mxm::SampleFrame* buffer);

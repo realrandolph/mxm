@@ -205,6 +205,8 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 					refreshInputSources();
 				}
 			}, Qt::QueuedConnection);
+		connect(engine, &AudioEngine::inputSourcesChanged, this,
+			&SampleTrackWindow::refreshInputSources, Qt::QueuedConnection);
 	}
 
 	m_effectRack = new EffectRackView(stv->model()->audioBusHandle()->effects());

@@ -170,6 +170,7 @@ void AudioEngine::setInputChannels(ch_cnt_t channels)
 		m_inputChannels = 0;
 		m_inputReadIndex.store(0, std::memory_order_relaxed);
 		m_inputWriteIndex.store(0, std::memory_order_relaxed);
+		emit inputSourcesChanged();
 		return;
 	}
 
@@ -184,6 +185,7 @@ void AudioEngine::setInputChannels(ch_cnt_t channels)
 	m_inputChannels = channels;
 	m_inputReadIndex.store(0, std::memory_order_relaxed);
 	m_inputWriteIndex.store(0, std::memory_order_relaxed);
+	emit inputSourcesChanged();
 }
 
 auto AudioEngine::inputSources() const -> std::vector<AudioInputSource>
