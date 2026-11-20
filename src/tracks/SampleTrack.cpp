@@ -68,6 +68,13 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels()-1, 1);
 
 	connect(&m_mixerChannelModel, SIGNAL(dataChanged()), this, SLOT(updateMixerChannel()));
+
+	auto* engine = Engine::audioEngine();
+	if (engine && engine->audioDev() && engine->audioDev()->supportsTrackInputPorts())
+	{
+		m_trackInputId = static_cast<quint64>(reinterpret_cast<std::uintptr_t>(this));
+		engine->registerTrackInput(m_trackInputId, name(), 2);
+	}
 }
 
 
@@ -76,6 +83,10 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 SampleTrack::~SampleTrack()
 {
 	stopRecording(false);
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		Engine::audioEngine()->unregisterTrackInput(m_trackInputId);
+	}
 	Engine::audioEngine()->removePlayHandlesOfTypes(this,
 		PlayHandle::Type::SamplePlayHandle | PlayHandle::Type::SampleRecordPlayHandle);
 }
@@ -272,6 +283,13 @@ auto SampleTrack::availableInputSources() const -> std::vector<AudioInputSource>
 {
 	auto sources = Engine::audioEngine() ? Engine::audioEngine()->inputSources()
 		: std::vector<AudioInputSource>{};
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		if (const auto trackInput = Engine::audioEngine()->trackInputSource(m_trackInputId, name()))
+		{
+			sources.push_back(*trackInput);
+		}
+	}
 	return sources;
 }
 
@@ -284,7 +302,16 @@ auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
 	if (!engine) { return std::nullopt; }
 
 	const auto id = m_inputSourceId.trimmed().isEmpty() ? QStringLiteral("auto") : m_inputSourceId;
-	const auto source = engine->inputSource(id);
+	std::optional<AudioInputSource> source;
+	if (id == QStringLiteral("track"))
+	{
+		if (m_trackInputId == 0) { return std::nullopt; }
+		source = engine->trackInputSource(m_trackInputId, name());
+	}
+	else
+	{
+		source = engine->inputSource(id);
+	}
 	if (!source) { return std::nullopt; }
 
 	if (!validateInputSource(*source, m_inputChannels, engine->inputChannels()))
@@ -306,7 +333,9 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 	}
 
 	const auto id = m_inputSourceId.trimmed().isEmpty() ? QStringLiteral("auto") : m_inputSourceId;
-	const auto source = engine->inputSource(id);
+	const auto source = id == QStringLiteral("track")
+		? (m_trackInputId != 0 ? engine->trackInputSource(m_trackInputId, name()) : std::nullopt)
+		: engine->inputSource(id);
 	if (!source)
 	{
 		return tr("Saved input \"%1\" is unavailable. Select another input before recording.").arg(id);
@@ -343,15 +372,6 @@ bool SampleTrack::startRecording()
 		}
 		return false;
 	}
-	if (source->trackPort)
-	{
-		if (Engine::getSong())
-		{
-			Engine::getSong()->collectError(tr("Cannot record on \"%1\": track input ports are not available.").arg(name()));
-		}
-		return false;
-	}
-
 	const auto effectiveChannels = inputSourceChannels(*source, m_inputChannels);
 	if (effectiveChannels.size() != source->channels)
 	{
@@ -405,6 +425,7 @@ bool SampleTrack::startRecording()
 	m_recordingSession->engineDroppedAtStart = engine->inputDroppedFrames();
 	m_recordingSession->source = std::move(takeSource);
 	m_recordingSession->destinationChannels = std::move(destinationChannels);
+	m_recordingSession->trackInputId = source->trackPort ? m_trackInputId : 0;
 	m_recordingSession->capture = std::make_shared<SampleCapture>(
 		engine->inputSampleRate(), captureLayout, engine->framesPerPeriod(), 64);
 	m_recordingClip = clip;
@@ -484,9 +505,10 @@ float SampleTrack::inputPeak() const
 	if (!engine) { return 0.f; }
 
 	const auto source = resolvedInputSource();
-	if (!source || source->trackPort) { return 0.f; }
+	if (!source) { return 0.f; }
 
-	const auto input = engine->inputBuffer();
+	const auto input = source->trackPort && m_trackInputId != 0
+		? engine->trackInputBuffer(m_trackInputId) : engine->inputBuffer();
 	if (input.empty()) { return 0.f; }
 
 	const auto& channels = inputSourceChannels(*source, m_inputChannels);
@@ -534,6 +556,18 @@ void SampleTrack::setPlayingClips( bool isPlaying )
 		Clip * clip = getClip( i );
 		auto sClip = dynamic_cast<SampleClip*>(clip);
 		sClip->setIsPlaying( isPlaying );
+	}
+}
+
+
+
+
+void SampleTrack::setName(const QString& newName)
+{
+	Track::setName(newName);
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		Engine::audioEngine()->renameTrackInput(m_trackInputId, name());
 	}
 }
 

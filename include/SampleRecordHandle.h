@@ -53,6 +53,7 @@ struct SampleRecordSession
 	std::shared_ptr<SampleCapture> capture;
 	AudioInputSource source;
 	std::vector<ch_cnt_t> destinationChannels;
+	quint64 trackInputId = 0;
 	std::atomic_bool inputUnavailable{false};
 };
 

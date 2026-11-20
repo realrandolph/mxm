@@ -68,6 +68,7 @@ public:
 
 	void saveTrackSpecificSettings(QDomDocument& doc, QDomElement& parent, bool presetMode) override;
 	void loadTrackSpecificSettings( const QDomElement & _this ) override;
+	void setName(const QString& newName) override;
 
 	bool isRecording() const { return m_recording.load(std::memory_order_relaxed); }
 	bool startRecording();
@@ -157,6 +158,7 @@ private:
 	std::atomic<float> m_inputLevel{0.f};
 	std::shared_ptr<SampleRecordSession> m_recordingSession;
 	QPointer<SampleClip> m_recordingClip;
+	quint64 m_trackInputId = 0;
 
 
 

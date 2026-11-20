@@ -156,10 +156,17 @@ auto inputSourceView(PlanarBufferView<const float> deviceInput,
 	const auto& channels = inputSourceChannels(source, overrideChannels);
 	if (channels.size() != source.channels) { return {}; }
 
+	if (std::ranges::any_of(channels, [&](ch_cnt_t channel) {
+		return channel >= deviceInput.channels();
+	}))
+	{
+		pointers.clear();
+		return {};
+	}
+
 	pointers.reserve(source.channels);
 	for (const auto channel : channels)
 	{
-		if (channel >= deviceInput.channels()) { return {}; }
 		pointers.push_back(deviceInput.bufferPtr(channel));
 	}
 

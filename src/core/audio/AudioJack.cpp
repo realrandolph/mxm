@@ -129,6 +129,11 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 
 AudioJack::~AudioJack()
 {
+	while (!m_trackInputPorts.isEmpty())
+	{
+		unregisterTrackInputPort(m_trackInputPorts.begin().key());
+	}
+
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	while (m_portMap.size())
 	{
@@ -284,6 +289,18 @@ void AudioJack::resizeInputBuffer(jack_nframes_t nframes)
 		m_inputChannelPtrs[ch]
 			= m_inputFrameBuffer.data() + static_cast<std::size_t>(ch) * m_inputBufferFrames;
 	}
+
+	for (auto& trackInput : m_trackInputPorts)
+	{
+		trackInput.scratch.assign(
+			static_cast<std::size_t>(m_inputBufferFrames) * trackInput.channels, 0.f);
+		trackInput.pointers.resize(trackInput.channels);
+		for (ch_cnt_t channel = 0; channel < trackInput.channels; ++channel)
+		{
+			trackInput.pointers[channel] = trackInput.scratch.data()
+				+ static_cast<std::size_t>(channel) * m_inputBufferFrames;
+		}
+	}
 }
 
 void AudioJack::attemptToConnect(size_t index, const char *mxm_port_type, const char *source_port, const char *destination_port)
@@ -427,6 +444,108 @@ void AudioJack::renamePort(AudioBusHandle* port)
 
 
 
+namespace
+{
+
+auto trackPortName(const QString& trackName, ch_cnt_t channels, ch_cnt_t channel) -> QString
+{
+	QString safeName = trackName.simplified();
+	safeName.replace(':', '-');
+	safeName.replace('\\n', ' ');
+	if (safeName.isEmpty()) { safeName = QStringLiteral("Track"); }
+
+	QString suffix;
+	if (channels == 1) { suffix = QStringLiteral(" In"); }
+	else if (channels == 2)
+	{
+		suffix = channel == 0 ? QStringLiteral(" In L") : QStringLiteral(" In R");
+	}
+	else { suffix = QStringLiteral(" In %1").arg(channel + 1); }
+	return safeName + suffix;
+}
+
+} // namespace
+
+auto AudioJack::supportsTrackInputPorts() const -> bool
+{
+	return m_supportsCapture && m_client != nullptr;
+}
+
+
+
+
+void AudioJack::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels)
+{
+	if (!supportsTrackInputPorts() || id == 0 || channels == 0) { return; }
+	unregisterTrackInputPort(id);
+
+	TrackInputPort port;
+	port.channels = channels;
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
+	{
+		const auto portName = trackPortName(name, channels, channel);
+		auto* jackPort = jack_port_register(m_client, portName.toLatin1().constData(),
+			JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+		if (jackPort == nullptr)
+		{
+			for (auto* registered : port.ports)
+			{
+				jack_port_unregister(m_client, registered);
+			}
+			return;
+		}
+		port.ports.push_back(jackPort);
+	}
+
+	const auto bufferFrames = std::max<jack_nframes_t>(m_inputBufferFrames,
+		static_cast<jack_nframes_t>(audioEngine()->framesPerAudioBuffer()));
+	port.scratch.assign(static_cast<std::size_t>(bufferFrames) * channels, 0.f);
+	port.pointers.resize(channels);
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
+	{
+		port.pointers[channel] = port.scratch.data()
+			+ static_cast<std::size_t>(channel) * bufferFrames;
+	}
+	m_trackInputPorts.insert(id, std::move(port));
+}
+
+
+
+
+void AudioJack::unregisterTrackInputPort(quint64 id)
+{
+	auto found = m_trackInputPorts.find(id);
+	if (found == m_trackInputPorts.end()) { return; }
+	for (auto* port : found->ports)
+	{
+		if (port != nullptr) { jack_port_unregister(m_client, port); }
+	}
+	m_trackInputPorts.erase(found);
+}
+
+
+
+
+void AudioJack::renameTrackInputPort(quint64 id, const QString& name)
+{
+	auto found = m_trackInputPorts.find(id);
+	if (found == m_trackInputPorts.end()) { return; }
+	for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
+	{
+		auto* port = found->ports[channel];
+		if (port == nullptr) { continue; }
+		const auto portName = trackPortName(name, found->channels, channel);
+#ifdef MXM_HAVE_JACK_PRENAME
+		jack_port_rename(m_client, port, portName.toLatin1().constData());
+#else
+		jack_port_set_name(port, portName.toLatin1().constData());
+#endif
+	}
+}
+
+
+
+
 int AudioJack::processCallback(jack_nframes_t nframes)
 {
 	// do midi processing first so that midi input can
@@ -497,6 +616,23 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 
 		audioEngine()->pushInputFrames(PlanarBufferView<const float>{
 			m_inputChannelPtrs.data(), m_inputChannels, nframes});
+	}
+
+	for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
+	{
+		const auto frames = std::min<jack_nframes_t>(nframes, m_inputBufferFrames);
+		for (ch_cnt_t channel = 0; channel < it->channels; ++channel)
+		{
+			auto* destination = const_cast<float*>(it->pointers[channel]);
+			const auto* source = it->ports[channel] != nullptr
+				? static_cast<const jack_default_audio_sample_t*>(
+					jack_port_get_buffer(it->ports[channel], nframes))
+				: nullptr;
+			if (source != nullptr) { std::copy_n(source, frames, destination); }
+			else { std::fill_n(destination, frames, 0.f); }
+		}
+		audioEngine()->pushTrackInputFrames(it.key(),
+			PlanarBufferView<const float>{it->pointers.data(), it->channels, frames});
 	}
 	return 0;
 }

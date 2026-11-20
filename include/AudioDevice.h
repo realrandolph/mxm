@@ -60,6 +60,20 @@ public:
 		return m_supportsCapture;
 	}
 
+	//! True when the backend can expose independently routable track inputs.
+	virtual auto supportsTrackInputPorts() const -> bool { return false; }
+
+	//! Creates backend capture ports for one recordable track.
+	virtual void registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels)
+	{
+		Q_UNUSED(id); Q_UNUSED(name); Q_UNUSED(channels);
+	}
+	virtual void unregisterTrackInputPort(quint64 id) { Q_UNUSED(id); }
+	virtual void renameTrackInputPort(quint64 id, const QString& name)
+	{
+		Q_UNUSED(id); Q_UNUSED(name);
+	}
+
 	inline ch_cnt_t captureChannels() const
 	{
 		return m_captureChannels;

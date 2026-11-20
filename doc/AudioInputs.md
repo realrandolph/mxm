@@ -1,0 +1,67 @@
+# Per-track audio inputs
+
+Every recordable Sample Track owns its own capture assignment. Selecting an
+input does not change a global recording source and does not require a
+patchbay for ordinary use.
+
+## Assignment model
+
+`mxm::AudioInputSource` describes one selectable endpoint:
+
+- stable `id`;
+- human-readable `displayName`;
+- source `channels` and `AudioChannelLayout`;
+- `captureChannels`, mapping each source channel to a channel of the current
+  device capture snapshot;
+- `trackPort` for backend-exposed per-track ports.
+
+The track stores `input_source` and an optional `input_channels` list in the
+project. The channel list makes nonadjacent and future multichannel mappings
+explicit; it is not inferred from a stereo assumption. Projects without these
+attributes load as `auto`.
+
+The normal device source list contains:
+
+- `auto`: all configured capture channels;
+- one mono source per hardware channel;
+- one adjacent stereo-pair source per pair, for example `Inputs 3 + 4`.
+
+The list is rebuilt from the active backend and capture layout. A saved
+assignment that no longer exists is shown as unavailable. Recording is refused
+with a visible error instead of silently falling back to another source.
+
+## Destination policy
+
+Physical input selection is separate from the existing **Record to** control:
+
+- **All channels (Auto)** captures the selected source's own channels/layout;
+- **Left channel only** / **Right channel only** route the selected source into
+  the left or right destination channel of a stereo take.
+
+`SampleCapture` supports an explicit source-to-destination map so channels can
+be reordered or duplicated without changing the shared capture boundary.
+
+## Monitoring, metering and triggering
+
+Monitoring, the track input meter and input-triggered recording use the
+assigned source channels. They do not read the engine-wide input peak. If an
+assignment becomes unavailable during a take, the take is not remapped: the
+track records silence and reports the problem when recording stops.
+
+## Backend behavior
+
+Backends report capture sources through the existing variable-channel engine
+input. One shared timestamped capture stream per device is used; per-track
+selection maps channels from that stream.
+
+When a backend supports independently routable track ports
+(`AudioDevice::supportsTrackInputPorts()`), a recordable track gets its own
+backend input ports and a symbolic `track` assignment can read that track's
+stream. JACK implements this with per-track ports named after the track
+(`<track> In L`, `<track> In R`), so tools such as qpwgraph can patch sources
+directly to individual MXM tracks. The dropdown still lists normal device
+inputs; external patching is optional.
+
+Shared synchronized recording and the final multi-track start/stop flow belong
+to #50. Full surround routing remains in #63; this input model already carries
+arbitrary channel maps so it can feed those layouts without a redesign.

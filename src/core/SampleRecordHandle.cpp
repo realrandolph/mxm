@@ -78,7 +78,9 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
 	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
-	const auto input = Engine::audioEngine()->inputBuffer();
+	const auto input = m_session->source.trackPort && m_session->trackInputId != 0
+		? Engine::audioEngine()->trackInputBuffer(m_session->trackInputId)
+		: Engine::audioEngine()->inputBuffer();
 	if (input.empty()) { return; }
 
 	std::vector<const float*> pointers;
