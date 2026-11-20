@@ -32,6 +32,7 @@
 #include <QDomElement>
 
 #include "AudioDevice.h"
+#include "ChannelLayoutModel.h"
 #include "AudioEngine.h"
 #include "EffectChain.h"
 #include "Engine.h"
@@ -57,14 +58,18 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 	m_volumeModel(DefaultVolume, MinVolume, MaxVolume, 0.1f, this, tr("Volume")),
 	m_panningModel(DefaultPanning, PanningLeft, PanningRight, 0.1f, this, tr("Panning")),
 	m_mixerChannelModel(0, 0, 0, this, tr("Mixer channel")),
+	m_channelLayoutModel(this),
+	m_layoutChoices(),
 	m_audioBusHandle(tr("Sample track"), true, &m_volumeModel, &m_panningModel, &m_mutedModel),
 	m_isPlaying(false)
 {
 	setName(tr("Sample track"));
 	m_panningModel.setCenterValue(DefaultPanning);
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels()-1, 1);
+	populateChannelLayoutModel(m_channelLayoutModel, m_layoutChoices, m_audioBusHandle.channelLayout());
 
 	connect(&m_mixerChannelModel, SIGNAL(dataChanged()), this, SLOT(updateMixerChannel()));
+	connect(&m_channelLayoutModel, SIGNAL(dataChanged()), this, SLOT(updateChannelLayout()));
 }
 
 
@@ -191,6 +196,7 @@ Clip * SampleTrack::createClip(const TimePos & pos)
 
 void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& thisElem, bool /*presetMode*/)
 {
+	thisElem.setAttribute("channel_layout", m_audioBusHandle.channelLayout().toString());
 	m_audioBusHandle.effects()->saveState(doc, thisElem);
 	m_volumeModel.saveSettings(doc, thisElem, "vol");
 	m_panningModel.saveSettings(doc, thisElem, "pan");
@@ -219,6 +225,10 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	}
 	m_volumeModel.loadSettings(thisElem, "vol");
 	m_panningModel.loadSettings(thisElem, "pan");
+	const auto layout = AudioChannelLayout::fromString(
+		thisElem.attribute("channel_layout"), DEFAULT_CHANNELS);
+	populateChannelLayoutModel(m_channelLayoutModel, m_layoutChoices, layout);
+	m_audioBusHandle.setChannelLayout(layout);
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
 	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
@@ -370,6 +380,15 @@ void SampleTrack::updateMixerChannel()
 {
 	m_audioBusHandle.setNextMixerChannel(m_mixerChannelModel.value());
 }
+
+
+void SampleTrack::updateChannelLayout()
+{
+	m_audioBusHandle.setChannelLayout(
+		channelLayoutAt(m_layoutChoices, m_channelLayoutModel.value()));
+	Engine::getSong()->setModified();
+}
+
 
 
 } // namespace mxm

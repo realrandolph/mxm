@@ -31,11 +31,14 @@
 #include <QThread>
 #include <samplerate.h>
 
+#include <array>
 #include <memory>
 #include <vector>
 
 #include "AudioBuffer.h"
 #include "AudioBufferView.h"
+#include "AudioChannelBuffer.h"
+#include "AudioChannelLayout.h"
 #include "AudioDevice.h"
 #include "MxmTypes.h"
 #include "SampleFrame.h"
@@ -323,6 +326,22 @@ public:
 	//! @copydoc renderNextBuffer(InterleavedBufferView<float>)
 	void renderNextBuffer(PlanarBufferView<float> dst) { renderNextBuffer<PlanarBufferView<float>>(dst); }
 
+	/**
+	 * @brief Changes the master bus layout used for rendering and export.
+	 *
+	 * Reallocates the engine-owned master buffers while the audio thread is
+	 * paused. The mixer calls this when the master channel layout changes.
+	 */
+	void setMasterLayout(const AudioChannelLayout& layout);
+	auto masterLayout() const -> const AudioChannelLayout& { return m_masterLayout; }
+
+	//! @returns the last rendered master period in the master channel layout.
+	auto renderedMasterBuffer() const -> PlanarBufferView<const float>
+	{
+		if (!m_masterBufferRead) { return {}; }
+		return logicalBuffers(*m_masterBufferRead, m_masterLayout);
+	}
+
 	//! Block until a change in model can be done (i.e. wait for audio thread)
 	void requestChangeInModel();
 	void doneChangeInModel();
@@ -352,31 +371,50 @@ signals:
 private:
 	void renderNextBuffer(AudioBufferView<float> auto dst)
 	{
+		if (!m_masterBufferRead) { return; }
+
+		const auto source = logicalBuffers(*m_masterBufferRead, m_masterLayout);
+		const auto sourceChannels = source.channels();
+		std::array<float, MaxChannelsPerAudioBuffer> sourceFrame{};
+
 		for (auto frame = f_cnt_t{0}; frame < dst.frames(); ++frame)
 		{
-			if (m_outputBufferReadIndex == m_framesPerPeriod) { m_outputBufferReadIndex = 0; }
+			if (m_outputBufferReadIndex >= m_framesPerPeriod) { m_outputBufferReadIndex = 0; }
 			if (m_outputBufferReadIndex == 0) { renderNextPeriod(); }
 
-			switch (dst.channels())
+			for (ch_cnt_t channel = 0; channel < sourceChannels; ++channel)
 			{
-			case 0:
-				assert(false);
-				break;
-			case 1:
-				dst.sample(0, frame) = m_outputBufferRead[m_outputBufferReadIndex].average();
-				break;
-			case 2:
-				dst.sample(0, frame) = m_outputBufferRead[m_outputBufferReadIndex][0];
-				dst.sample(1, frame) = m_outputBufferRead[m_outputBufferReadIndex][1];
-				break;
-			default:
-				dst.sample(0, frame) = m_outputBufferRead[m_outputBufferReadIndex][0];
-				dst.sample(1, frame) = m_outputBufferRead[m_outputBufferReadIndex][1];
-				for (auto channel = 2; channel < dst.channels(); ++channel)
+				sourceFrame[channel] = source.bufferPtr(channel)[m_outputBufferReadIndex];
+			}
+
+			if (dst.channels() == 1 || dst.channels() == 2)
+			{
+				float left = 0.f;
+				float right = 0.f;
+				downmixFrameToStereo(sourceFrame.data(), m_masterLayout, left, right);
+				if (dst.channels() == 1)
 				{
-					dst.sample(channel, frame) = 0.f;
+					dst.sample(0, frame) = 0.5f * (left + right);
 				}
-				break;
+				else
+				{
+					dst.sample(0, frame) = left;
+					dst.sample(1, frame) = right;
+				}
+			}
+			else
+			{
+				// Hardware layouts do not carry roles, so bind the count to the
+				// standard speaker order. Conversion never discards a source
+				// channel: unmatched roles fold into the front pair.
+				const auto dstLayout = AudioChannelLayout::standard(dst.channels());
+				std::array<float, MaxChannelsPerAudioBuffer> destinationFrame{};
+				addFrameConverted(sourceFrame.data(), m_masterLayout,
+					destinationFrame.data(), dstLayout);
+				for (ch_cnt_t channel = 0; channel < dst.channels(); ++channel)
+				{
+					dst.sample(channel, frame) = destinationFrame[channel];
+				}
 			}
 
 			++m_outputBufferReadIndex;
@@ -434,6 +472,12 @@ private:
 	std::unique_ptr<SampleFrame[]> m_outputBufferRead;
 	std::unique_ptr<SampleFrame[]> m_outputBufferWrite;
 	f_cnt_t m_outputBufferReadIndex;
+
+	//! Master-layout render buffers. The stereo arrays above are the legacy
+	//! hardware/UI view and are downmixed from these.
+	AudioChannelLayout m_masterLayout;
+	std::unique_ptr<AudioBuffer> m_masterBufferRead;
+	std::unique_ptr<AudioBuffer> m_masterBufferWrite;
 
 	// worker thread stuff
 	std::vector<AudioEngineWorkerThread *> m_workers;
