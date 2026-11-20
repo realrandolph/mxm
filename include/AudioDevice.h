@@ -64,9 +64,10 @@ public:
 	virtual auto supportsTrackInputPorts() const -> bool { return false; }
 
 	//! Creates backend capture ports for one recordable track.
-	virtual void registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels)
+	virtual auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool
 	{
 		Q_UNUSED(id); Q_UNUSED(name); Q_UNUSED(channels);
+		return false;
 	}
 	virtual void unregisterTrackInputPort(quint64 id) { Q_UNUSED(id); }
 	virtual void renameTrackInputPort(quint64 id, const QString& name)

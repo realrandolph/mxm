@@ -219,30 +219,36 @@ void AudioEngine::registerTrackInput(quint64 id, const QString& name, ch_cnt_t c
 	if (id == 0 || channels == 0) { return; }
 
 	const auto guard = requestChangesGuard();
-	const auto lock = std::lock_guard{m_trackInputMutex};
-
-	for (auto& slot : m_trackInputs)
+	auto registered = false;
 	{
-		if (slot.id.load(std::memory_order_acquire) == id) { return; }
+		const auto lock = std::lock_guard{m_trackInputMutex};
+		for (auto& slot : m_trackInputs)
+		{
+			if (slot.id.load(std::memory_order_acquire) == id) { return; }
+		}
+
+		for (auto& slot : m_trackInputs)
+		{
+			if (slot.id.load(std::memory_order_acquire) != 0) { continue; }
+
+			const auto blockFrames = std::max<f_cnt_t>(m_framesPerPeriod, 1);
+			slot.channels = channels;
+			slot.queue = std::make_unique<AudioBuffer>(blockFrames * InputCaptureBlocks, channels);
+			slot.snapshot = std::make_unique<AudioBuffer>(blockFrames * InputCaptureBlocks, channels);
+			slot.blockFrames.assign(InputCaptureBlocks, 0);
+			slot.queueBlockFrames = blockFrames;
+			slot.snapshotFrames = 0;
+			slot.readIndex.store(0, std::memory_order_relaxed);
+			slot.writeIndex.store(0, std::memory_order_relaxed);
+			slot.id.store(id, std::memory_order_release);
+			registered = true;
+			break;
+		}
 	}
-
-	for (auto& slot : m_trackInputs)
+	if (registered && m_audioDev && m_audioDev->supportsTrackInputPorts()
+		&& !m_audioDev->registerTrackInputPort(id, name, channels))
 	{
-		if (slot.id.load(std::memory_order_acquire) != 0) { continue; }
-
-		const auto blockFrames = std::max<f_cnt_t>(m_framesPerPeriod, 1);
-		slot.channels = channels;
-		slot.queue = std::make_unique<AudioBuffer>(blockFrames * InputCaptureBlocks, channels);
-		slot.snapshot = std::make_unique<AudioBuffer>(blockFrames * InputCaptureBlocks, channels);
-		slot.blockFrames.assign(InputCaptureBlocks, 0);
-		slot.queueBlockFrames = blockFrames;
-		slot.snapshotFrames = 0;
-		slot.readIndex.store(0, std::memory_order_relaxed);
-		slot.writeIndex.store(0, std::memory_order_relaxed);
-		slot.id.store(id, std::memory_order_release);
-
-		if (m_audioDev) { m_audioDev->registerTrackInputPort(id, name, channels); }
-		return;
+		unregisterTrackInput(id);
 	}
 }
 
@@ -252,21 +258,22 @@ void AudioEngine::registerTrackInput(quint64 id, const QString& name, ch_cnt_t c
 void AudioEngine::unregisterTrackInput(quint64 id)
 {
 	const auto guard = requestChangesGuard();
-	const auto lock = std::lock_guard{m_trackInputMutex};
-
-	for (auto& slot : m_trackInputs)
 	{
-		if (slot.id.load(std::memory_order_acquire) != id) { continue; }
-		slot.id.store(0, std::memory_order_release);
-		slot.queue.reset();
-		slot.snapshot.reset();
-		slot.blockFrames.clear();
-		slot.channels = 0;
-		slot.queueBlockFrames = 0;
-		slot.snapshotFrames = 0;
-		if (m_audioDev) { m_audioDev->unregisterTrackInputPort(id); }
-		return;
+		const auto lock = std::lock_guard{m_trackInputMutex};
+		for (auto& slot : m_trackInputs)
+		{
+			if (slot.id.load(std::memory_order_acquire) != id) { continue; }
+			slot.id.store(0, std::memory_order_release);
+			slot.queue.reset();
+			slot.snapshot.reset();
+			slot.blockFrames.clear();
+			slot.channels = 0;
+			slot.queueBlockFrames = 0;
+			slot.snapshotFrames = 0;
+			break;
+		}
 	}
+	if (m_audioDev) { m_audioDev->unregisterTrackInputPort(id); }
 }
 
 
