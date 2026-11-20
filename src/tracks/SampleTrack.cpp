@@ -285,7 +285,8 @@ auto SampleTrack::availableInputSources() const -> std::vector<AudioInputSource>
 		: std::vector<AudioInputSource>{};
 	if (m_trackInputId != 0 && Engine::audioEngine())
 	{
-		if (const auto trackInput = Engine::audioEngine()->trackInputSource(m_trackInputId, name()))
+		if (const auto trackInput = Engine::audioEngine()->trackInputSource(
+			m_trackInputId, tr("Track input port: %1").arg(name())))
 		{
 			sources.push_back(*trackInput);
 		}
@@ -306,7 +307,7 @@ auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
 	if (id == QStringLiteral("track"))
 	{
 		if (m_trackInputId == 0) { return std::nullopt; }
-		source = engine->trackInputSource(m_trackInputId, name());
+		source = engine->trackInputSource(m_trackInputId, tr("Track input port: %1").arg(name()));
 	}
 	else
 	{
@@ -334,7 +335,8 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 
 	const auto id = m_inputSourceId.trimmed().isEmpty() ? QStringLiteral("auto") : m_inputSourceId;
 	const auto source = id == QStringLiteral("track")
-		? (m_trackInputId != 0 ? engine->trackInputSource(m_trackInputId, name()) : std::nullopt)
+		? (m_trackInputId != 0 ? engine->trackInputSource(
+			m_trackInputId, tr("Track input port: %1").arg(name())) : std::nullopt)
 		: engine->inputSource(id);
 	if (!source)
 	{
