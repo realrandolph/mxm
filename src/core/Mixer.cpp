@@ -739,7 +739,9 @@ void Mixer::mixToChannel(const AudioBuffer& buffer, const AudioChannelLayout& la
 		MixHelpers::addPlanarConverted(
 			logicalBuffers(buffer, layout), layout,
 			logicalBuffers(*channel->m_buffer, channel->m_channelLayout), channel->m_channelLayout);
-		channel->m_buffer->mixSilenceFlags(buffer);
+		// Conversion can move signal between channels (for example centre into
+		// the stereo front pair), so recompute the destination flags.
+		channel->m_buffer->updateAllSilenceFlags();
 		channel->m_lock.unlock();
 	}
 }

@@ -272,17 +272,16 @@ void AudioBusHandle::doProcessing()
 
 		// Update silence status of all channels for this bus output
 		m_buffer->updateAllSilenceFlags();
-
-		// Effects are stereo processors. Keep the scratch interleaved buffer in
-		// sync with the front pair; remaining surround channels pass through
-		// untouched instead of being discarded.
-		toInterleaved(m_buffer->groupBuffers(0), m_buffer->interleavedBuffer());
 	}
 
-	// handle effects
+	// Effects are stereo processors. Keep the scratch interleaved buffer in
+	// sync with the front pair; remaining surround channels pass through
+	// untouched instead of being discarded. This also feeds an all-silent
+	// period so stereo effect tails can finish correctly.
+	toInterleaved(m_buffer->groupBuffers(0), m_buffer->interleavedBuffer());
 	const bool anyOutputAfterEffects = processEffects();
 
-	if (m_bufferUsage)
+	if (m_bufferUsage || anyOutputAfterEffects)
 	{
 		// Collapse the duplicated mono channel after stereo effects.
 		if (m_channelLayout.channels() == 1)

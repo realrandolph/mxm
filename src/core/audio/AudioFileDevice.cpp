@@ -92,7 +92,7 @@ void AudioFileDevice::writeBuffer(PlanarBufferView<const float> buffer,
 		return;
 	}
 
-	if (sourceLayout == m_channelLayout || sourceLayout.channels() == m_channelLayout.channels())
+	if (sourceLayout == m_channelLayout)
 	{
 		writeBufferImpl(buffer);
 		return;
