@@ -26,6 +26,9 @@
 #include <QFile>
 
 #include "ProjectRenderer.h"
+#include "AudioEngine.h"
+#include "Engine.h"
+#include "Mixer.h"
 #include "Song.h"
 #include "PerfLog.h"
 
@@ -88,8 +91,17 @@ ProjectRenderer::ProjectRenderer(
 	{
 		bool successful = false;
 
+		// WAV and FLAC store the native master layout. Encoders that only
+		// support stereo receive the master layout and convert explicitly in
+		// AudioFileDevice instead of truncating channels at the source.
+		auto layout = exportFileFormat == ExportFileFormat::Wave
+				|| exportFileFormat == ExportFileFormat::Flac
+			? Engine::mixer()->masterLayout()
+			: AudioChannelLayout::stereo();
+		if (layout.channels() == 0) { layout = AudioChannelLayout::stereo(); }
+
 		m_fileDev = audioEncoderFactory(
-					outputFilename, outputSettings, DEFAULT_CHANNELS,
+					outputFilename, outputSettings, layout,
 					Engine::audioEngine(), successful );
 		if( !successful )
 		{
@@ -167,8 +179,9 @@ void ProjectRenderer::run()
 	// Continually track and emit progress percentage to listeners.
 	while (!Engine::getSong()->isExportDone() && !m_abort)
 	{
-		const auto buffer = Engine::audioEngine()->renderNextPeriod();
-		m_fileDev->writeBuffer(buffer.data(), buffer.size());
+		Engine::audioEngine()->renderNextPeriod();
+		m_fileDev->writeBuffer(Engine::audioEngine()->renderedMasterBuffer(),
+			Engine::audioEngine()->masterLayout());
 
 		const int nprog = Engine::getSong()->getExportProgress();
 		if (m_progress != nprog)

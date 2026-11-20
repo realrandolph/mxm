@@ -137,6 +137,30 @@ int AudioDevice::convertToS16(const SampleFrame* _ab,
 
 
 
+int AudioDevice::convertToS16(PlanarBufferView<const float> ab, int_sample_t* outputBuffer,
+	const bool convertEndian)
+{
+	assert(ab.channels() == channels());
+	const auto frames = ab.frames();
+	for (f_cnt_t frame = 0; frame < frames; ++frame)
+	{
+		for (ch_cnt_t channel = 0; channel < channels(); ++channel)
+		{
+			auto value = static_cast<int_sample_t>(
+				AudioEngine::clip(ab.bufferPtr(channel)[frame]) * OUTPUT_SAMPLE_MULTIPLIER);
+			if (convertEndian)
+			{
+				value = static_cast<int_sample_t>((value & 0x00ff) << 8 | (value & 0xff00) >> 8);
+			}
+			outputBuffer[frame * channels() + channel] = value;
+		}
+	}
+	return frames * channels() * BYTES_PER_INT_SAMPLE;
+}
+
+
+
+
 void AudioDevice::clearS16Buffer( int_sample_t * _outbuf, const f_cnt_t _frames )
 {
 

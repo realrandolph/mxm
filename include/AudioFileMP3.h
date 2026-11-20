@@ -41,7 +41,7 @@ class AudioFileMP3 : public AudioFileDevice
 {
 public:
 	AudioFileMP3( OutputSettings const & outputSettings,
-			const ch_cnt_t _channels,
+			const AudioChannelLayout& layout,
 			bool & successful,
 			const QString & _file,
 			AudioEngine* audioEngine );
@@ -49,16 +49,16 @@ public:
 
 	static AudioFileDevice * getInst( const QString & outputFilename,
 					  OutputSettings const & outputSettings,
-					  const ch_cnt_t channels,
+					  const AudioChannelLayout& layout,
 					  AudioEngine* audioEngine,
 					  bool & successful )
 	{
-		return new AudioFileMP3( outputSettings, channels, successful,
+		return new AudioFileMP3( outputSettings, layout, successful,
 					 outputFilename, audioEngine );
 	}
 
 protected:
-	void writeBuffer(const SampleFrame* /* _buf*/, const f_cnt_t /*_frames*/) override;
+	void writeBufferImpl(PlanarBufferView<const float> buffer) override;
 
 private:
 	void flushRemainingBuffers();

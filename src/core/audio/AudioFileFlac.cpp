@@ -32,8 +32,8 @@
 namespace mxm
 {
 
-AudioFileFlac::AudioFileFlac(OutputSettings const& outputSettings, ch_cnt_t const channels, bool& successful, QString const& file, AudioEngine* audioEngine):
-	AudioFileDevice(outputSettings,channels,file,audioEngine),
+AudioFileFlac::AudioFileFlac(OutputSettings const& outputSettings, const AudioChannelLayout& layout, bool& successful, QString const& file, AudioEngine* audioEngine):
+	AudioFileDevice(outputSettings, layout, file, audioEngine),
 	m_sf(nullptr)
 {
 	successful = outputFileOpened() && startEncoding();
@@ -87,34 +87,38 @@ bool AudioFileFlac::startEncoding()
 	return true;
 }
 
-void AudioFileFlac::writeBuffer(const SampleFrame* _ab, f_cnt_t const frames)
+void AudioFileFlac::writeBufferImpl(PlanarBufferView<const float> buffer)
 {
 	OutputSettings::BitDepth depth = getOutputSettings().getBitDepth();
 	float clipvalue = std::nextafterf( -1.0f, 0.0f );
+	const auto frames = buffer.frames();
+	const auto chans = channels();
 
 	if (depth == OutputSettings::BitDepth::Depth24Bit || depth == OutputSettings::BitDepth::Depth32Bit) // Float encoding
 	{
-		auto buf = std::vector<sample_t>(frames * channels());
+		auto interleaved = std::vector<sample_t>(frames * chans);
 		for(f_cnt_t frame = 0; frame < frames; ++frame)
 		{
-			for(ch_cnt_t channel=0; channel<channels(); ++channel)
+			for(ch_cnt_t channel = 0; channel < chans; ++channel)
 			{
 				// Clip the negative side to just above -1.0 in order to prevent it from changing sign
 				// Upstream issue: https://github.com/erikd/libsndfile/issues/309
 				// When this commit is reverted libsndfile-1.0.29 must be made a requirement for FLAC
-				buf[frame*channels() + channel] = std::max(clipvalue, _ab[frame][channel]);
+				interleaved[frame * chans + channel] =
+					std::max(clipvalue, buffer.bufferPtr(channel)[frame]);
 			}
 		}
-		sf_writef_float(m_sf, static_cast<float*>(buf.data()), frames);
+		sf_writef_float(m_sf, static_cast<float*>(interleaved.data()), frames);
 	}
 	else // integer PCM encoding
 	{
-		auto buf = std::vector<int_sample_t>(frames * channels());
-		convertToS16(_ab, frames, buf.data(), isBigEndian());
-		sf_writef_short(m_sf, static_cast<short*>(buf.data()), frames);
+		auto interleaved = std::vector<int_sample_t>(frames * chans);
+		convertToS16(buffer, interleaved.data(), isBigEndian());
+		sf_writef_short(m_sf, static_cast<short*>(interleaved.data()), frames);
 	}
-
 }
+
+
 
 
 void AudioFileFlac::finishEncoding()

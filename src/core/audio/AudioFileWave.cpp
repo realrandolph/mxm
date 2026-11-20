@@ -27,15 +27,46 @@
 #include "endian_handling.h"
 #include "AudioEngine.h"
 
+#include <vector>
+
 
 namespace mxm
 {
 
+namespace
+{
+
+auto sndfileChannelMap(SpeakerRole role) -> int
+{
+	switch (role)
+	{
+	case SpeakerRole::FrontLeft: return SF_CHANNEL_MAP_FRONT_LEFT;
+	case SpeakerRole::FrontRight: return SF_CHANNEL_MAP_FRONT_RIGHT;
+	case SpeakerRole::FrontCenter: return SF_CHANNEL_MAP_FRONT_CENTER;
+	case SpeakerRole::Lfe: return SF_CHANNEL_MAP_LFE;
+	case SpeakerRole::BackLeft: return SF_CHANNEL_MAP_REAR_LEFT;
+	case SpeakerRole::BackRight: return SF_CHANNEL_MAP_REAR_RIGHT;
+	case SpeakerRole::BackCenter: return SF_CHANNEL_MAP_REAR_CENTER;
+	case SpeakerRole::SideLeft: return SF_CHANNEL_MAP_SIDE_LEFT;
+	case SpeakerRole::SideRight: return SF_CHANNEL_MAP_SIDE_RIGHT;
+	case SpeakerRole::FrontLeftOfCenter: return SF_CHANNEL_MAP_FRONT_LEFT_OF_CENTER;
+	case SpeakerRole::FrontRightOfCenter: return SF_CHANNEL_MAP_FRONT_RIGHT_OF_CENTER;
+	case SpeakerRole::TopFrontLeft: return SF_CHANNEL_MAP_TOP_FRONT_LEFT;
+	case SpeakerRole::TopFrontRight: return SF_CHANNEL_MAP_TOP_FRONT_RIGHT;
+	case SpeakerRole::TopBackLeft: return SF_CHANNEL_MAP_TOP_REAR_LEFT;
+	case SpeakerRole::TopBackRight: return SF_CHANNEL_MAP_TOP_REAR_RIGHT;
+	case SpeakerRole::Unknown: return SF_CHANNEL_MAP_INVALID;
+	}
+	return SF_CHANNEL_MAP_INVALID;
+}
+
+} // namespace
+
 AudioFileWave::AudioFileWave( OutputSettings const & outputSettings,
-				const ch_cnt_t channels, bool & successful,
+				const AudioChannelLayout& layout, bool & successful,
 				const QString & file,
 				AudioEngine* audioEngine ) :
-	AudioFileDevice( outputSettings, channels, file, audioEngine ),
+	AudioFileDevice( outputSettings, layout, file, audioEngine ),
 	m_sf( nullptr )
 {
 	successful = outputFileOpened() && startEncoding();
@@ -60,7 +91,8 @@ bool AudioFileWave::startEncoding()
 	m_si.sections = 1;
 	m_si.seekable = 0;
 
-	m_si.format = SF_FORMAT_WAV;
+	// WAVE_FORMAT_EXTENSIBLE carries the speaker mask for multichannel files.
+	m_si.format = channels() > DEFAULT_CHANNELS ? SF_FORMAT_WAVEX : SF_FORMAT_WAV;
 
 	switch( getOutputSettings().getBitDepth() )
 	{
@@ -90,33 +122,44 @@ bool AudioFileWave::startEncoding()
 
 	sf_set_string ( m_sf, SF_STR_SOFTWARE, "MXM" );
 
+	if (channels() > DEFAULT_CHANNELS && channelLayout().hasKnownRoles())
+	{
+		auto channelMap = std::vector<int>(channels());
+		for (ch_cnt_t channel = 0; channel < channels(); ++channel)
+		{
+			channelMap[channel] = sndfileChannelMap(channelLayout().role(channel));
+		}
+		sf_command(m_sf, SFC_SET_CHANNEL_MAP_INFO, channelMap.data(),
+			static_cast<int>(channelMap.size() * sizeof(int)));
+	}
+
 	return true;
 }
 
-void AudioFileWave::writeBuffer(const SampleFrame* _ab, const f_cnt_t _frames)
+void AudioFileWave::writeBufferImpl(PlanarBufferView<const float> buffer)
 {
 	OutputSettings::BitDepth bitDepth = getOutputSettings().getBitDepth();
+	const auto frames = buffer.frames();
+	const auto chans = channels();
 
 	if( bitDepth == OutputSettings::BitDepth::Depth32Bit || bitDepth == OutputSettings::BitDepth::Depth24Bit )
 	{
-		auto buf = new float[_frames * channels()];
-		for( f_cnt_t frame = 0; frame < _frames; ++frame )
+		auto interleaved = std::vector<float>(frames * chans);
+		for( f_cnt_t frame = 0; frame < frames; ++frame )
 		{
-			for( ch_cnt_t chnl = 0; chnl < channels(); ++chnl )
+			for( ch_cnt_t channel = 0; channel < chans; ++channel )
 			{
-				buf[frame * channels() + chnl] = _ab[frame][chnl];
+				interleaved[frame * chans + channel] = buffer.bufferPtr(channel)[frame];
 			}
 		}
-		sf_writef_float( m_sf, buf, _frames );
-		delete[] buf;
+		sf_writef_float( m_sf, interleaved.data(), frames );
 	}
 	else
 	{
-		auto buf = new int_sample_t[_frames * channels()];
-		convertToS16(_ab, _frames, buf, isBigEndian());
+		auto interleaved = std::vector<int_sample_t>(frames * chans);
+		convertToS16(buffer, interleaved.data(), isBigEndian());
 
-		sf_writef_short( m_sf, buf, _frames );
-		delete[] buf;
+		sf_writef_short( m_sf, interleaved.data(), frames );
 	}
 }
 

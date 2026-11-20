@@ -36,15 +36,16 @@ namespace mxm
 {
 
 AudioFileMP3::AudioFileMP3(	OutputSettings const & outputSettings,
-				const ch_cnt_t channels,
+				const AudioChannelLayout& layout,
 				bool & successful,
 				const QString & file,
 				AudioEngine* audioEngine ) :
-	AudioFileDevice( outputSettings, channels, file, audioEngine )
+	AudioFileDevice( outputSettings, layout, file, audioEngine )
 {
 	successful = true;
-	// For now only accept stereo sources
-	successful &= channels == 2;
+	// MP3 is a stereo/mono format. ProjectRenderer supplies a stereo layout
+	// for this encoder and AudioFileDevice converts the master mix to it.
+	successful &= channels() == 2;
 	successful &= initEncoder();
 	successful &= outputFileOpened();
 }
@@ -55,28 +56,33 @@ AudioFileMP3::~AudioFileMP3()
 	tearDownEncoder();
 }
 
-void AudioFileMP3::writeBuffer(const SampleFrame* _buf, const f_cnt_t _frames)
+void AudioFileMP3::writeBufferImpl(PlanarBufferView<const float> buffer)
 {
-	if (_frames < 1)
+	const auto frames = buffer.frames();
+	if (frames < 1)
 	{
 		return;
 	}
 
-	std::vector<float> interleavedDataBuffer(_frames * 2);
-	for (f_cnt_t i = 0; i < _frames; ++i)
+	std::vector<float> interleavedDataBuffer(frames * 2);
+	for (f_cnt_t frame = 0; frame < frames; ++frame)
 	{
-		interleavedDataBuffer[2*i] = _buf[i][0];
-		interleavedDataBuffer[2*i + 1] = _buf[i][1];
+		interleavedDataBuffer[2 * frame] = buffer.bufferPtr(0)[frame];
+		interleavedDataBuffer[2 * frame + 1] = buffer.bufferPtr(1)[frame];
 	}
 
-	size_t minimumBufferSize = 1.25 * _frames + 7200;
+	size_t minimumBufferSize = 1.25 * frames + 7200;
 	std::vector<unsigned char> encodingBuffer(minimumBufferSize);
 
-	int bytesWritten = lame_encode_buffer_interleaved_ieee_float(m_lame, &interleavedDataBuffer[0], _frames, &encodingBuffer[0], static_cast<int>(encodingBuffer.size()));
+	int bytesWritten = lame_encode_buffer_interleaved_ieee_float(m_lame, interleavedDataBuffer.data(),
+		frames, encodingBuffer.data(), static_cast<int>(encodingBuffer.size()));
 	assert (bytesWritten >= 0);
 
-	writeData(&encodingBuffer[0], bytesWritten);
+	writeData(encodingBuffer.data(), bytesWritten);
 }
+
+
+
 
 void AudioFileMP3::flushRemainingBuffers()
 {

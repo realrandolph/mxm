@@ -83,6 +83,9 @@ public:
 	//! @returns the number of logical output channels.
 	auto channels() const -> ch_cnt_t { return m_channelLayout.channels(); }
 
+	//! @returns the planar output buffer for hardware port registration.
+	auto audioBuffer() -> AudioBuffer& { return *m_buffer; }
+
 	const QString& name() const { return m_name; }
 	void setName(const QString& newName);
 

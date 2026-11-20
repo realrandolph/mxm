@@ -77,6 +77,12 @@ void AudioBusHandle::setChannelLayout(const AudioChannelLayout& layout)
 	const auto guard = Engine::audioEngine()->requestChangesGuard();
 	m_channelLayout = layout;
 	m_buffer = createChannelBuffer(Engine::audioEngine()->framesPerPeriod(), m_channelLayout);
+
+	// Recreate hardware ports so every logical channel gets its own port.
+	if (m_extOutputEnabled && Engine::audioEngine()->audioDev())
+	{
+		Engine::audioEngine()->audioDev()->registerPort(this);
+	}
 }
 
 
