@@ -239,7 +239,7 @@ void MixerChannel::doProcessing()
 				if( ! volBuf && ! sendBuf ) // neither volume nor send has sample-exact data...
 				{
 					const float v = sender->m_volumeModel.value() * sendModel->value();
-					MixHelpers::addPlanarConverted(
+					addPlanarConverted(
 						source, sender->m_channelLayout, destination, m_channelLayout, v);
 				}
 				else
@@ -736,7 +736,7 @@ void Mixer::mixToChannel(const AudioBuffer& buffer, const AudioChannelLayout& la
 	if (!channel->m_muteModel.value())
 	{
 		channel->m_lock.lock();
-		MixHelpers::addPlanarConverted(
+		addPlanarConverted(
 			logicalBuffers(buffer, layout), layout,
 			logicalBuffers(*channel->m_buffer, channel->m_channelLayout), channel->m_channelLayout);
 		// Conversion can move signal between channels (for example centre into

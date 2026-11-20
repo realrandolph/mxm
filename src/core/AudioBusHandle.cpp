@@ -208,7 +208,7 @@ void AudioBusHandle::doProcessing()
 			if (multichannel->hasAnySignal())
 			{
 				m_bufferUsage = true;
-				MixHelpers::addPlanarConverted(
+				addPlanarConverted(
 					logicalBuffers(*multichannel, ph->multichannelLayout()),
 					ph->multichannelLayout(), logical, m_channelLayout);
 			}

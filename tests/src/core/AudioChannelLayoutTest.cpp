@@ -68,11 +68,15 @@ private slots:
 	//! Round trips every named layout through `toString()` and `fromString()`
 	void RoundTrip_StandardLayouts()
 	{
-		const auto cases = std::array<std::pair<AudioChannelLayout, const char*>, 4>{{
+		const auto cases = std::array<std::pair<AudioChannelLayout, const char*>, 8>{{
 			{AudioChannelLayout::mono(), "mono"},
 			{AudioChannelLayout::stereo(), "stereo"},
+			{AudioChannelLayout::quadraphonic(), "4.0"},
+			{AudioChannelLayout::surround50(), "5.0"},
 			{AudioChannelLayout::surround51(), "5.1"},
+			{AudioChannelLayout::surround61(), "6.1"},
 			{AudioChannelLayout::surround71(), "7.1"},
+			{AudioChannelLayout::surround712(), "7.1.2"},
 		}};
 
 		for (const auto& [layout, text] : cases)
@@ -126,15 +130,26 @@ private slots:
 		expect(1, {SpeakerRole::FrontCenter});
 		expect(2, {SpeakerRole::FrontLeft, SpeakerRole::FrontRight});
 		expect(3, {SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter});
+		expect(4, {SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::BackLeft, SpeakerRole::BackRight});
+		expect(5,
+			{SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter, SpeakerRole::BackLeft,
+				SpeakerRole::BackRight});
 		expect(6,
 			{SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter, SpeakerRole::Lfe,
 				SpeakerRole::BackLeft, SpeakerRole::BackRight});
+		expect(7,
+			{SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter, SpeakerRole::Lfe,
+				SpeakerRole::BackLeft, SpeakerRole::BackRight, SpeakerRole::BackCenter});
 		expect(8,
 			{SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter, SpeakerRole::Lfe,
 				SpeakerRole::BackLeft, SpeakerRole::BackRight, SpeakerRole::SideLeft, SpeakerRole::SideRight});
+		expect(10,
+			{SpeakerRole::FrontLeft, SpeakerRole::FrontRight, SpeakerRole::FrontCenter, SpeakerRole::Lfe,
+				SpeakerRole::BackLeft, SpeakerRole::BackRight, SpeakerRole::SideLeft, SpeakerRole::SideRight,
+				SpeakerRole::TopFrontLeft, SpeakerRole::TopFrontRight});
 
 		// Channel counts without a standard layout have no roles at all
-		for (const auto channels : {ch_cnt_t{4}, ch_cnt_t{5}, ch_cnt_t{7}, ch_cnt_t{12}})
+		for (const auto channels : {ch_cnt_t{9}, ch_cnt_t{11}, ch_cnt_t{12}})
 		{
 			const auto roles = AudioChannelLayout::rolesFor(channels);
 			QCOMPARE(static_cast<int>(roles[0]), static_cast<int>(SpeakerRole::Unknown));
@@ -144,9 +159,13 @@ private slots:
 
 		QVERIFY(AudioChannelLayout::mono().hasKnownRoles());
 		QVERIFY(AudioChannelLayout::stereo().hasKnownRoles());
-		QVERIFY(AudioChannelLayout::surround51().hasKnownRoles());
-		QVERIFY(AudioChannelLayout::surround71().hasKnownRoles());
 		QVERIFY(AudioChannelLayout::standard(3).hasKnownRoles());
+		QVERIFY(AudioChannelLayout::quadraphonic().hasKnownRoles());
+		QVERIFY(AudioChannelLayout::surround50().hasKnownRoles());
+		QVERIFY(AudioChannelLayout::surround51().hasKnownRoles());
+		QVERIFY(AudioChannelLayout::surround61().hasKnownRoles());
+		QVERIFY(AudioChannelLayout::surround71().hasKnownRoles());
+		QVERIFY(AudioChannelLayout::surround712().hasKnownRoles());
 		QVERIFY(!AudioChannelLayout{}.hasKnownRoles());
 		QVERIFY(!AudioChannelLayout::discrete(6).hasKnownRoles());
 	}
@@ -157,8 +176,13 @@ private slots:
 		QVERIFY(AudioChannelLayout::fromString(QString{}) == AudioChannelLayout::stereo());
 		QCOMPARE(AudioChannelLayout::fromString(QString{}).channels(), ch_cnt_t{2});
 		QVERIFY(AudioChannelLayout::fromString(QStringLiteral("stereo"), 8) == AudioChannelLayout::stereo());
+		QVERIFY(AudioChannelLayout::fromString(QStringLiteral(" 4.0 ")) == AudioChannelLayout::quadraphonic());
+		QVERIFY(AudioChannelLayout::fromString(QStringLiteral("quad")) == AudioChannelLayout::quadraphonic());
+		QVERIFY(AudioChannelLayout::fromString(QStringLiteral(" 5.0 ")) == AudioChannelLayout::surround50());
 		QVERIFY(AudioChannelLayout::fromString(QStringLiteral(" 5.1 ")) == AudioChannelLayout::surround51());
+		QVERIFY(AudioChannelLayout::fromString(QStringLiteral("6.1")) == AudioChannelLayout::surround61());
 		QVERIFY(AudioChannelLayout::fromString(QStringLiteral("7.1")) == AudioChannelLayout::surround71());
+		QVERIFY(AudioChannelLayout::fromString(QStringLiteral("7.1.2")) == AudioChannelLayout::surround712());
 
 		const auto unknown = AudioChannelLayout::fromString(QStringLiteral("nonsense"), 6);
 		QCOMPARE(unknown.channels(), ch_cnt_t{6});
@@ -369,6 +393,277 @@ private slots:
 			QVERIFY(interleavedFromPlanar[frame * 2 + 1] == right);
 			QVERIFY(planarDestinationLeft[frame] == left);
 			QVERIFY(planarDestinationRight[frame] == right);
+		}
+	}
+
+	//! Preset registry entries, order, names, and lookup
+	void PresetRegistry()
+	{
+		const auto& presets = AudioChannelLayout::presets();
+		QCOMPARE(presets.size(), size_t{9});
+
+		const auto expectedNames = std::array<const char*, 9>{
+			"Mono", "Stereo", "3.0", "4.0 (Quad)", "5.0", "5.1", "6.1", "7.1", "7.1.2"
+		};
+		const auto expectedLayouts = std::array<AudioChannelLayout, 9>{
+			AudioChannelLayout::mono(),
+			AudioChannelLayout::stereo(),
+			AudioChannelLayout::standard(3),
+			AudioChannelLayout::quadraphonic(),
+			AudioChannelLayout::surround50(),
+			AudioChannelLayout::surround51(),
+			AudioChannelLayout::surround61(),
+			AudioChannelLayout::surround71(),
+			AudioChannelLayout::surround712(),
+		};
+
+		for (size_t i = 0; i < 9; ++i)
+		{
+			QCOMPARE(presets[i].name, QString::fromLatin1(expectedNames[i]));
+			QVERIFY(presets[i].layout == expectedLayouts[i]);
+			QCOMPARE(AudioChannelLayout::presetIndex(expectedLayouts[i]), static_cast<int>(i));
+			QVERIFY(AudioChannelLayout::fromPresetIndex(static_cast<int>(i)) == expectedLayouts[i]);
+			QCOMPARE(expectedLayouts[i].displayName(), QString::fromLatin1(expectedNames[i]));
+		}
+
+		QCOMPARE(AudioChannelLayout::presetIndex(AudioChannelLayout::discrete(6)), -1);
+		QCOMPARE(AudioChannelLayout::presetIndex(AudioChannelLayout{}), -1);
+		QCOMPARE(AudioChannelLayout::fromPresetIndex(-1), AudioChannelLayout{});
+		QCOMPARE(AudioChannelLayout::fromPresetIndex(9), AudioChannelLayout{});
+
+		QCOMPARE(AudioChannelLayout{}.displayName(), QStringLiteral("Empty"));
+		QCOMPARE(AudioChannelLayout::discrete(4).displayName(), QStringLiteral("4-channel discrete"));
+	}
+
+	//! Stereo to 5.1 preserves FL/FR and leaves all other channels zero
+	void Convert_StereoTo51()
+	{
+		const auto srcLayout = AudioChannelLayout::stereo();
+		const auto dstLayout = AudioChannelLayout::surround51();
+		const auto src = std::vector<float>{1.5f, -2.5f};
+		auto dst = std::vector<float>(6, 0.f);
+
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		QVERIFY(isClose(dst[0], 1.5f));  // FL
+		QVERIFY(isClose(dst[1], -2.5f)); // FR
+		QVERIFY(isClose(dst[2], 0.f));   // FC
+		QVERIFY(isClose(dst[3], 0.f));   // LFE
+		QVERIFY(isClose(dst[4], 0.f));   // BL
+		QVERIFY(isClose(dst[5], 0.f));   // BR
+	}
+
+	//! 5.1 to stereo matches downmixFrameToStereo exactly
+	void Convert_51ToStereo()
+	{
+		const auto srcLayout = AudioChannelLayout::surround51();
+		const auto dstLayout = AudioChannelLayout::stereo();
+		const auto src = std::vector<float>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};
+		auto dst = std::vector<float>(2, 0.f);
+
+		float expectedL = 0.f;
+		float expectedR = 0.f;
+		downmixFrameToStereo(src.data(), srcLayout, expectedL, expectedR);
+
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		QVERIFY(isClose(dst[0], expectedL));
+		QVERIFY(isClose(dst[1], expectedR));
+	}
+
+	//! LFE is routed exclusively to dst LFE when present
+	void Convert_LfeToLfe()
+	{
+		const auto srcLayout = AudioChannelLayout::surround51();
+		const auto dstLayout = AudioChannelLayout::surround71();
+		const auto src = std::vector<float>{0.f, 0.f, 0.f, 0.8f, 0.f, 0.f};
+		auto dst = std::vector<float>(8, 0.f);
+
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		for (ch_cnt_t c = 0; c < 8; ++c)
+		{
+			if (c == 3) // LFE channel in 7.1
+			{
+				QVERIFY(isClose(dst[c], 0.8f));
+			}
+			else
+			{
+				QVERIFY(isClose(dst[c], 0.f));
+			}
+		}
+	}
+
+	//! Mono to 5.1 routes into FrontCenter
+	void Convert_MonoTo51()
+	{
+		const auto srcLayout = AudioChannelLayout::mono();
+		const auto dstLayout = AudioChannelLayout::surround51();
+		const auto src = std::vector<float>{0.75f};
+		auto dst = std::vector<float>(6, 0.f);
+
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		QVERIFY(isClose(dst[0], 0.f));   // FL
+		QVERIFY(isClose(dst[1], 0.f));   // FR
+		QVERIFY(isClose(dst[2], 0.75f)); // FC
+		QVERIFY(isClose(dst[3], 0.f));   // LFE
+		QVERIFY(isClose(dst[4], 0.f));   // BL
+		QVERIFY(isClose(dst[5], 0.f));   // BR
+	}
+
+	//! Same-layout conversion adds into dst with gain without clearing
+	void Convert_SameLayoutAdditive()
+	{
+		const auto layout = AudioChannelLayout::surround51();
+		const auto src = std::vector<float>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};
+		auto dst = std::vector<float>{10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
+
+		addFrameConverted(src.data(), layout, dst.data(), layout, 0.5f);
+
+		QVERIFY(isClose(dst[0], 10.5f));
+		QVERIFY(isClose(dst[1], 21.0f));
+		QVERIFY(isClose(dst[2], 31.5f));
+		QVERIFY(isClose(dst[3], 42.0f));
+		QVERIFY(isClose(dst[4], 52.5f));
+		QVERIFY(isClose(dst[5], 63.0f));
+	}
+
+	//! 7.1.2 to 5.1 maps known channels and folds top channels into FL/FR
+	void Convert_712To51()
+	{
+		const auto srcLayout = AudioChannelLayout::surround712();
+		const auto dstLayout = AudioChannelLayout::surround51();
+
+		auto src = std::vector<float>(10, 0.f);
+		src[0] = 1.f; // FL
+		src[1] = 2.f; // FR
+		src[2] = 3.f; // FC
+		src[3] = 4.f; // LFE
+		src[4] = 5.f; // BL
+		src[5] = 6.f; // BR
+		src[8] = 7.f; // TFL
+		src[9] = 8.f; // TFR
+
+		auto dst = std::vector<float>(6, 0.f);
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		const auto expectedFL = 1.f + (7.f + 8.f) * CentreAndSurroundGain;
+		const auto expectedFR = 2.f + (7.f + 8.f) * CentreAndSurroundGain;
+
+		QVERIFY2(isClose(dst[0], expectedFL),
+			qPrintable(QStringLiteral("FL %1 expected %2").arg(dst[0]).arg(expectedFL)));
+		QVERIFY2(isClose(dst[1], expectedFR),
+			qPrintable(QStringLiteral("FR %1 expected %2").arg(dst[1]).arg(expectedFR)));
+		QVERIFY(isClose(dst[2], 3.f)); // FC mapped
+		QVERIFY(isClose(dst[3], 4.f)); // LFE mapped
+		QVERIFY(isClose(dst[4], 5.f)); // BL mapped
+		QVERIFY(isClose(dst[5], 6.f)); // BR mapped
+	}
+
+	//! Discrete 6 to discrete 8 maps by index and does not lose extra signal
+	void Convert_Discrete6To8()
+	{
+		const auto srcLayout = AudioChannelLayout::discrete(6);
+		const auto dstLayout = AudioChannelLayout::discrete(8);
+		const auto src = std::vector<float>{1.f, 2.f, 3.f, 4.f, 5.f, 6.f};
+		auto dst = std::vector<float>(8, 0.f);
+
+		addFrameConverted(src.data(), srcLayout, dst.data(), dstLayout, 1.0f);
+
+		for (ch_cnt_t c = 0; c < 6; ++c)
+		{
+			QVERIFY(isClose(dst[c], src[c]));
+		}
+		QVERIFY(isClose(dst[6], 0.f));
+		QVERIFY(isClose(dst[7], 0.f));
+	}
+
+	//! Planar block conversion matches interleaved frame conversion
+	void Convert_PlanarMatchesFrame()
+	{
+		constexpr auto frames = f_cnt_t{5};
+		const auto srcLayout = AudioChannelLayout::surround712();
+		const auto dstLayout = AudioChannelLayout::surround51();
+		const auto srcChannels = srcLayout.channels();
+		const auto dstChannels = dstLayout.channels();
+
+		auto srcPlanar = std::vector<std::vector<float>>(srcChannels, std::vector<float>(frames));
+		auto srcPointers = std::vector<const float*>(srcChannels);
+		for (ch_cnt_t c = 0; c < srcChannels; ++c)
+		{
+			for (f_cnt_t f = 0; f < frames; ++f)
+			{
+				srcPlanar[c][f] = static_cast<float>(c * 10 + f + 1);
+			}
+			srcPointers[c] = srcPlanar[c].data();
+		}
+
+		auto dstPlanar = std::vector<std::vector<float>>(dstChannels, std::vector<float>(frames, 100.f));
+		auto dstPointers = std::vector<float*>(dstChannels);
+		for (ch_cnt_t c = 0; c < dstChannels; ++c)
+		{
+			dstPointers[c] = dstPlanar[c].data();
+		}
+
+		addPlanarConverted(
+			PlanarBufferView<const float>{srcPointers.data(), srcChannels, frames},
+			srcLayout,
+			PlanarBufferView<float>{dstPointers.data(), dstChannels, frames},
+			dstLayout,
+			0.75f);
+
+		for (f_cnt_t f = 0; f < frames; ++f)
+		{
+			auto frameSrc = std::vector<float>(srcChannels);
+			for (ch_cnt_t c = 0; c < srcChannels; ++c)
+			{
+				frameSrc[c] = srcPlanar[c][f];
+			}
+			auto frameDst = std::vector<float>(dstChannels, 100.f);
+			addFrameConverted(frameSrc.data(), srcLayout, frameDst.data(), dstLayout, 0.75f);
+
+			for (ch_cnt_t c = 0; c < dstChannels; ++c)
+			{
+				QVERIFY(isClose(dstPlanar[c][f], frameDst[c]));
+			}
+		}
+	}
+
+	//! Planar fast path for same layout adds with gain
+	void Convert_PlanarSameLayout()
+	{
+		constexpr auto frames = f_cnt_t{4};
+		const auto layout = AudioChannelLayout::surround51();
+		const auto channels = layout.channels();
+
+		auto srcPlanar = std::vector<std::vector<float>>(channels, std::vector<float>(frames, 2.0f));
+		auto srcPointers = std::vector<const float*>(channels);
+		for (ch_cnt_t c = 0; c < channels; ++c)
+		{
+			srcPointers[c] = srcPlanar[c].data();
+		}
+
+		auto dstPlanar = std::vector<std::vector<float>>(channels, std::vector<float>(frames, 10.0f));
+		auto dstPointers = std::vector<float*>(channels);
+		for (ch_cnt_t c = 0; c < channels; ++c)
+		{
+			dstPointers[c] = dstPlanar[c].data();
+		}
+
+		addPlanarConverted(
+			PlanarBufferView<const float>{srcPointers.data(), channels, frames},
+			layout,
+			PlanarBufferView<float>{dstPointers.data(), channels, frames},
+			layout,
+			0.5f);
+
+		for (ch_cnt_t c = 0; c < channels; ++c)
+		{
+			for (f_cnt_t f = 0; f < frames; ++f)
+			{
+				QVERIFY(isClose(dstPlanar[c][f], 11.0f));
+			}
 		}
 	}
 };
