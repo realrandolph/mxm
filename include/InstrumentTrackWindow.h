@@ -45,6 +45,7 @@ namespace gui
 {
 
 class AutomatableButton;
+class ComboBox;
 class EffectRackView;
 class MixerChannelLcdSpinBox;
 class InstrumentFunctionArpeggioView;
@@ -158,6 +159,7 @@ private:
 	LcdSpinBox* m_pitchRangeSpinBox;
 	QLabel * m_pitchRangeLabel;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
+	ComboBox* m_channelLayoutComboBox;
 	QToolButton* m_recordButton;
 	QComboBox* m_recordChannelComboBox;
 	QTimer m_recordStartTimer;

@@ -38,16 +38,16 @@
 namespace mxm
 {
 
-AudioFileOgg::AudioFileOgg(OutputSettings const& outputSettings, const ch_cnt_t channels, bool& successful,
+AudioFileOgg::AudioFileOgg(OutputSettings const& outputSettings, const AudioChannelLayout& layout, bool& successful,
 	const QString& file, AudioEngine* audioEngine)
-	: AudioFileDevice(outputSettings, channels, file, audioEngine)
+	: AudioFileDevice(outputSettings, layout, file, audioEngine)
 {
 	vorbis_info_init(&m_vi);
 
 	const auto bitrate = outputSettings.bitrate();
 	static constexpr auto maxBitrate = 320;
 
-	if (vorbis_encode_init_vbr(&m_vi, channels, sampleRate(), static_cast<float>(bitrate) / maxBitrate))
+	if (vorbis_encode_init_vbr(&m_vi, channels(), sampleRate(), static_cast<float>(bitrate) / maxBitrate))
 	{
 		successful = false;
 		return;
@@ -80,7 +80,7 @@ AudioFileOgg::AudioFileOgg(OutputSettings const& outputSettings, const ch_cnt_t 
 AudioFileOgg::~AudioFileOgg()
 {
 	// writing 0 frames is how we flush any remaining data to the file
-	writeBuffer(nullptr, 0);
+	writeBufferImpl({});
 
 	ogg_stream_clear(&m_oss);
 	vorbis_block_clear(&m_vb);
@@ -89,31 +89,25 @@ AudioFileOgg::~AudioFileOgg()
 	vorbis_info_clear(&m_vi);
 }
 
-void AudioFileOgg::writeBuffer(const SampleFrame* _ab, const f_cnt_t _frames)
+void AudioFileOgg::writeBufferImpl(PlanarBufferView<const float> buffer)
 {
-	if (_frames == 0)
+	const auto frames = buffer.frames();
+	if (frames == 0)
 	{
 		vorbis_analysis_wrote(&m_vds, 0);
 	}
 	else
 	{
-		const auto vab = vorbis_analysis_buffer(&m_vds, _frames);
-		for (auto c = 0; c < channels(); ++c)
+		const auto vab = vorbis_analysis_buffer(&m_vds, frames);
+		for (ch_cnt_t channel = 0; channel < channels(); ++channel)
 		{
-			if (c < DEFAULT_CHANNELS)
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
 			{
-				for (auto i = std::size_t{0}; i < _frames; ++i)
-				{
-					vab[c][i] = _ab[i][c];
-				}
-			}
-			else
-			{
-				std::fill_n(vab[c], _frames, 0.0f);
+				vab[channel][frame] = buffer.bufferPtr(channel)[frame];
 			}
 		}
 
-		vorbis_analysis_wrote(&m_vds, _frames);
+		vorbis_analysis_wrote(&m_vds, frames);
 	}
 
 	while (vorbis_analysis_blockout(&m_vds, &m_vb) == 1)

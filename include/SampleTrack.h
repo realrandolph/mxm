@@ -32,6 +32,7 @@
 #include <QPointer>
 
 #include "AudioBusHandle.h"
+#include "ComboBoxModel.h"
 #include "Track.h"
 
 
@@ -82,6 +83,13 @@ public:
 		return &m_mixerChannelModel;
 	}
 
+	//! @returns the selectable channel layouts of this track's output bus.
+	ComboBoxModel* channelLayoutModel() { return &m_channelLayoutModel; }
+	auto channelLayout() const -> const AudioChannelLayout&
+	{
+		return m_audioBusHandle.channelLayout();
+	}
+
 	inline AudioBusHandle* audioBusHandle()
 	{
 		return &m_audioBusHandle;
@@ -110,11 +118,14 @@ public slots:
 	void updateClips();
 	void setPlayingClips( bool isPlaying );
 	void updateMixerChannel();
+	void updateChannelLayout();
 
 private:
 	FloatModel m_volumeModel;
 	FloatModel m_panningModel;
 	IntModel m_mixerChannelModel;
+	ComboBoxModel m_channelLayoutModel;
+	std::vector<AudioChannelLayout> m_layoutChoices;
 	AudioBusHandle m_audioBusHandle;
 	bool m_isPlaying;
 	std::atomic_bool m_recording{false};

@@ -25,7 +25,9 @@
 #include "Mixer.h"
 
 #include <QDomElement>
+#include <array>
 
+#include "AudioChannelBuffer.h"
 #include "AudioEngine.h"
 #include "AudioEngineWorkerThread.h"
 #include "Mixer.h"
@@ -36,6 +38,7 @@
 #include "PatternStore.h"
 #include "SampleTrack.h"
 #include "TrackContainer.h" // For TrackContainer::TrackList typedef
+#include "ValueBuffer.h"
 
 namespace mxm
 {
@@ -64,7 +67,11 @@ MixerChannel::MixerChannel( int idx, Model * _parent ) :
 	m_stillRunning( false ),
 	m_peakLeft( 0.0f ),
 	m_peakRight( 0.0f ),
-	m_buffer(Engine::audioEngine()->framesPerPeriod()),
+	m_buffer(nullptr),
+	m_channelLayout(AudioChannelLayout::stereo()),
+	m_channelLayoutModel(_parent),
+	m_layoutChoices(),
+	m_peaks(m_channelLayout.channels(), 0.f),
 	m_muteModel( false, _parent ),
 	m_soloModel( false, _parent ),
 	m_volumeModel(1.f, 0.f, 2.f, 0.001f, _parent),
@@ -74,7 +81,52 @@ MixerChannel::MixerChannel( int idx, Model * _parent ) :
 	m_dependenciesMet(0),
 	m_channelIndex(idx)
 {
-	m_buffer.allocateInterleavedBuffer();
+	for (const auto& preset : AudioChannelLayout::presets())
+	{
+		m_layoutChoices.push_back(preset.layout);
+		m_channelLayoutModel.addItem(preset.name);
+	}
+	m_channelLayoutModel.setValue(AudioChannelLayout::presetIndex(m_channelLayout));
+
+	QObject::connect(&m_channelLayoutModel, &ComboBoxModel::dataChanged, &m_channelLayoutModel, [this] {
+		const auto index = m_channelLayoutModel.value();
+		if (index >= 0 && static_cast<std::size_t>(index) < m_layoutChoices.size())
+		{
+			setChannelLayout(m_layoutChoices[index]);
+		}
+	});
+
+	m_buffer = createChannelBuffer(Engine::audioEngine()->framesPerPeriod(), m_channelLayout);
+	if (isMaster())
+	{
+		Engine::audioEngine()->setMasterLayout(m_channelLayout);
+	}
+}
+
+
+
+
+void MixerChannel::setChannelLayout(const AudioChannelLayout& layout)
+{
+	if (layout.channels() == 0 || layout == m_channelLayout) { return; }
+
+	const auto guard = Engine::audioEngine()->requestChangesGuard();
+	m_channelLayout = layout;
+	m_buffer = createChannelBuffer(Engine::audioEngine()->framesPerPeriod(), m_channelLayout);
+	m_peaks.assign(m_channelLayout.channels(), 0.f);
+
+	auto found = std::find(m_layoutChoices.begin(), m_layoutChoices.end(), layout);
+	auto choice = static_cast<int>(found - m_layoutChoices.begin());
+	if (found == m_layoutChoices.end())
+	{
+		// Persisted custom/discrete layouts stay selectable instead of being
+		// silently replaced by the nearest preset.
+		m_layoutChoices.push_back(layout);
+		m_channelLayoutModel.addItem(layout.displayName());
+	}
+	m_channelLayoutModel.setValue(choice);
+
+	if (isMaster()) { Engine::audioEngine()->setMasterLayout(layout); }
 }
 
 
@@ -167,60 +219,99 @@ void MixerChannel::doProcessing()
 
 	if( m_muted == false )
 	{
+		auto destination = logicalBuffers(*m_buffer, m_channelLayout);
+
 		for( MixerRoute * senderRoute : m_receives )
 		{
 			MixerChannel * sender = senderRoute->sender();
 			FloatModel * sendModel = senderRoute->amount();
 			if( ! sendModel ) qFatal( "Error: no send model found from %d to %d", senderRoute->senderIndex(), m_channelIndex );
 
-			if (sender->m_buffer.hasAnySignal() || sender->m_stillRunning)
+			if (sender->m_buffer->hasAnySignal() || sender->m_stillRunning)
 			{
-				auto buffer = m_buffer.interleavedBuffer().asSampleFrames();
+				auto source = logicalBuffers(*sender->m_buffer, sender->m_channelLayout);
 
 				// figure out if we're getting sample-exact input
 				ValueBuffer * sendBuf = sendModel->valueBuffer();
 				ValueBuffer * volBuf = sender->m_volumeModel.valueBuffer();
 
-				// mix it's output with this one's output
-				auto ch_buf = sender->m_buffer.interleavedBuffer().asSampleFrames();
-
 				// use sample-exact mixing if sample-exact values are available
 				if( ! volBuf && ! sendBuf ) // neither volume nor send has sample-exact data...
 				{
 					const float v = sender->m_volumeModel.value() * sendModel->value();
-					MixHelpers::addMultiplied(buffer.data(), ch_buf.data(), v, fpp);
+					addPlanarConverted(
+						source, sender->m_channelLayout, destination, m_channelLayout, v);
 				}
-				else if( volBuf && sendBuf ) // both volume and send have sample-exact data
+				else
 				{
-					MixHelpers::addMultipliedByBuffers(buffer.data(), ch_buf.data(), volBuf, sendBuf, fpp);
+					// Per-frame automation does not need an allocation: gather one
+					// frame into fixed channel arrays and convert it by role.
+					std::array<float, MaxChannelsPerAudioBuffer> sourceFrame{};
+					std::array<float, MaxChannelsPerAudioBuffer> destinationFrame{};
+					const float staticGain = sender->m_volumeModel.value() * sendModel->value();
+
+					for( f_cnt_t frame = 0; frame < fpp; ++frame )
+					{
+						const auto volume = volBuf ? volBuf->values()[frame] : 1.0f;
+						const auto send = sendBuf ? sendBuf->values()[frame] : 1.0f;
+						const auto gain = staticGain * volume * send;
+
+						for( ch_cnt_t ch = 0; ch < source.channels(); ++ch )
+						{
+							sourceFrame[ch] = source.bufferPtr(ch)[frame];
+						}
+						std::fill_n(destinationFrame.begin(), m_channelLayout.channels(), 0.f);
+						addFrameConverted(
+							sourceFrame.data(), sender->m_channelLayout,
+							destinationFrame.data(), m_channelLayout, gain);
+
+						for( ch_cnt_t ch = 0; ch < m_channelLayout.channels(); ++ch )
+						{
+							destination.bufferPtr(ch)[frame] += destinationFrame[ch];
+						}
+					}
 				}
-				else if( volBuf ) // volume has sample-exact data but send does not
-				{
-					const float v = sendModel->value();
-					MixHelpers::addMultipliedByBuffer(buffer.data(), ch_buf.data(), v, volBuf, fpp);
-				}
-				else // vice versa
-				{
-					const float v = sender->m_volumeModel.value();
-					MixHelpers::addMultipliedByBuffer(buffer.data(), ch_buf.data(), v, sendBuf, fpp);
-				}
-				toPlanar(m_buffer.interleavedBuffer(), m_buffer.groupBuffers(0));
-				m_buffer.mixSilenceFlags(sender->m_buffer);
+
+				m_buffer->updateAllSilenceFlags();
 			}
 		}
 
+		// Keep the interleaved scratch in sync with the stereo pair used by
+		// effects. Off-front channels pass through the chain untouched.
+		if (m_channelLayout.channels() == 1)
+		{
+			std::copy_n(destination.bufferPtr(0), fpp, m_buffer->buffer(1).data());
+		}
+		toInterleaved(m_buffer->groupBuffers(0), m_buffer->interleavedBuffer());
+
+		m_stillRunning = m_fxChain.processAudioBuffer(*m_buffer);
+
+		if (m_channelLayout.channels() == 1)
+		{
+			auto* mono = m_buffer->buffer(0).data();
+			const auto* side = m_buffer->buffer(1).data();
+			for (f_cnt_t frame = 0; frame < fpp; ++frame)
+			{
+				mono[frame] = 0.5f * (mono[frame] + side[frame]);
+			}
+			m_buffer->silenceChannels(0b10, 2);
+		}
+
+		m_buffer->updateAllSilenceFlags();
 
 		const float v = m_volumeModel.value();
-
-		m_stillRunning = m_fxChain.processAudioBuffer(m_buffer);
-
-		const auto peakSamples = SampleFrame{m_buffer.absPeakValue(0), m_buffer.absPeakValue(1)};
-		m_peakLeft = std::max(m_peakLeft, peakSamples[0] * v);
-		m_peakRight = std::max(m_peakRight, peakSamples[1] * v);
+		m_peaks.resize(m_channelLayout.channels());
+		for (ch_cnt_t ch = 0; ch < m_channelLayout.channels(); ++ch)
+		{
+			m_peaks[ch] = std::max(m_peaks[ch], m_buffer->absPeakValue(ch) * v);
+		}
+		m_peakLeft = m_peaks.size() > 0 ? m_peaks[0] : 0.f;
+		m_peakRight = m_peaks.size() > 1 ? m_peaks[1] : m_peakLeft;
 	}
 	else
 	{
 		m_peakLeft = m_peakRight = 0.0f;
+		std::fill(m_peaks.begin(), m_peaks.end(), 0.f);
 	}
 
 	// increment dependency counter of all receivers
@@ -639,18 +730,18 @@ FloatModel * Mixer::channelSendModel( mix_ch_t fromChannel, mix_ch_t toChannel )
 
 
 
-void Mixer::mixToChannel(const AudioBuffer& buffer, mix_ch_t dest)
+void Mixer::mixToChannel(const AudioBuffer& buffer, const AudioChannelLayout& layout, mix_ch_t dest)
 {
 	const auto channel = m_mixerChannels[dest];
 	if (!channel->m_muteModel.value())
 	{
 		channel->m_lock.lock();
-		MixHelpers::add(channel->m_buffer.groupBuffers(0), buffer.groupBuffers(0));
-
-		// Copy the planar buffer to the temporary interleaved buffer so they stay in sync
-		toInterleaved(channel->m_buffer.groupBuffers(0), channel->m_buffer.interleavedBuffer());
-
-		channel->m_buffer.mixSilenceFlags(buffer);
+		addPlanarConverted(
+			logicalBuffers(buffer, layout), layout,
+			logicalBuffers(*channel->m_buffer, channel->m_channelLayout), channel->m_channelLayout);
+		// Conversion can move signal between channels (for example centre into
+		// the stereo front pair), so recompute the destination flags.
+		channel->m_buffer->updateAllSilenceFlags();
 		channel->m_lock.unlock();
 	}
 }
@@ -660,14 +751,17 @@ void Mixer::mixToChannel(const AudioBuffer& buffer, mix_ch_t dest)
 
 void Mixer::prepareMasterMix()
 {
-	m_mixerChannels[0]->m_buffer.silenceAllChannels();
+	m_mixerChannels[0]->m_buffer->silenceAllChannels();
 }
 
 
 
-void Mixer::masterMix( SampleFrame* _buf )
+
+void Mixer::masterMix(AudioBuffer& buffer)
 {
-	const int fpp = Engine::audioEngine()->framesPerPeriod();
+	const f_cnt_t fpp = Engine::audioEngine()->framesPerPeriod();
+	MixerChannel* master = m_mixerChannels[0];
+	const auto layout = master->m_channelLayout;
 
 	// add the channels that have no dependencies (no incoming senders, ie.
 	// no receives) to the jobqueue. The channels that have receives get
@@ -711,30 +805,38 @@ void Mixer::masterMix( SampleFrame* _buf )
 		AudioEngineWorkerThread::startAndWaitForJobs();
 	}
 
-	auto buffer = m_mixerChannels[0]->m_buffer.interleavedBuffer().asSampleFrames();
-
-	// handle sample-exact data in master volume fader
-	ValueBuffer * volBuf = m_mixerChannels[0]->m_volumeModel.valueBuffer();
-
-	if( volBuf )
+	// Master volume is applied while copying the channel buffer into the
+	// engine-owned output buffer. The engine reallocates that buffer when the
+	// master layout changes.
+	auto source = logicalBuffers(*master->m_buffer, layout);
+	auto destination = logicalBuffers(buffer, layout);
+	if (destination.channels() < layout.channels() || destination.frames() < fpp)
 	{
-		for( int f = 0; f < fpp; f++ )
+		// A layout change is committed under the model guard; this path only
+		// guards against a stale engine buffer during device transitions.
+		buffer.silenceAllChannels();
+	}
+	else
+	{
+		buffer.silenceAllChannels();
+		ValueBuffer * volBuf = master->m_volumeModel.valueBuffer();
+		const auto staticVolume = master->m_volumeModel.value();
+
+		for (f_cnt_t frame = 0; frame < fpp; ++frame)
 		{
-			buffer[f][0] *= volBuf->values()[f];
-			buffer[f][1] *= volBuf->values()[f];
+			const auto volume = staticVolume * (volBuf ? volBuf->values()[frame] : 1.0f);
+			for (ch_cnt_t channel = 0; channel < layout.channels(); ++channel)
+			{
+				destination.bufferPtr(channel)[frame] = source.bufferPtr(channel)[frame] * volume;
+			}
 		}
 	}
-
-	const float v = volBuf
-		? 1.0f
-		: m_mixerChannels[0]->m_volumeModel.value();
-	MixHelpers::addMultiplied(_buf, buffer.data(), v, fpp);
 
 	// clear all channel buffers and
 	// reset channel process state
 	for( int i = 0; i < numChannels(); ++i)
 	{
-		m_mixerChannels[i]->m_buffer.silenceAllChannels();
+		m_mixerChannels[i]->m_buffer->silenceAllChannels();
 		m_mixerChannels[i]->reset();
 		m_mixerChannels[i]->m_queued = false;
 		m_mixerChannels[i]->m_dependenciesMet = 0;
@@ -768,6 +870,7 @@ void Mixer::clearChannel(mix_ch_t index)
 	ch->m_muteModel.setDisplayName( ch->m_name + ">" + tr( "Mute" ) );
 	ch->m_soloModel.setDisplayName( ch->m_name + ">" + tr( "Solo" ) );
 	ch->setColor(std::nullopt);
+	ch->setChannelLayout(AudioChannelLayout::stereo());
 
 	// send only to master
 	if( index > 0)
@@ -805,6 +908,7 @@ void Mixer::saveSettings( QDomDocument & _doc, QDomElement & _this )
 		ch->m_soloModel.saveSettings( _doc, mixch, "soloed" );
 		mixch.setAttribute("num", static_cast<qulonglong>(i));
 		mixch.setAttribute( "name", ch->m_name );
+		mixch.setAttribute("channel_layout", ch->channelLayout().toString());
 		if (const auto& color = ch->color()) { mixch.setAttribute("color", color->name()); }
 
 		// add the channel sends
@@ -852,6 +956,8 @@ void Mixer::loadSettings( const QDomElement & _this )
 		m_mixerChannels[num]->m_muteModel.loadSettings( mixch, "muted" );
 		m_mixerChannels[num]->m_soloModel.loadSettings( mixch, "soloed" );
 		m_mixerChannels[num]->m_name = mixch.attribute( "name" );
+		m_mixerChannels[num]->setChannelLayout(AudioChannelLayout::fromString(
+			mixch.attribute("channel_layout"), DEFAULT_CHANNELS));
 		if (mixch.hasAttribute("color"))
 		{
 			m_mixerChannels[num]->setColor(QColor{mixch.attribute("color")});

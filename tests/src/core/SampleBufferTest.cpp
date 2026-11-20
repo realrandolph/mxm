@@ -23,6 +23,7 @@
  */
 
 #include "SampleBuffer.h"
+#include "Sample.h"
 
 #include <QtTest>
 #include <QTemporaryDir>
@@ -359,6 +360,72 @@ private slots:
 		QCOMPARE(buffer.frames(), f_cnt_t{3});
 		QCOMPARE(buffer.layout().channels(), ch_cnt_t{2});
 		QVERIFY(buffer.layout().isDiscrete());
+	}
+
+	//! 5.1 source -> 5.1 destination preserves channel identity
+	void MultichannelPlay_51To51_PreservesChannelIdentity()
+	{
+		constexpr auto frames = f_cnt_t{10};
+		constexpr auto channels = ch_cnt_t{6};
+		const auto layout = AudioChannelLayout::surround51();
+		const auto sampleRate = Engine::audioEngine()->outputSampleRate();
+
+		const auto sourceData = makeInterleaved(frames, channels);
+		const auto buffer = std::make_shared<SampleBuffer>(sourceData, channels, layout, sampleRate);
+		const auto sample = Sample{buffer};
+
+		auto state = Sample::PlaybackState{AudioResampler::Mode::Linear, channels};
+
+		auto planarStorage = std::vector<std::vector<float>>(channels, std::vector<float>(frames, 0.0f));
+		auto planarPtrs = std::vector<float*>(channels);
+		for (ch_cnt_t ch = 0; ch < channels; ++ch)
+		{
+			planarPtrs[ch] = planarStorage[ch].data();
+		}
+		auto dst = PlanarBufferView<float>{planarPtrs.data(), channels, frames};
+
+		const bool result = sample.play(dst, layout, &state, frames);
+		QVERIFY(result);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			for (ch_cnt_t ch = 0; ch < channels; ++ch)
+			{
+				QCOMPARE(dst.sample(ch, frame), sampleValue(frame, ch));
+			}
+		}
+	}
+
+	//! 5.1 source -> stereo matches the documented downmix
+	void MultichannelPlay_51ToStereo_MatchesDocumentedDownmix()
+	{
+		constexpr auto frames = f_cnt_t{10};
+		constexpr auto channels = ch_cnt_t{6};
+		const auto layout51 = AudioChannelLayout::surround51();
+		const auto layoutStereo = AudioChannelLayout::stereo();
+		const auto sampleRate = Engine::audioEngine()->outputSampleRate();
+
+		const auto sourceData = makeInterleaved(frames, channels);
+		const auto buffer = std::make_shared<SampleBuffer>(sourceData, channels, layout51, sampleRate);
+		const auto sample = Sample{buffer};
+
+		auto state = Sample::PlaybackState{AudioResampler::Mode::Linear, channels};
+
+		auto planarStorage = std::vector<std::vector<float>>(2, std::vector<float>(frames, 0.0f));
+		auto planarPtrs = std::vector<float*>{planarStorage[0].data(), planarStorage[1].data()};
+		auto dst = PlanarBufferView<float>{planarPtrs.data(), 2, frames};
+
+		const bool result = sample.play(dst, layoutStereo, &state, frames);
+		QVERIFY(result);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			float expectedLeft = 0.0f;
+			float expectedRight = 0.0f;
+			downmixFrameToStereo(sourceData.data() + frame * channels, layout51, expectedLeft, expectedRight);
+			QVERIFY(qFuzzyCompare(dst.sample(0, frame), expectedLeft));
+			QVERIFY(qFuzzyCompare(dst.sample(1, frame), expectedRight));
+		}
 	}
 };
 

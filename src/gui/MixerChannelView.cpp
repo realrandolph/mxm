@@ -24,6 +24,7 @@
 
 #include "MixerChannelView.h"
 
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QFont>
 #include <QGraphicsProxyWidget>
@@ -98,7 +99,14 @@ MixerChannelView::MixerChannelView(QWidget* parent, MixerView* mixerView, int ch
 
 	const auto mixerChannel = Engine::mixer()->mixerChannel(channelIndex);
 	const auto mixerName = mixerChannel->m_name;
-	setToolTip(mixerName);
+	auto updateLayoutTooltip = [this] {
+		const auto channel = this->mixerChannel();
+		setToolTip(QStringLiteral("%1\n%2").arg(channel->m_name,
+			channel->channelLayout().displayName()));
+	};
+	updateLayoutTooltip();
+	connect(&mixerChannel->m_channelLayoutModel, &ComboBoxModel::dataChanged,
+		this, updateLayoutTooltip);
 
 	m_renameLineEdit = new QLineEdit{mixerName, nullptr};
 	m_renameLineEdit->setFixedWidth(65);
@@ -172,6 +180,25 @@ void MixerChannelView::contextMenuEvent(QContextMenuEvent*)
 	}
 
 	contextMenu->addAction(tr("Rename &channel"), this, &MixerChannelView::renameChannel);
+
+	auto layoutMenu = QMenu{tr("Channel layout"), this};
+	layoutMenu.setIcon(embed::getIconPixmap("setup_audio"));
+	auto* layoutGroup = new QActionGroup(&layoutMenu);
+	layoutGroup->setExclusive(true);
+	const auto& presets = AudioChannelLayout::presets();
+	const auto currentLayout = AudioChannelLayout::presetIndex(mixerChannel()->channelLayout());
+	for (int index = 0; index < static_cast<int>(presets.size()); ++index)
+	{
+		auto* action = layoutMenu.addAction(presets[static_cast<std::size_t>(index)].name);
+		action->setCheckable(true);
+		action->setChecked(index == currentLayout);
+		layoutGroup->addAction(action);
+		connect(action, &QAction::triggered, this, [this, index] {
+			mixerChannel()->setChannelLayout(AudioChannelLayout::fromPresetIndex(index));
+			Engine::getSong()->setModified();
+		});
+	}
+	contextMenu->addMenu(&layoutMenu);
 	contextMenu->addSeparator();
 
 	if (!isMasterChannel()) // no remove-option in master
@@ -201,7 +228,7 @@ void MixerChannelView::paintEvent(QPaintEvent*)
 	static constexpr auto innerBorderSize = 3;
 	static constexpr auto outerBorderSize = 1;
 
-	const auto channel = mixerChannel();
+	const auto channel = this->mixerChannel();
 	const auto isActive = m_mixerView->currentMixerChannel() == this;
 	const auto width = rect().width();
 	const auto height = rect().height();
@@ -300,7 +327,7 @@ void MixerChannelView::resetColor()
 
 void MixerChannelView::selectColor()
 {
-	const auto channel = mixerChannel();
+	const auto channel = this->mixerChannel();
 
 	const auto initialColor = channel->color().value_or(backgroundActive().color());
 	const auto* colorChooser = ColorChooser{this}.withPalette(ColorChooser::Palette::Mixer);

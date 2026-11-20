@@ -26,13 +26,17 @@
 #define MXM_MIXER_H
 
 #include "AudioBuffer.h"
+#include "AudioChannelLayout.h"
+#include "ComboBoxModel.h"
 #include "EffectChain.h"
 #include "JournallingObject.h"
 #include "Model.h"
 #include "ThreadableJob.h"
 
 #include <atomic>
+#include <memory>
 #include <optional>
+#include <vector>
 #include <QColor>
 
 namespace mxm
@@ -55,7 +59,13 @@ public:
 
 	float m_peakLeft;
 	float m_peakRight;
-	AudioBuffer m_buffer;
+	std::unique_ptr<AudioBuffer> m_buffer;
+	AudioChannelLayout m_channelLayout;
+	ComboBoxModel m_channelLayoutModel;
+	//! Layouts offered by m_channelLayoutModel, including loaded custom layouts.
+	std::vector<AudioChannelLayout> m_layoutChoices;
+	//! Peak level for every logical channel, indexed by speaker channel.
+	std::vector<float> m_peaks;
 	bool m_muteBeforeSolo;
 	BoolModel m_muteModel;
 	BoolModel m_soloModel;
@@ -75,6 +85,23 @@ public:
 	void setIndex(int index) { m_channelIndex = index; }
 
 	bool isMaster() { return m_channelIndex == 0; }
+
+	//! @returns the layout of this mixer channel's internal bus.
+	auto channelLayout() const -> const AudioChannelLayout& { return m_channelLayout; }
+
+	/**
+	 * @brief Replaces the channel layout and reallocates the channel buffer.
+	 *
+	 * Sends and receives are converted by speaker role during mixing. Changing
+	 * the master layout also reallocates the engine's master render buffers.
+	 */
+	void setChannelLayout(const AudioChannelLayout& layout);
+
+	//! @returns the peak of a logical channel during the last processed period.
+	auto peak(ch_cnt_t channel) const -> float
+	{
+		return channel < m_peaks.size() ? m_peaks[channel] : 0.f;
+	}
 
 	bool requiresProcessing() const override { return true; }
 	void unmuteForSolo();
@@ -142,10 +169,18 @@ public:
 	Mixer();
 	~Mixer() override;
 
-	void mixToChannel(const AudioBuffer& buffer, mix_ch_t dest);
+	void mixToChannel(const AudioBuffer& buffer, const AudioChannelLayout& layout, mix_ch_t dest);
 
 	void prepareMasterMix();
-	void masterMix( SampleFrame* _buf );
+
+	//! Renders the master bus into @a buffer using the master channel layout.
+	void masterMix(AudioBuffer& buffer);
+
+	//! @returns the channel layout of the master bus.
+	auto masterLayout() const -> const AudioChannelLayout&
+	{
+		return m_mixerChannels[0]->channelLayout();
+	}
 
 	void saveSettings( QDomDocument & _doc, QDomElement & _parent ) override;
 	void loadSettings( const QDomElement & _this ) override;

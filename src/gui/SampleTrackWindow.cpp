@@ -36,6 +36,7 @@
 #include <QVBoxLayout>
 
 #include "AutomatableButton.h"
+#include "ComboBox.h"
 #include "Engine.h"
 #include "EffectRackView.h"
 #include "embed.h"
@@ -138,6 +139,18 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 
 	basicControlsLayout->setColumnStretch(3, 1);
 
+	// Output channel layout (mono through surround). Multichannel clips are
+	// preserved natively when this track bus has a matching layout.
+	m_channelLayoutComboBox = new ComboBox(this, tr("Output channel layout"));
+	m_channelLayoutComboBox->setFixedWidth(82);
+	m_channelLayoutComboBox->setToolTip(tr("Output channel layout of this sample track"));
+	basicControlsLayout->addWidget(m_channelLayoutComboBox, 0, 3);
+	basicControlsLayout->setAlignment(m_channelLayoutComboBox, widgetAlignment);
+
+	label = new QLabel(tr("OUT"), this);
+	label->setStyleSheet(labelStyleSheet);
+	basicControlsLayout->addWidget(label, 1, 3);
+	basicControlsLayout->setAlignment(label, labelAlignment);
 
 	// setup spinbox for selecting Mixer-channel
 	m_mixerChannelNumber = new MixerChannelLcdSpinBox(2, nullptr, tr("Mixer channel"), m_stv);
@@ -227,6 +240,7 @@ void SampleTrackWindow::modelChanged()
 	m_volumeKnob->setModel(&m_track->m_volumeModel);
 	m_panningKnob->setModel(&m_track->m_panningModel);
 	m_mixerChannelNumber->setModel(&m_track->m_mixerChannelModel);
+	m_channelLayoutComboBox->setModel(m_track->channelLayoutModel());
 	{
 		const QSignalBlocker blocker(m_recordChannelComboBox);
 		auto recordIndex = m_recordChannelComboBox->findData(m_track->recordChannel());
