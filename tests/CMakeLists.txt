@@ -10,6 +10,7 @@ set(MXM_TESTS
 	src/core/AudioEngineCaptureTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
+	src/core/MixerLayoutTest.cpp
 	src/core/NoteTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp

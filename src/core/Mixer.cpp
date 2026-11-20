@@ -88,7 +88,7 @@ MixerChannel::MixerChannel( int idx, Model * _parent ) :
 	}
 	m_channelLayoutModel.setValue(AudioChannelLayout::presetIndex(m_channelLayout));
 
-	QObject::connect(&m_channelLayoutModel, &IntModel::dataChanged, &m_channelLayoutModel, [this] {
+	QObject::connect(&m_channelLayoutModel, &ComboBoxModel::dataChanged, &m_channelLayoutModel, [this] {
 		const auto index = m_channelLayoutModel.value();
 		if (index >= 0 && static_cast<std::size_t>(index) < m_layoutChoices.size())
 		{
