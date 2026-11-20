@@ -13,6 +13,7 @@ set(MXM_TESTS
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
 	src/core/NoteTest.cpp
+	src/core/PerTrackRecordingTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
 	src/core/SampleBufferTest.cpp
