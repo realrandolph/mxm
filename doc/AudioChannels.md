@@ -98,6 +98,10 @@ receives are converted between layouts by speaker role:
 This conversion is implemented by `addFrameConverted()` and
 `addPlanarConverted()`. The mixer uses a fast same-layout path for stereo.
 
+The track pan control acts as a left/right balance over the speaker field:
+left-side speaker roles follow the left gain, right-side roles follow the right
+gain, and centre/LFE roles are left at track volume.
+
 Stereo-only effects and plugins still receive the front stereo pair. Remaining
 surround channels pass through the effect chain untouched, so a stereo plugin
 never silently removes surround content. Stereo instrument plugins feed the

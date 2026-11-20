@@ -168,13 +168,33 @@ void AudioBusHandle::applyVolumeAndPan()
 			const auto role = m_channelLayout.role(channel);
 			if (m_channelLayout.channels() > 1)
 			{
-				if (role == SpeakerRole::FrontLeft || (role == SpeakerRole::Unknown && channel == 0))
+				// Panning is a left/right balance across the speaker field:
+				// left- and right-side roles follow their side, while centre,
+				// LFE and top-centre roles stay untouched.
+				switch (role)
 				{
+				case SpeakerRole::FrontLeft:
+				case SpeakerRole::BackLeft:
+				case SpeakerRole::SideLeft:
+				case SpeakerRole::FrontLeftOfCenter:
+				case SpeakerRole::TopFrontLeft:
+				case SpeakerRole::TopBackLeft:
 					gain *= left;
-				}
-				else if (role == SpeakerRole::FrontRight || (role == SpeakerRole::Unknown && channel == 1))
-				{
+					break;
+				case SpeakerRole::FrontRight:
+				case SpeakerRole::BackRight:
+				case SpeakerRole::SideRight:
+				case SpeakerRole::FrontRightOfCenter:
+				case SpeakerRole::TopFrontRight:
+				case SpeakerRole::TopBackRight:
 					gain *= right;
+					break;
+				case SpeakerRole::Unknown:
+					if (channel == 0) { gain *= left; }
+					else if (channel == 1) { gain *= right; }
+					break;
+				default:
+					break;
 				}
 			}
 			logical.bufferPtr(channel)[frame] *= gain;
