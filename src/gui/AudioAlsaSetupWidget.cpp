@@ -47,10 +47,27 @@ AudioAlsaSetupWidget::AudioAlsaSetupWidget( QWidget * _parent ) :
 	QString deviceText = ConfigManager::inst()->value( "audioalsa", "device" );
 
 	m_deviceComboBox = new QComboBox(this);
+	m_deviceComboBox->setMinimumHeight(m_deviceComboBox->sizeHint().height());
+	int defaultIndex = -1;
 	for (size_t i = 0; i < m_deviceInfos.size(); ++i)
 	{
 		AudioAlsa::DeviceInfo const & currentDeviceInfo = m_deviceInfos[i];
 		QString comboBoxText = currentDeviceInfo.getDeviceName();
+		if (currentDeviceInfo.getDeviceName() == QStringLiteral("default"))
+		{
+			defaultIndex = static_cast<int>(i);
+			QString desc = currentDeviceInfo.getDeviceDescription();
+			const auto currentlyIdx = desc.indexOf(QStringLiteral("(currently "));
+			if (currentlyIdx >= 0)
+			{
+				const auto endIdx = desc.indexOf(QLatin1Char(')'), currentlyIdx);
+				if (endIdx > currentlyIdx)
+				{
+					desc = desc.mid(currentlyIdx + 11, endIdx - currentlyIdx - 11);
+				}
+			}
+			comboBoxText = QStringLiteral("%1 [%2]").arg(tr("[System Default]"), desc);
+		}
 		m_deviceComboBox->addItem(comboBoxText, QVariant(static_cast<uint>(i)));
 
 		QString toolTipText = currentDeviceInfo.getDeviceDescription();
@@ -60,6 +77,11 @@ AudioAlsaSetupWidget::AudioAlsaSetupWidget( QWidget * _parent ) :
 		{
 			m_deviceComboBox->setCurrentIndex(static_cast<int>(i));
 		}
+	}
+
+	if (deviceText.isEmpty() && defaultIndex >= 0)
+	{
+		m_deviceComboBox->setCurrentIndex(defaultIndex);
 	}
 
 	m_selectedDevice = m_deviceComboBox->currentIndex();

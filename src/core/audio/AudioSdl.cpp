@@ -29,6 +29,7 @@
 
 #include <QFormLayout>
 #include <QComboBox>
+#include <QLabel>
 #include <SDL.h>
 
 #include "AudioBufferView.h"
@@ -42,6 +43,31 @@ constexpr auto SectionSDL = "audiosdl";
 constexpr auto PlaybackDeviceSDL = "device";
 constexpr auto InputDeviceSDL = "inputdevice";
 
+namespace
+{
+auto resolveSdlDeviceName(const QString& selectedDevice, int capture) -> QString
+{
+	if (!selectedDevice.isEmpty()) { return selectedDevice; }
+
+#if SDL_VERSION_ATLEAST(2, 24, 0)
+	char* defaultName = nullptr;
+	SDL_AudioSpec defaultSpec{};
+	if (SDL_GetDefaultAudioInfo(&defaultName, &defaultSpec, capture) == 0 && defaultName)
+	{
+		const auto name = QString::fromUtf8(defaultName);
+		SDL_free(defaultName);
+		return name;
+	}
+	SDL_free(defaultName);
+#endif
+
+	// SDL versions without SDL_GetDefaultAudioInfo cannot identify which
+	// enumerated device is the system default. Keep the route unknown rather
+	// than treating device index zero as the default.
+	return {};
+}
+} // namespace
+
 AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 	: AudioDevice(DEFAULT_CHANNELS, _audioEngine)
 	, m_outputDevice(0)
@@ -49,13 +75,14 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 {
 	_success_ful = false;
 
-	if( SDL_Init( SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE ) < 0 )
+	if( SDL_Init( SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_NOPARACHUTE ) < 0 )
 	{
 		qCritical( "Couldn't initialize SDL: %s\n", SDL_GetError() );
 		return;
 	}
 
-	const auto playbackDevice = ConfigManager::inst()->value(SectionSDL, PlaybackDeviceSDL).toStdString();
+	m_configuredPlaybackDevice = ConfigManager::inst()->value(SectionSDL, PlaybackDeviceSDL);
+	const auto playbackDevice = m_configuredPlaybackDevice.toStdString();
 	if (ConfigManager::inst()->value("audioengine", "samplerateauto", "1").toInt())
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 16)
@@ -129,6 +156,7 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 	// Try with the configured device
 	const auto playbackDeviceCStr = isDefaultPlayback ? nullptr : playbackDevice.c_str();
 	m_outputDevice = SDL_OpenAudioDevice(playbackDeviceCStr, 0, &m_audioHandle, &actual, 0);
+	const auto configuredPlaybackOpened = m_outputDevice != 0;
 
 	// If we did not get a device ID try again with the default device if we did not try that before
 	if (m_outputDevice == 0 && !isDefaultPlayback)
@@ -140,6 +168,9 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 		qCritical( "Couldn't open SDL-audio: %s\n", SDL_GetError() );
 		return;
 	}
+	m_activePlaybackUsesDefault = isDefaultPlayback || !configuredPlaybackOpened;
+	m_activePlaybackDevice = m_activePlaybackUsesDefault
+		? QString{} : m_configuredPlaybackDevice;
 
 	_success_ful = true;
 
@@ -149,13 +180,15 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 	m_inputAudioHandle = m_audioHandle;
 	m_inputAudioHandle.callback = sdlInputAudioCallback;
 
-	const auto inputDevice = ConfigManager::inst()->value(SectionSDL, InputDeviceSDL).toStdString();
+	m_configuredInputDevice = ConfigManager::inst()->value(SectionSDL, InputDeviceSDL);
+	const auto inputDevice = m_configuredInputDevice.toStdString();
 	const bool isDefaultInput = inputDevice.empty();
 
 	// Try with the configured device
 	const auto inputDeviceCStr = isDefaultInput ? nullptr : inputDevice.c_str();
 	m_inputDevice = SDL_OpenAudioDevice(inputDeviceCStr, 1, &m_inputAudioHandle, &actual,
 		SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
+	const auto configuredInputOpened = m_inputDevice != 0;
 
 	// If we did not get a device ID try again with the default device if we did not try that before
 	if (m_inputDevice == 0 && !isDefaultInput)
@@ -167,6 +200,8 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 	if (m_inputDevice != 0 && actual.format == AUDIO_F32SYS && actual.channels > 0
 		&& actual.channels <= MaxChannelsPerAudioBuffer)
 	{
+		m_activeInputUsesDefault = isDefaultInput || !configuredInputOpened;
+		m_activeInputDevice = m_activeInputUsesDefault ? QString{} : m_configuredInputDevice;
 		m_inputChannels = actual.channels;
 		setCaptureChannels(m_inputChannels);
 		if (m_inputChannels > DEFAULT_CHANNELS)
@@ -186,6 +221,16 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 		m_supportsCapture = false;
 		qWarning("Couldn't open SDL capture device: %s\n", SDL_GetError());
 	}
+
+	m_monitoredPlaybackDevice = resolveSdlDeviceName(
+		m_activePlaybackUsesDefault ? QString{} : m_activePlaybackDevice, 0);
+	m_monitoredInputDevice = m_supportsCapture
+		? resolveSdlDeviceName(m_activeInputUsesDefault ? QString{} : m_activeInputDevice, 1)
+		: m_configuredInputDevice;
+	SDL_EventState(SDL_AUDIODEVICEREMOVED, SDL_ENABLE);
+	SDL_AddEventWatch(&AudioSdl::sdlAudioEventWatch, this);
+	QObject::connect(&m_deviceMonitor, &QTimer::timeout, [this] { checkDeviceRoutes(); });
+	m_deviceMonitor.start(1000);
 }
 
 
@@ -193,12 +238,50 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 
 AudioSdl::~AudioSdl()
 {
+	m_deviceMonitor.stop();
+	SDL_DelEventWatch(&AudioSdl::sdlAudioEventWatch, this);
 	if (m_inputDevice != 0)
 		SDL_CloseAudioDevice(m_inputDevice);
 	if (m_outputDevice != 0)
 		SDL_CloseAudioDevice(m_outputDevice);
 
 	SDL_Quit();
+}
+
+void AudioSdl::checkDeviceRoutes()
+{
+	SDL_PumpEvents();
+
+	if (m_playbackDeviceRemoved.exchange(false, std::memory_order_acq_rel)
+		&& !m_playbackRemovalReported.exchange(true, std::memory_order_acq_rel))
+	{
+		reportDeviceChange(false, m_monitoredPlaybackDevice, QString{}, false);
+	}
+
+	if (m_inputDeviceRemoved.exchange(false, std::memory_order_acq_rel)
+		&& !m_inputRemovalReported.exchange(true, std::memory_order_acq_rel))
+	{
+		reportDeviceChange(true, m_monitoredInputDevice, QString{}, false);
+	}
+}
+
+int AudioSdl::sdlAudioEventWatch(void* data, SDL_Event* event)
+{
+	if (!event || event->type != SDL_AUDIODEVICEREMOVED) { return 1; }
+
+	auto* const device = static_cast<AudioSdl*>(data);
+	if (event->adevice.iscapture)
+	{
+		if (device->m_inputDevice != 0 && event->adevice.which == device->m_inputDevice)
+		{
+			device->m_inputDeviceRemoved.store(true, std::memory_order_release);
+		}
+	}
+	else if (device->m_outputDevice != 0 && event->adevice.which == device->m_outputDevice)
+	{
+		device->m_playbackDeviceRemoved.store(true, std::memory_order_release);
+	}
+	return 1;
 }
 
 
@@ -291,6 +374,15 @@ AudioSdl::setupWidget::setupWidget( QWidget * _parent ) :
 	populateInputDeviceComboBox();
 
 	form->addRow(tr("Input device"), m_inputDeviceComboBox);
+	m_playbackDeviceComboBox->setMinimumHeight(m_playbackDeviceComboBox->sizeHint().height());
+	m_inputDeviceComboBox->setMinimumHeight(m_inputDeviceComboBox->sizeHint().height());
+
+	QObject::connect(m_playbackDeviceComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+		this, [this] { updateDefaultDeviceInfo(); });
+	QObject::connect(m_inputDeviceComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+		this, [this] { updateDefaultDeviceInfo(); });
+	QObject::connect(&m_defaultDeviceInfoTimer, &QTimer::timeout,
+		this, [this] { updateDefaultDeviceInfo(); });
 }
 
 
@@ -298,32 +390,15 @@ AudioSdl::setupWidget::setupWidget( QWidget * _parent ) :
 
 void AudioSdl::setupWidget::saveSettings()
 {
-	const auto currentPlaybackDevice = m_playbackDeviceComboBox->currentText();
-	if (currentPlaybackDevice == s_systemDefaultDevice)
-	{
-		// Represent the default playback device with an empty string
-		ConfigManager::inst()->setValue(SectionSDL, PlaybackDeviceSDL, "");
-	}
-	else if (!currentPlaybackDevice.isEmpty())
-	{
-		ConfigManager::inst()->setValue(SectionSDL, PlaybackDeviceSDL, currentPlaybackDevice);
-	}
-
-	const auto currentInputDevice = m_inputDeviceComboBox->currentText();
-	if (currentInputDevice == s_systemDefaultDevice)
-	{
-		// Represent the default input device with an empty string
-		ConfigManager::inst()->setValue(SectionSDL, InputDeviceSDL, "");
-	}
-	else if (!currentInputDevice.isEmpty())
-	{
-		ConfigManager::inst()->setValue(SectionSDL, InputDeviceSDL, currentInputDevice);
-	}
+	ConfigManager::inst()->setValue(
+		SectionSDL, PlaybackDeviceSDL, m_playbackDeviceComboBox->currentData().toString());
+	ConfigManager::inst()->setValue(
+		SectionSDL, InputDeviceSDL, m_inputDeviceComboBox->currentData().toString());
 }
 
 void AudioSdl::setupWidget::populatePlaybackDeviceComboBox()
 {
-	m_playbackDeviceComboBox->addItem(s_systemDefaultDevice);
+	m_playbackDeviceComboBox->addItem(s_systemDefaultDevice, QString{});
 
 	QStringList playbackDevices;
 	const int numberOfPlaybackDevices = SDL_GetNumAudioDevices(0);
@@ -335,15 +410,16 @@ void AudioSdl::setupWidget::populatePlaybackDeviceComboBox()
 
 	playbackDevices.sort();
 
-	m_playbackDeviceComboBox->addItems(playbackDevices);
+	for (const auto& device : playbackDevices) { m_playbackDeviceComboBox->addItem(device, device); }
 
 	const auto playbackDevice = ConfigManager::inst()->value(SectionSDL, PlaybackDeviceSDL);
-	m_playbackDeviceComboBox->setCurrentText(playbackDevice.isEmpty() ? s_systemDefaultDevice : playbackDevice);
+	const auto index = m_playbackDeviceComboBox->findData(playbackDevice);
+	m_playbackDeviceComboBox->setCurrentIndex(index < 0 ? 0 : index);
 }
 
 void AudioSdl::setupWidget::populateInputDeviceComboBox()
 {
-	m_inputDeviceComboBox->addItem(s_systemDefaultDevice);
+	m_inputDeviceComboBox->addItem(s_systemDefaultDevice, QString{});
 
 	QStringList inputDevices;
 	const int numberOfInputDevices = SDL_GetNumAudioDevices(1);
@@ -355,11 +431,55 @@ void AudioSdl::setupWidget::populateInputDeviceComboBox()
 
 	inputDevices.sort();
 
-	m_inputDeviceComboBox->addItems(inputDevices);
+	for (const auto& device : inputDevices) { m_inputDeviceComboBox->addItem(device, device); }
 
 	// Set the current device to the one in the configuration
 	const auto inputDevice = ConfigManager::inst()->value(SectionSDL, InputDeviceSDL);
-	m_inputDeviceComboBox->setCurrentText(inputDevice.isEmpty() ? s_systemDefaultDevice : inputDevice);
+	const auto index = m_inputDeviceComboBox->findData(inputDevice);
+	m_inputDeviceComboBox->setCurrentIndex(index < 0 ? 0 : index);
+}
+
+void AudioSdl::setupWidget::updateDefaultDeviceInfo()
+{
+	const auto updateCombo = [this](QComboBox* combo, int capture) {
+		const auto defaultIndex = combo->findData(QString{});
+		if (defaultIndex < 0) { return false; }
+		if (!isVisible() || combo->currentIndex() != defaultIndex)
+		{
+			if (combo->itemText(defaultIndex) != s_systemDefaultDevice)
+			{
+				combo->setItemText(defaultIndex, s_systemDefaultDevice);
+			}
+			return false;
+		}
+
+		const auto resolved = resolveSdlDeviceName({}, capture);
+		const auto text = resolved.isEmpty()
+			? s_systemDefaultDevice
+			: QStringLiteral("%1 [%2]").arg(s_systemDefaultDevice, resolved);
+		if (combo->itemText(defaultIndex) != text) { combo->setItemText(defaultIndex, text); }
+		return true;
+	};
+
+	const auto playbackDefault = updateCombo(m_playbackDeviceComboBox, 0);
+	const auto inputDefault = updateCombo(m_inputDeviceComboBox, 1);
+	if (playbackDefault || inputDefault)
+	{
+		if (!m_defaultDeviceInfoTimer.isActive()) { m_defaultDeviceInfoTimer.start(30000); }
+	}
+	else { m_defaultDeviceInfoTimer.stop(); }
+}
+
+void AudioSdl::setupWidget::showEvent(QShowEvent* event)
+{
+	QGroupBox::showEvent(event);
+	updateDefaultDeviceInfo();
+}
+
+void AudioSdl::setupWidget::hideEvent(QHideEvent* event)
+{
+	m_defaultDeviceInfoTimer.stop();
+	QGroupBox::hideEvent(event);
 }
 
 

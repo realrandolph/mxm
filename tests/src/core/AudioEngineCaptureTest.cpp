@@ -63,6 +63,47 @@ private slots:
 
 	void cleanupTestCase() { Engine::destroy(); }
 
+	//! Backend device-change events are forwarded through the shared engine signal
+	void AudioDeviceChange_ForwardedToUi()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		QSignalSpy spy(engine, &AudioEngine::audioDeviceChanged);
+		engine->notifyAudioDeviceChanged(true, QStringLiteral("Headset"), QString{}, false);
+		QCOMPARE(spy.count(), 1);
+		const auto arguments = spy.takeFirst();
+		QCOMPARE(arguments[0].toBool(), true);
+		QCOMPARE(arguments[1].toString(), QStringLiteral("Headset"));
+		QCOMPARE(arguments[2].toString(), QString{});
+		QCOMPARE(arguments[3].toBool(), false);
+	}
+
+	//! Output device changes and route switches are also forwarded through the shared signal
+	void AudioDeviceChange_OutputRouteAndAvailability()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		QSignalSpy spy(engine, &AudioEngine::audioDeviceChanged);
+
+		// Output unavailable
+		engine->notifyAudioDeviceChanged(false, QStringLiteral("Speakers"), QString{}, false);
+		QCOMPARE(spy.count(), 1);
+		auto args = spy.takeFirst();
+		QCOMPARE(args[0].toBool(), false);
+		QCOMPARE(args[1].toString(), QStringLiteral("Speakers"));
+		QCOMPARE(args[2].toString(), QString{});
+		QCOMPARE(args[3].toBool(), false);
+
+		// Route changed
+		engine->notifyAudioDeviceChanged(false, QStringLiteral("Speakers"), QStringLiteral("Headphones"), true);
+		QCOMPARE(spy.count(), 1);
+		args = spy.takeFirst();
+		QCOMPARE(args[0].toBool(), false);
+		QCOMPARE(args[1].toString(), QStringLiteral("Speakers"));
+		QCOMPARE(args[2].toString(), QStringLiteral("Headphones"));
+		QCOMPARE(args[3].toBool(), true);
+	}
+
 	//! Input channels are preallocated, clamped and can be disabled again
 	void InputChannels_ConfiguredAndClamped()
 	{

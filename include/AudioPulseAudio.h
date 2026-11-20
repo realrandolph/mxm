@@ -30,13 +30,17 @@
 #ifdef MXM_HAVE_PULSEAUDIO
 
 #include <pulse/pulseaudio.h>
+#include <mutex>
 #include <QSemaphore>
 #include <QThread>
+
+#include <atomic>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
 
 class QLineEdit;
+class QShowEvent;
 
 namespace mxm
 {
@@ -59,6 +63,7 @@ public:
 	}
 
 	static QString probeDevice();
+	static QString resolvedDefaultDevice();
 
 
 	class setupWidget : public gui::AudioDeviceSetupWidget
@@ -69,6 +74,9 @@ public:
 
 		void saveSettings() override;
 
+	protected:
+		void showEvent( QShowEvent * _event ) override;
+
 	private:
 		QLineEdit * m_device;
 		gui::LcdSpinBox * m_channels;
@@ -77,6 +85,9 @@ public:
 
 
 	void streamWriteCallback( pa_stream * s, size_t length );
+	void streamMovedCallback( pa_stream * s );
+	void streamStateCallback( pa_stream * s );
+	void contextStateCallback( pa_context * c );
 
 	void signalConnected( bool connected );
 
@@ -88,9 +99,14 @@ private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 	void run() override;
+	QString monitoredDevice() const;
+	void setMonitoredDevice(const QString& device);
 
 	bool m_connected;
 	QSemaphore m_connectedSemaphore;
+	mutable std::mutex m_monitoredDeviceMutex;
+	QString m_monitoredDevice;
+	std::atomic_bool m_streamFailureReported{false};
 
 } ;
 

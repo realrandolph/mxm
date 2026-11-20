@@ -534,6 +534,12 @@ void AudioEngine::setAudioDevice(AudioDevice* _dev, bool startNow)
 	if (startNow) { startProcessing(); }
 }
 
+void AudioEngine::notifyAudioDeviceChanged(
+	bool input, const QString& previousDevice, const QString& currentDevice, bool available)
+{
+	emit audioDeviceChanged(input, previousDevice, currentDevice, available);
+}
+
 
 
 

@@ -135,6 +135,8 @@ private:
 	std::vector<float> m_inputFrameBuffer;
 	std::vector<float*> m_inputChannelPtrs;
 	jack_nframes_t m_inputBufferFrames = 0;
+	std::atomic_bool m_zombieReported{false};
+	std::atomic_bool m_portsDisconnectedReported{false};
 
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	struct StereoPort

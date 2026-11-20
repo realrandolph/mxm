@@ -108,6 +108,9 @@ protected:
 		m_captureChannels = layout.channels();
 		m_captureLayout = std::move(layout);
 	}
+	//! Report backend-detected runtime route changes through the backend-independent UI signal.
+	void reportDeviceChange(
+		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 
 	static void stopProcessingThread( QThread * thread );
 protected:

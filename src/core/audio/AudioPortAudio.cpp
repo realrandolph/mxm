@@ -117,24 +117,58 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	auto inputDeviceIndex = paNoDevice;
 	auto outputDeviceIndex = paNoDevice;
 
+	auto backendIndex = -1;
+	for (auto i = 0, backendCount = Pa_GetHostApiCount(); i < backendCount; ++i)
+	{
+		const auto* hostApiInfo = Pa_GetHostApiInfo(i);
+		if (hostApiInfo && hostApiInfo->name == backend)
+		{
+			backendIndex = i;
+			break;
+		}
+	}
+	if (backendIndex < 0)
+	{
+		backendIndex = Pa_GetDefaultHostApi();
+	}
+
 	for (auto i = 0; i < numDevices && (inputDeviceIndex == paNoDevice || outputDeviceIndex == paNoDevice); ++i)
 	{
 		const auto deviceInfo = Pa_GetDeviceInfo(i);
-		const auto hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-		if (deviceInfo->name == inputDeviceName && hostApiInfo->name == backend) { inputDeviceIndex = i; }
-		if (deviceInfo->name == outputDeviceName && hostApiInfo->name == backend) { outputDeviceIndex = i; }
+		if (deviceInfo->hostApi == backendIndex)
+		{
+			if (deviceInfo->name == inputDeviceName) { inputDeviceIndex = i; }
+			if (deviceInfo->name == outputDeviceName) { outputDeviceIndex = i; }
+		}
 	}
 
 	if (inputDeviceIndex == paNoDevice && inputDeviceName.isEmpty())
 	{
-		const auto defaultInput = Pa_GetDefaultInputDevice();
+		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
+		const auto defaultInput = hostApiInfo && hostApiInfo->defaultInputDevice != paNoDevice
+			? hostApiInfo->defaultInputDevice : Pa_GetDefaultInputDevice();
 		if (defaultInput != paNoDevice)
 		{
-			const auto deviceInfo = Pa_GetDeviceInfo(defaultInput);
-			const auto hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-			if (backend.isEmpty() || hostApiInfo->name == backend) { inputDeviceIndex = defaultInput; }
+			inputDeviceIndex = defaultInput;
 		}
 	}
+
+	if (outputDeviceIndex == paNoDevice && outputDeviceName.isEmpty())
+	{
+		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
+		const auto defaultOutput = hostApiInfo && hostApiInfo->defaultOutputDevice != paNoDevice
+			? hostApiInfo->defaultOutputDevice : Pa_GetDefaultOutputDevice();
+		if (defaultOutput != paNoDevice)
+		{
+			outputDeviceIndex = defaultOutput;
+		}
+	}
+
+	const auto* outInfo = outputDeviceIndex != paNoDevice ? Pa_GetDeviceInfo(outputDeviceIndex) : nullptr;
+	m_monitoredOutputDevice = outInfo && outInfo->name ? QString::fromUtf8(outInfo->name) : outputDeviceName;
+
+	const auto* inInfo = inputDeviceIndex != paNoDevice ? Pa_GetDeviceInfo(inputDeviceIndex) : nullptr;
+	m_monitoredInputDevice = inInfo && inInfo->name ? QString::fromUtf8(inInfo->name) : inputDeviceName;
 
 	if (inputDeviceIndex != paNoDevice)
 	{
@@ -192,6 +226,8 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		return;
 	}
 
+	Pa_SetStreamFinishedCallback(m_paStream, &AudioPortAudio::streamFinishedCallback);
+
 	successful = true;
 	setSampleRate(sampleRate);
 	setChannels(outputDeviceChannels);
@@ -203,10 +239,14 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
 	}
 	m_supportsCapture = m_inputChannels > 0;
+
+	QObject::connect(&m_streamMonitor, &QTimer::timeout, [this] { checkStreamStatus(); });
+	m_streamMonitor.start(1000);
 }
 
 AudioPortAudio::~AudioPortAudio()
 {
+	m_streamMonitor.stop();
 	stopProcessing();
 	Pa_CloseStream(m_paStream);
 }
@@ -219,6 +259,35 @@ void AudioPortAudio::startProcessingImpl()
 void AudioPortAudio::stopProcessingImpl()
 {
 	Pa_StopStream(m_paStream);
+}
+
+void AudioPortAudio::streamFinishedCallback(void* userData)
+{
+	static_cast<AudioPortAudio*>(userData)->handleStreamFinished();
+}
+
+void AudioPortAudio::handleStreamFinished()
+{
+	if (isRunning() && !m_streamFinishedReported.exchange(true, std::memory_order_acq_rel))
+	{
+		reportDeviceChange(false, m_monitoredOutputDevice, QString{}, false);
+		if (m_supportsCapture)
+		{
+			reportDeviceChange(true, m_monitoredInputDevice, QString{}, false);
+		}
+	}
+}
+
+void AudioPortAudio::checkStreamStatus()
+{
+	if (isRunning() && m_paStream)
+	{
+		const auto active = Pa_IsStreamActive(m_paStream);
+		if (active == 0 || active < 0)
+		{
+			handleStreamFinished();
+		}
+	}
 }
 
 int AudioPortAudio::processCallback(const void* input, void* output, unsigned long frameCount,
@@ -259,6 +328,7 @@ public:
 		m_channelSpinBox->setModel(&m_channelModel);
 
 		const auto layout = new QFormLayout{this};
+		m_deviceComboBox->setMinimumHeight(m_deviceComboBox->sizeHint().height());
 		layout->addRow(deviceLabel, m_deviceComboBox);
 		layout->addRow(tr("Channels"), m_channelSpinBox);
 
@@ -272,6 +342,20 @@ public:
 
 		m_deviceComboBox->clear();
 
+		const auto hostApiInfo = Pa_GetHostApiInfo(backendIndex);
+		const auto defaultIndex = hostApiInfo ? (m_direction == Direction::Input
+			? hostApiInfo->defaultInputDevice : hostApiInfo->defaultOutputDevice) : paNoDevice;
+		QString resolvedDefaultName;
+		if (defaultIndex != paNoDevice && defaultIndex < Pa_GetDeviceCount())
+		{
+			const auto* defInfo = Pa_GetDeviceInfo(defaultIndex);
+			if (defInfo && defInfo->name) { resolvedDefaultName = QString::fromUtf8(defInfo->name); }
+		}
+		const auto defaultText = resolvedDefaultName.isEmpty()
+			? tr("[System Default]")
+			: QStringLiteral("%1 [%2]").arg(tr("[System Default]"), resolvedDefaultName);
+		m_deviceComboBox->addItem(defaultText, defaultIndex);
+
 		for (auto i = 0, deviceCount = Pa_GetDeviceCount(); i < deviceCount; ++i)
 		{
 			const auto deviceInfo = Pa_GetDeviceInfo(i);
@@ -283,12 +367,14 @@ public:
 		}
 
 		const auto selectedDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(m_direction));
-		const auto selectedDeviceIndex = std::max(0, m_deviceComboBox->findText(selectedDeviceName));
+		const auto selectedDeviceIndex = selectedDeviceName.isEmpty()
+			? 0 : std::max(0, m_deviceComboBox->findText(selectedDeviceName));
 		m_deviceComboBox->setCurrentIndex(selectedDeviceIndex);
 	}
 
 	void refreshChannels(PaDeviceIndex deviceIndex)
 	{
+		if (deviceIndex < 0 || deviceIndex >= Pa_GetDeviceCount()) { return; }
 		const auto maxChannelCount = maxChannels(Pa_GetDeviceInfo(deviceIndex), m_direction);
 		const auto channelCount = ConfigManager::inst()->value(tag(), channelsAttribute(m_direction)).toInt();
 		m_channelModel.setRange(1, m_direction == Direction::Input
@@ -299,7 +385,9 @@ public:
 
 	void saveToConfig()
 	{
-		ConfigManager::inst()->setValue(tag(), deviceNameAttribute(m_direction), m_deviceComboBox->currentText());
+		const auto isDefault = m_deviceComboBox->currentIndex() == 0;
+		ConfigManager::inst()->setValue(tag(), deviceNameAttribute(m_direction),
+			isDefault ? QString{} : m_deviceComboBox->currentText());
 		ConfigManager::inst()->setValue(tag(), channelsAttribute(m_direction), QString::number(m_channelModel.value()));
 	}
 

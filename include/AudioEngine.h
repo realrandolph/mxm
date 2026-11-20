@@ -130,6 +130,9 @@ public:
 	//! Set new audio device. Old device will be deleted,
 	//! unless it's stored using storeAudioDevice
 	void setAudioDevice(AudioDevice* _dev, bool startNow);
+	//! Notify the GUI that a backend detected an input/output device route change.
+	void notifyAudioDeviceChanged(
+		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 	void storeAudioDevice();
 	void restoreAudioDevice();
 	inline AudioDevice * audioDev()
@@ -341,6 +344,8 @@ public:
 signals:
 	void qualitySettingsChanged();
 	void sampleRateChanged();
+	void audioDeviceChanged(
+		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 	void nextAudioBuffer(const mxm::SampleFrame* buffer);
 
 

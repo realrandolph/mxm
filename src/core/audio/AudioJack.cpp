@@ -153,7 +153,13 @@ void AudioJack::restartAfterZombified()
 	if (initJackClient())
 	{
 		m_active = false;
+		m_zombieReported.store(false, std::memory_order_release);
 		startProcessing();
+		reportDeviceChange(false, QString{}, QStringLiteral("JACK"), true);
+		if (m_supportsCapture)
+		{
+			reportDeviceChange(true, QString{}, QStringLiteral("JACK"), true);
+		}
 		QMessageBox::information(gui::getGUI()->mainWindow(), tr("JACK client restarted"),
 			tr(	"MXM was kicked by JACK for some reason. "
 				"Therefore the JACK backend of MXM has been "
@@ -162,6 +168,11 @@ void AudioJack::restartAfterZombified()
 	}
 	else
 	{
+		reportDeviceChange(false, QStringLiteral("JACK"), QString{}, false);
+		if (m_supportsCapture)
+		{
+			reportDeviceChange(true, QStringLiteral("JACK"), QString{}, false);
+		}
 		QMessageBox::information(gui::getGUI()->mainWindow(), tr("JACK server down"),
 			tr(	"The JACK server seems to have been shutdown "
 				"and starting a new instance failed. "
@@ -515,6 +526,33 @@ void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* u
 		connectedPort = index;
 	}
 	audioJack->m_monoInputPort.store(connectedPort, std::memory_order_relaxed);
+
+	bool anyOutputConnected = false;
+	for (auto* port : audioJack->m_outputPorts)
+	{
+		if (port && jack_port_connected(port) > 0)
+		{
+			anyOutputConnected = true;
+			break;
+		}
+	}
+	if (!audioJack->m_outputPorts.empty())
+	{
+		if (!anyOutputConnected)
+		{
+			if (!audioJack->m_portsDisconnectedReported.exchange(true, std::memory_order_acq_rel))
+			{
+				audioJack->reportDeviceChange(false, QStringLiteral("JACK"), QString{}, false);
+			}
+		}
+		else
+		{
+			if (audioJack->m_portsDisconnectedReported.exchange(false, std::memory_order_acq_rel))
+			{
+				audioJack->reportDeviceChange(false, QString{}, QStringLiteral("JACK"), true);
+			}
+		}
+	}
 }
 
 
@@ -524,6 +562,14 @@ void AudioJack::shutdownCallback(void* udata)
 {
 	auto thisClass = static_cast<AudioJack*>(udata);
 	thisClass->m_client = nullptr;
+	if (!thisClass->m_zombieReported.exchange(true, std::memory_order_acq_rel))
+	{
+		thisClass->reportDeviceChange(false, QStringLiteral("JACK"), QString{}, false);
+		if (thisClass->m_supportsCapture)
+		{
+			thisClass->reportDeviceChange(true, QStringLiteral("JACK"), QString{}, false);
+		}
+	}
 	emit thisClass->zombified();
 }
 

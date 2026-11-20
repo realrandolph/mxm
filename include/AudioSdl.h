@@ -30,11 +30,18 @@
 #ifdef MXM_HAVE_SDL
 
 #include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_events.h>
+
+#include <QTimer>
+
+#include <atomic>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
 
 class QComboBox;
+class QHideEvent;
+class QShowEvent;
 
 namespace mxm
 {
@@ -63,10 +70,14 @@ public:
 	private:
 		void populatePlaybackDeviceComboBox();
 		void populateInputDeviceComboBox();
+		void updateDefaultDeviceInfo();
+		void showEvent(QShowEvent* event) override;
+		void hideEvent(QHideEvent* event) override;
 
 	private:
 		QComboBox* m_playbackDeviceComboBox = nullptr;
 		QComboBox* m_inputDeviceComboBox = nullptr;
+		QTimer m_defaultDeviceInfoTimer;
 
 		static QString s_systemDefaultDevice;
 	} ;
@@ -75,6 +86,8 @@ public:
 private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
+	void checkDeviceRoutes();
+	static int sdlAudioEventWatch(void* data, SDL_Event* event);
 
 	static void sdlAudioCallback( void * _udata, Uint8 * _buf, int _len );
 	void sdlAudioCallback( Uint8 * _buf, int _len );
@@ -88,6 +101,19 @@ private:
 	SDL_AudioSpec m_inputAudioHandle;
 	SDL_AudioDeviceID m_inputDevice;
 	ch_cnt_t m_inputChannels = 0;
+	QString m_configuredPlaybackDevice;
+	QString m_configuredInputDevice;
+	QString m_activePlaybackDevice;
+	QString m_activeInputDevice;
+	QString m_monitoredPlaybackDevice;
+	QString m_monitoredInputDevice;
+	bool m_activePlaybackUsesDefault = false;
+	bool m_activeInputUsesDefault = false;
+	std::atomic_bool m_playbackDeviceRemoved{false};
+	std::atomic_bool m_inputDeviceRemoved{false};
+	std::atomic_bool m_playbackRemovalReported{false};
+	std::atomic_bool m_inputRemovalReported{false};
+	QTimer m_deviceMonitor;
 } ;
 
 
