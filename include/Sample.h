@@ -26,7 +26,11 @@
 #define MXM_SAMPLE_H
 
 #include <memory>
+#include <span>
+#include <vector>
 
+#include "AudioBufferView.h"
+#include "AudioChannelLayout.h"
 #include "AudioResampler.h"
 #include "Note.h"
 #include "SampleBuffer.h"
@@ -47,21 +51,70 @@ public:
 	{
 	public:
 		PlaybackState(AudioResampler::Mode interpolationMode = AudioResampler::Mode::Linear, int frameIndex = 0)
-			: m_resampler(interpolationMode)
+			: PlaybackState(interpolationMode, DEFAULT_CHANNELS, frameIndex)
+		{
+		}
+
+		PlaybackState(AudioResampler::Mode interpolationMode, ch_cnt_t channels, int frameIndex = 0)
+			: m_resampler(interpolationMode, std::max<ch_cnt_t>(channels, 1))
+			, m_channels(std::max<ch_cnt_t>(channels, 1))
+			, m_buffer(static_cast<size_t>(m_channels) * DEFAULT_BUFFER_SIZE, 0.0f)
+			, m_resampledBuffer(static_cast<size_t>(m_channels) * DEFAULT_BUFFER_SIZE, 0.0f)
 			, m_frameIndex(frameIndex)
 		{
 		}
 
+		PlaybackState(PlaybackState&& other) noexcept
+			: m_resampler(std::move(other.m_resampler))
+			, m_channels(other.m_channels)
+			, m_buffer(std::move(other.m_buffer))
+			, m_resampledBuffer(std::move(other.m_resampledBuffer))
+			, m_frameIndex(other.m_frameIndex)
+			, m_backwards(other.m_backwards)
+		{
+			m_bufferView = {};
+			other.m_bufferView = {};
+		}
+
+		PlaybackState& operator=(PlaybackState&& other) noexcept
+		{
+			if (this != &other)
+			{
+				m_resampler = std::move(other.m_resampler);
+				m_channels = other.m_channels;
+				m_buffer = std::move(other.m_buffer);
+				m_resampledBuffer = std::move(other.m_resampledBuffer);
+				m_frameIndex = other.m_frameIndex;
+				m_backwards = other.m_backwards;
+				m_bufferView = {};
+				other.m_bufferView = {};
+			}
+			return *this;
+		}
+
 		auto frameIndex() const -> int { return m_frameIndex; }
 		auto backwards() const -> bool { return m_backwards; }
+		auto channels() const -> ch_cnt_t { return m_channels; }
 
 		void setFrameIndex(int index) { m_frameIndex = index; }
 		void setBackwards(bool backwards) { m_backwards = backwards; }
+		void setChannels(ch_cnt_t channels)
+		{
+			const auto validChannels = std::max<ch_cnt_t>(channels, 1);
+			if (m_channels == validChannels && !m_buffer.empty()) { return; }
+			m_channels = validChannels;
+			m_resampler = AudioResampler(m_resampler.mode(), m_channels);
+			m_buffer.assign(static_cast<size_t>(m_channels) * DEFAULT_BUFFER_SIZE, 0.0f);
+			m_resampledBuffer.assign(static_cast<size_t>(m_channels) * DEFAULT_BUFFER_SIZE, 0.0f);
+			m_bufferView = {};
+		}
 
 	private:
 		AudioResampler m_resampler;
-		std::array<SampleFrame, DEFAULT_BUFFER_SIZE> m_buffer;
-		std::span<SampleFrame> m_bufferView;
+		ch_cnt_t m_channels = DEFAULT_CHANNELS;
+		std::vector<float> m_buffer;
+		std::span<float> m_bufferView;
+		std::vector<float> m_resampledBuffer;
 		int m_frameIndex = 0;
 		bool m_backwards = false;
 		friend class Sample;
@@ -78,6 +131,9 @@ public:
 	auto operator=(Sample&&) noexcept -> Sample&;
 
 	auto play(SampleFrame* dst, PlaybackState* state, size_t numFrames, Loop loopMode = Loop::Off,
+		double ratio = 1.0) const -> bool;
+	auto play(PlanarBufferView<float> dst, const AudioChannelLayout& dstLayout,
+		PlaybackState* state, size_t numFrames, Loop loopMode = Loop::Off,
 		double ratio = 1.0) const -> bool;
 
 	auto sampleDuration() const -> std::chrono::milliseconds;
@@ -108,6 +164,7 @@ public:
 
 private:
 	f_cnt_t render(SampleFrame* dst, f_cnt_t size, PlaybackState* state, Loop loop) const;
+	f_cnt_t renderNative(float* dst, f_cnt_t size, PlaybackState* state, Loop loop) const;
 	std::shared_ptr<const SampleBuffer> m_buffer = SampleBuffer::emptyBuffer();
 	std::atomic<int> m_startFrame = 0;
 	std::atomic<int> m_endFrame = 0;

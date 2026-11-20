@@ -26,8 +26,12 @@
 #ifndef MXM_SAMPLE_PLAY_HANDLE_H
 #define MXM_SAMPLE_PLAY_HANDLE_H
 
-#include "Sample.h"
+#include <memory>
+
+#include "AudioBuffer.h"
+#include "AudioChannelLayout.h"
 #include "PlayHandle.h"
+#include "Sample.h"
 
 namespace mxm
 {
@@ -72,8 +76,15 @@ public:
 		m_patternTrack = pt;
 	}
 
+	auto multichannelBuffer() -> AudioBuffer* override;
+	auto multichannelLayout() const -> AudioChannelLayout override;
+
 private:
 	Sample::PlaybackState m_state;
+	std::unique_ptr<AudioBuffer> m_multichannelBuffer;
+	AudioChannelLayout m_multichannelLayout;
+	std::unique_ptr<Sample::PlaybackState> m_multichannelState;
+	bool m_useMultichannel = false;
 	f_cnt_t m_frame = 0;
 	Sample* m_sample = nullptr;
 	Track* m_track = nullptr;

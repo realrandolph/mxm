@@ -25,6 +25,7 @@
 #include "SamplePlayHandle.h"
 #include "AudioEngine.h"
 #include "AudioBusHandle.h"
+#include "AudioChannelBuffer.h"
 #include "Engine.h"
 #include "PatternTrack.h"
 #include "SampleClip.h"
@@ -77,39 +78,129 @@ SamplePlayHandle::~SamplePlayHandle()
 
 
 
+auto SamplePlayHandle::multichannelBuffer() -> AudioBuffer*
+{
+	return m_useMultichannel ? m_multichannelBuffer.get() : nullptr;
+}
+
+
+
+
+auto SamplePlayHandle::multichannelLayout() const -> AudioChannelLayout
+{
+	return m_useMultichannel ? m_multichannelLayout : AudioChannelLayout::stereo();
+}
+
+
+
+
 void SamplePlayHandle::play( SampleFrame* buffer )
 {
 	const f_cnt_t fpp = Engine::audioEngine()->framesPerPeriod();
-	//play( 0, _try_parallelizing );
-	if( framesDone() >= totalFrames() )
+
+	AudioBusHandle* bus = audioBusHandle();
+	const bool multichannelEligible = bus != nullptr
+		&& bus->channels() > DEFAULT_CHANNELS
+		&& m_sample != nullptr
+		&& m_sample->buffer() != nullptr
+		&& m_sample->buffer()->channels() > DEFAULT_CHANNELS;
+
+	if (!multichannelEligible)
 	{
-		zeroSampleFrames(buffer, fpp);
+		m_useMultichannel = false;
+
+		if( framesDone() >= totalFrames() )
+		{
+			zeroSampleFrames(buffer, fpp);
+			return;
+		}
+
+		SampleFrame* workingBuffer = buffer;
+		f_cnt_t frames = fpp;
+
+		// apply offset for the first period
+		if( framesDone() == 0 )
+		{
+			zeroSampleFrames(buffer, offset());
+			workingBuffer += offset();
+			frames -= offset();
+		}
+
+		if( !( m_track && m_track->isMuted() )
+					&& !(m_patternTrack && m_patternTrack->isMuted()))
+		{
+			// SamplePlayHandle always plays the sample at its original pitch;
+			// it is used only for previews, SampleTracks and the metronome.
+			if (!m_sample->play(workingBuffer, &m_state, frames))
+			{
+				zeroSampleFrames(workingBuffer, frames);
+			}
+		}
+
+		m_frame += frames;
 		return;
 	}
 
-	SampleFrame* workingBuffer = buffer;
-	f_cnt_t frames = fpp;
+	m_useMultichannel = true;
 
-	// apply offset for the first period
-	if( framesDone() == 0 )
+	if( framesDone() >= totalFrames() )
 	{
-		zeroSampleFrames(buffer, offset());
-		workingBuffer += offset();
-		frames -= offset();
+		zeroSampleFrames(buffer, fpp);
+		if (m_multichannelBuffer)
+		{
+			m_multichannelBuffer->silenceAllChannels();
+		}
+		return;
 	}
 
-	if( !( m_track && m_track->isMuted() )
-				&& !(m_patternTrack && m_patternTrack->isMuted()))
+	const auto& busLayout = bus->channelLayout();
+	const auto nativeChannels = m_sample->buffer()->channels();
+
+	if (!m_multichannelBuffer || m_multichannelLayout != busLayout
+		|| m_multichannelBuffer->frames() != fpp
+		|| !m_multichannelState || m_multichannelState->channels() != nativeChannels)
 	{
-/*		StereoVolumeVector v =
-			{ { m_volumeModel->value() / DefaultVolume,
-				m_volumeModel->value() / DefaultVolume } };*/
-		// SamplePlayHandle always plays the sample at its original pitch;
-		// it is used only for previews, SampleTracks and the metronome.
-		if (!m_sample->play(workingBuffer, &m_state, frames))
+		const int currentIndex = m_multichannelState ? m_multichannelState->frameIndex() : 0;
+		m_multichannelLayout = busLayout;
+		m_multichannelBuffer = createChannelBuffer(fpp, m_multichannelLayout);
+		m_multichannelState = std::make_unique<Sample::PlaybackState>(
+			AudioResampler::Mode::Linear, nativeChannels, currentIndex);
+	}
+
+	m_multichannelBuffer->silenceAllChannels();
+	zeroSampleFrames(buffer, fpp);
+
+	f_cnt_t frames = fpp;
+	f_cnt_t frameOffset = 0;
+
+	if (framesDone() == 0)
+	{
+		frameOffset = offset();
+		frames -= frameOffset;
+	}
+
+	const bool isMuted = (m_track && m_track->isMuted())
+		|| (m_patternTrack && m_patternTrack->isMuted());
+
+	if (!isMuted)
+	{
+		auto logical = logicalBuffers(*m_multichannelBuffer, m_multichannelLayout);
+		if (frameOffset > 0)
 		{
-			zeroSampleFrames(workingBuffer, frames);
+			std::array<float*, MaxChannelsPerAudioBuffer> offsetPointers;
+			for (ch_cnt_t ch = 0; ch < logical.channels(); ++ch)
+			{
+				offsetPointers[ch] = logical.bufferPtr(ch) + frameOffset;
+			}
+			PlanarBufferView<float> workingLogical{offsetPointers.data(), logical.channels(), frames};
+			m_sample->play(workingLogical, m_multichannelLayout, m_multichannelState.get(), frames);
 		}
+		else
+		{
+			m_sample->play(logical, m_multichannelLayout, m_multichannelState.get(), frames);
+		}
+
+		m_multichannelBuffer->updateAllSilenceFlags();
 	}
 
 	m_frame += frames;
