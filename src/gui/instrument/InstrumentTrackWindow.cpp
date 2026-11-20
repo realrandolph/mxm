@@ -183,6 +183,19 @@ InstrumentTrackWindow::InstrumentTrackWindow( InstrumentTrackView * _itv ) :
 
 	basicControlsLayout->setColumnStretch(3, 1);
 
+	// Output channel layout (mono through surround). The track bus converts
+	// into the destination mixer channel layout by speaker role.
+	m_channelLayoutComboBox = new ComboBox(this, tr("Output channel layout"));
+	m_channelLayoutComboBox->setFixedWidth(82);
+	m_channelLayoutComboBox->setToolTip(tr("Output channel layout of this instrument track"));
+	basicControlsLayout->addWidget(m_channelLayoutComboBox, 0, 3);
+	basicControlsLayout->setAlignment(m_channelLayoutComboBox, widgetAlignment);
+
+	label = new QLabel(tr("OUT"), this);
+	label->setStyleSheet(labelStyleSheet);
+	basicControlsLayout->addWidget(label, 1, 3);
+	basicControlsLayout->setAlignment(label, labelAlignment);
+
 	// set up pitch knob
 	m_pitchKnob = new Knob( KnobType::Bright26, nullptr, tr( "Pitch" ) );
 	m_pitchKnob->setHintText( tr( "Pitch:" ), " " + tr( "cents" ) );
@@ -470,6 +483,7 @@ void InstrumentTrackWindow::modelChanged()
 	m_volumeKnob->setModel( &m_track->m_volumeModel );
 	m_panningKnob->setModel( &m_track->m_panningModel );
 	m_mixerChannelNumber->setModel( &m_track->m_mixerChannelModel );
+	m_channelLayoutComboBox->setModel( m_track->channelLayoutModel() );
 	m_pianoView->setModel( &m_track->m_piano );
 	{
 		const QSignalBlocker blocker(m_recordChannelComboBox);

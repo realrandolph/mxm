@@ -23,6 +23,7 @@
 
 #include "Mixer.h"
 
+#include <QTemporaryDir>
 #include <QtTest>
 
 #include <cmath>
@@ -30,7 +31,11 @@
 
 #include "AudioChannelBuffer.h"
 #include "AudioEngine.h"
+#include "AudioFileWave.h"
 #include "Engine.h"
+#include "OutputSettings.h"
+
+#include <sndfile.h>
 
 using namespace mxm;
 
@@ -65,6 +70,7 @@ private slots:
 
 	void init()
 	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
 		Engine::mixer()->mixerChannel(0)->setChannelLayout(AudioChannelLayout::stereo());
 		Engine::mixer()->mixerChannel(0)->m_buffer->silenceAllChannels();
 	}
@@ -72,6 +78,7 @@ private slots:
 	//! Changing the master layout reallocates the engine's render buffers.
 	void MasterLayout_PropagatesToEngine()
 	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
 		auto* master = Engine::mixer()->mixerChannel(0);
 		master->setChannelLayout(AudioChannelLayout::surround51());
 
@@ -83,6 +90,7 @@ private slots:
 	//! A 5.1 bus feeding a 5.1 mixer channel preserves every channel.
 	void MixToChannel_PreservesSurroundChannels()
 	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
 		constexpr auto frames = f_cnt_t{64};
 		auto* mixer = Engine::mixer();
 		auto* master = mixer->mixerChannel(0);
@@ -115,6 +123,7 @@ private slots:
 	//! A surround bus feeding a stereo mixer channel uses the documented fold.
 	void MixToChannel_DownmixesSurroundToStereo()
 	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
 		constexpr auto frames = f_cnt_t{8};
 		auto* mixer = Engine::mixer();
 		auto* master = mixer->mixerChannel(0);
@@ -153,9 +162,108 @@ private slots:
 		}
 	}
 
+	//! WAV export keeps all master channels and their order.
+	void WaveExport_PreservesSurroundChannels()
+	{
+		QTemporaryDir dir;
+		QVERIFY(dir.isValid());
+		const auto path = dir.filePath(QStringLiteral("surround.wav"));
+
+		constexpr auto frames = f_cnt_t{16};
+		auto source = AudioBuffer{frames, 6};
+		for (ch_cnt_t channel = 0; channel < 6; ++channel)
+		{
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				source.buffer(channel)[frame] = sampleValue(channel, frame);
+			}
+		}
+
+		{
+			auto settings = OutputSettings{48000, 160, OutputSettings::BitDepth::Depth32Bit};
+			bool successful = false;
+			auto device = AudioFileWave{settings, AudioChannelLayout::surround51(), successful, path,
+				Engine::audioEngine()};
+			QVERIFY(successful);
+			device.writeBuffer(logicalBuffers(source, AudioChannelLayout::surround51()),
+				AudioChannelLayout::surround51());
+		}
+
+		SF_INFO info{};
+		auto* file = sf_open(path.toUtf8().constData(), SFM_READ, &info);
+		QVERIFY(file != nullptr);
+		QCOMPARE(info.channels, 6);
+		QCOMPARE(info.frames, static_cast<sf_count_t>(frames));
+
+		auto interleaved = std::vector<float>(frames * 6);
+		QCOMPARE(sf_readf_float(file, interleaved.data(), frames), static_cast<sf_count_t>(frames));
+		sf_close(file);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			for (ch_cnt_t channel = 0; channel < 6; ++channel)
+			{
+				QVERIFY2(isClose(interleaved[frame * 6 + channel], sampleValue(channel, frame)),
+					qPrintable(QStringLiteral("channel %1 frame %2").arg(channel).arg(frame)));
+			}
+		}
+	}
+
+	//! A stereo file device receives an explicit surround-to-stereo fold.
+	void WaveExport_DownmixesToStereoDeviceLayout()
+	{
+		QTemporaryDir dir;
+		QVERIFY(dir.isValid());
+		const auto path = dir.filePath(QStringLiteral("stereo.wav"));
+
+		constexpr auto frames = f_cnt_t{8};
+		auto source = AudioBuffer{frames, 6};
+		for (ch_cnt_t channel = 0; channel < 6; ++channel)
+		{
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				source.buffer(channel)[frame] = sampleValue(channel, frame);
+			}
+		}
+
+		{
+			auto settings = OutputSettings{48000, 160, OutputSettings::BitDepth::Depth32Bit};
+			bool successful = false;
+			auto device = AudioFileWave{settings, AudioChannelLayout::stereo(), successful, path,
+				Engine::audioEngine()};
+			QVERIFY(successful);
+			device.writeBuffer(logicalBuffers(source, AudioChannelLayout::surround51()),
+				AudioChannelLayout::surround51());
+		}
+
+		SF_INFO info{};
+		auto* file = sf_open(path.toUtf8().constData(), SFM_READ, &info);
+		QVERIFY(file != nullptr);
+		QCOMPARE(info.channels, 2);
+		auto interleaved = std::vector<float>(frames * 2);
+		QCOMPARE(sf_readf_float(file, interleaved.data(), frames), static_cast<sf_count_t>(frames));
+		sf_close(file);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			std::vector<float> values(6);
+			for (ch_cnt_t channel = 0; channel < 6; ++channel)
+			{
+				values[channel] = source.buffer(channel)[frame];
+			}
+			float expectedLeft = 0.f;
+			float expectedRight = 0.f;
+			downmixFrameToStereo(values.data(), AudioChannelLayout::surround51(),
+				expectedLeft, expectedRight);
+			QVERIFY(isClose(interleaved[frame * 2], expectedLeft));
+			QVERIFY(isClose(interleaved[frame * 2 + 1], expectedRight));
+		}
+	}
+
 	//! Sends from a surround channel to a stereo channel preserve stereo fold.
 	void MixToChannel_StereoToSurroundUsesFrontPair()
 	{
+		const auto guard = Engine::audioEngine()->requestChangesGuard();
 		constexpr auto frames = f_cnt_t{4};
 		auto* mixer = Engine::mixer();
 		auto* master = mixer->mixerChannel(0);
@@ -184,6 +292,6 @@ private slots:
 	}
 };
 
-QTEST_MAIN(MixerLayoutTest)
+QTEST_GUILESS_MAIN(MixerLayoutTest)
 
 #include "MixerLayoutTest.moc"
