@@ -8,15 +8,19 @@ set(MXM_TESTS
 	src/core/AudioBufferTest.cpp
 	src/core/AudioChannelLayoutTest.cpp
 	src/core/AudioEngineCaptureTest.cpp
+	src/core/AudioEngineTrackInputTest.cpp
+	src/core/AudioInputSourceTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
 	src/core/NoteTest.cpp
+	src/core/PerTrackRecordingTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
 	src/core/SampleBufferTest.cpp
 	src/core/SampleCaptureTest.cpp
 	src/core/SampleDecoderChannelTest.cpp
 	src/core/SampleClipChannelTest.cpp
+	src/core/SampleTrackAssignmentTest.cpp
 	src/core/TimelineTest.cpp
 	src/tracks/AutomationTrackTest.cpp
 )

@@ -84,6 +84,16 @@ public:
 	void write(PlanarBufferView<const float> frames, int channel);
 
 	/**
+	 * @brief Writes @a frames into explicit destination channels.
+	 *
+	 * `destinationChannels[i]` receives source channel `i`. Destinations outside
+	 * the capture layout are ignored and unassigned capture channels are
+	 * zero-filled. This is the channel-aware path used by per-track input
+	 * assignments.
+	 */
+	void write(PlanarBufferView<const float> frames, const std::vector<ch_cnt_t>& destinationChannels);
+
+	/**
 	 * @brief Stops the writer and returns the recorded take.
 	 *
 	 * May be called from the UI thread. Returns an empty buffer if nothing was
@@ -103,6 +113,7 @@ public:
 private:
 	void writerLoop();
 	void copyBlock(PlanarBufferView<const float> frames, int selectedChannel);
+	void copyBlock(PlanarBufferView<const float> frames, const std::vector<ch_cnt_t>& destinationChannels);
 	bool openWriter();
 
 	AudioChannelLayout m_layout;

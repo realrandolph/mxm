@@ -28,10 +28,13 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <optional>
+#include <vector>
 
 #include <QPointer>
 
 #include "AudioBusHandle.h"
+#include "AudioInputSource.h"
 #include "Track.h"
 
 
@@ -65,16 +68,45 @@ public:
 
 	void saveTrackSpecificSettings(QDomDocument& doc, QDomElement& parent, bool presetMode) override;
 	void loadTrackSpecificSettings( const QDomElement & _this ) override;
+	void setName(const QString& newName) override;
 
 	bool isRecording() const { return m_recording.load(std::memory_order_relaxed); }
 	bool startRecording();
 	void stopRecording(bool stopTransport = true);
 	int recordChannel() const { return m_recordChannel.load(std::memory_order_relaxed); }
 	void setRecordChannel(int channel);
+
+	//! @returns the saved input endpoint id for this track.
+	auto inputSourceId() const -> const QString& { return m_inputSourceId; }
+
+	//! @returns the optional saved channel override; empty means the source default.
+	auto inputChannels() const -> const std::vector<ch_cnt_t>& { return m_inputChannels; }
+
+	/**
+	 * @brief Assigns this track's physical capture endpoint.
+	 *
+	 * @param sourceId endpoint id from availableInputSources()
+	 * @param channels optional explicit channel map
+	 */
+	void setInputAssignment(const QString& sourceId,
+		std::vector<ch_cnt_t> channels = {});
+
+	//! @returns all inputs the active backend can offer this track.
+	auto availableInputSources() const -> std::vector<AudioInputSource>;
+
+	//! @returns the resolved source, or std::nullopt if it is unavailable.
+	auto resolvedInputSource() const -> std::optional<AudioInputSource>;
+
+	//! @returns an empty string when the saved assignment is usable.
+	auto inputAssignmentStatus() const -> QString;
+
 	bool isInputMonitoring() const { return m_inputMonitoring.load(std::memory_order_relaxed); }
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
 	void updateInputLevel(float level);
 	float takeInputLevel() { return m_inputLevel.exchange(0.f, std::memory_order_relaxed); }
+
+	//! @returns the current peak of this track's assigned capture source.
+	float inputPeak() const;
 	void updateRecordingClipLength();
 
 	inline IntModel * mixerChannelModel()
@@ -105,6 +137,7 @@ public:
 
 signals:
 	void playingChanged();
+	void inputAssignmentChanged();
 
 public slots:
 	void updateClips();
@@ -119,10 +152,13 @@ private:
 	bool m_isPlaying;
 	std::atomic_bool m_recording{false};
 	std::atomic_int m_recordChannel{0};
+	QString m_inputSourceId = QStringLiteral("auto");
+	std::vector<ch_cnt_t> m_inputChannels;
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};
 	std::shared_ptr<SampleRecordSession> m_recordingSession;
 	QPointer<SampleClip> m_recordingClip;
+	quint64 m_trackInputId = 0;
 
 
 

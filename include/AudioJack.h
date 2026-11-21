@@ -36,6 +36,7 @@
 
 #include <atomic>
 #include <vector>
+#include <QMap>
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 #include <QMap>
 #endif
@@ -114,6 +115,11 @@ private:
 	void unregisterPort(AudioBusHandle* port) override;
 	void renamePort(AudioBusHandle* port) override;
 
+	auto supportsTrackInputPorts() const -> bool override;
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	void renameTrackInputPort(quint64 id, const QString& name) override;
+
 	int processCallback(jack_nframes_t nframes);
 
 	static int staticProcessCallback(jack_nframes_t nframes, void* udata);
@@ -147,6 +153,15 @@ private:
 	using JackPortMap = QMap<AudioBusHandle*, StereoPort>;
 	JackPortMap m_portMap;
 #endif
+
+	struct TrackInputPort
+	{
+		ch_cnt_t channels = 0;
+		std::vector<jack_port_t*> ports;
+		std::vector<float> scratch;
+		std::vector<const float*> pointers;
+	};
+	QMap<quint64, TrackInputPort> m_trackInputPorts;
 
 signals:
 	void zombified();

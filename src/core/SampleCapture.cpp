@@ -129,6 +129,13 @@ void SampleCapture::write(PlanarBufferView<const float> frames, int channel)
 	copyBlock(frames, channel);
 }
 
+void SampleCapture::write(PlanarBufferView<const float> frames,
+	const std::vector<ch_cnt_t>& destinationChannels)
+{
+	if (!m_accepting.load(std::memory_order_acquire) || frames.empty() || frames.channels() == 0) { return; }
+	copyBlock(frames, destinationChannels);
+}
+
 void SampleCapture::copyBlock(PlanarBufferView<const float> frames, int selectedChannel)
 {
 	const auto totalFrames = frames.frames();
@@ -185,6 +192,50 @@ void SampleCapture::copyBlock(PlanarBufferView<const float> frames, int selected
 		frameOffset += frameCount;
 	}
 }
+
+void SampleCapture::copyBlock(PlanarBufferView<const float> frames,
+	const std::vector<ch_cnt_t>& destinationChannels)
+{
+	const auto totalFrames = frames.frames();
+	f_cnt_t frameOffset = 0;
+
+	while (frameOffset < totalFrames)
+	{
+		const auto write = m_writeIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % static_cast<std::uint32_t>(m_blockCount);
+		if (next == m_readIndex.load(std::memory_order_acquire))
+		{
+			m_droppedFrames.fetch_add(totalFrames - frameOffset, std::memory_order_relaxed);
+			return;
+		}
+
+		const auto frameCount = std::min<f_cnt_t>(totalFrames - frameOffset, m_blockFrames);
+		for (ch_cnt_t channel = 0; channel < m_layout.channels(); ++channel)
+		{
+			auto* dst = m_buffer->buffer(channel).data() + write * m_blockFrames;
+			std::fill_n(dst, frameCount, 0.f);
+		}
+
+		const auto mapped = std::min<std::size_t>(frames.channels(), destinationChannels.size());
+		for (size_t sourceChannel = 0; sourceChannel < mapped; ++sourceChannel)
+		{
+			const auto destination = destinationChannels[sourceChannel];
+			if (destination >= m_layout.channels()) { continue; }
+			auto* dst = m_buffer->buffer(destination).data() + write * m_blockFrames;
+			const auto* src = frames.bufferPtr(static_cast<ch_cnt_t>(sourceChannel)) + frameOffset;
+			std::copy_n(src, frameCount, dst);
+		}
+
+		m_blockFrameCounts[write] = frameCount;
+		m_writeIndex.store(next, std::memory_order_release);
+		m_recordedFrames.fetch_add(frameCount, std::memory_order_relaxed);
+		m_wake.notify_one();
+		frameOffset += frameCount;
+	}
+}
+
+
+
 
 bool SampleCapture::openWriter()
 {

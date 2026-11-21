@@ -127,6 +127,37 @@ private slots:
 		QCOMPARE(engine->inputChannels(), ch_cnt_t{8});
 	}
 
+	//! Configured capture channels produce stable mono, pair and Auto sources
+	void InputSources_EnumerateConfiguredChannels()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+
+		const auto guard = engine->requestChangesGuard();
+		engine->setInputChannels(8);
+
+		const auto sources = engine->inputSources();
+		QCOMPARE(sources.size(), std::size_t{16});
+
+		const auto automatic = engine->inputSource(QStringLiteral("auto"));
+		QVERIFY(automatic.has_value());
+		QCOMPARE(automatic->channels, ch_cnt_t{8});
+		QCOMPARE(automatic->captureChannels.size(), std::size_t{8});
+
+		const auto mono = engine->inputSource(QStringLiteral("device:7"));
+		QVERIFY(mono.has_value());
+		QCOMPARE(mono->channels, ch_cnt_t{1});
+		QCOMPARE(mono->captureChannels, (std::vector<ch_cnt_t>{7}));
+
+		const auto pair = engine->inputSource(QStringLiteral("device:2+3"));
+		QVERIFY(pair.has_value());
+		QCOMPARE(pair->channels, ch_cnt_t{2});
+		QCOMPARE(pair->captureChannels, (std::vector<ch_cnt_t>{2, 3}));
+		QVERIFY(!engine->inputSource(QStringLiteral("device:99")).has_value());
+
+		engine->setInputChannels(0);
+	}
+
 	//! A planar block is published with all channels and their values intact
 	void PushInputFrames_PlanarPreservesChannels()
 	{

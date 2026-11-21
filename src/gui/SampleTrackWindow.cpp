@@ -35,6 +35,7 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
+#include "AudioEngine.h"
 #include "AutomatableButton.h"
 #include "Engine.h"
 #include "EffectRackView.h"
@@ -157,6 +158,16 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 	recordingControlsLayout->setHorizontalSpacing(6);
 	recordingControlsLayout->setVerticalSpacing(2);
 
+	m_inputSourceComboBox = new QComboBox(this);
+	m_inputSourceComboBox->setObjectName("inputSourceComboBox");
+	recordingControlsLayout->addRow(tr("Input"), m_inputSourceComboBox);
+
+	m_inputStatusLabel = new QLabel(this);
+	m_inputStatusLabel->setObjectName("inputStatusLabel");
+	m_inputStatusLabel->setStyleSheet(labelStyleSheet);
+	m_inputStatusLabel->setWordWrap(true);
+	recordingControlsLayout->addRow(QString{}, m_inputStatusLabel);
+
 	m_recordChannelComboBox = new QComboBox(this);
 	m_recordChannelComboBox->setObjectName("recordChannelComboBox");
 	m_recordChannelComboBox->addItem(tr("All channels (Auto)"), 0);
@@ -171,12 +182,32 @@ SampleTrackWindow::SampleTrackWindow(SampleTrackView* stv)
 	recordingControlsLayout->addRow(QString{}, m_inputMonitoringCheckBox);
 	generalSettingsLayout->addLayout(recordingControlsLayout);
 
+	connect(m_inputSourceComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+		const auto sourceId = m_inputSourceComboBox->itemData(index).toString();
+		if (!sourceId.isEmpty())
+		{
+			m_track->setInputAssignment(sourceId);
+		}
+	});
 	connect(m_recordChannelComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
 		m_track->setRecordChannel(m_recordChannelComboBox->itemData(index).toInt());
 	});
 	connect(m_inputMonitoringCheckBox, &QCheckBox::toggled, this, [this](bool enabled) {
 		m_track->setInputMonitoring(enabled);
 	});
+
+	if (auto* engine = Engine::audioEngine())
+	{
+		connect(engine, &AudioEngine::audioDeviceChanged, this,
+			[this](bool input, const QString&, const QString&, bool) {
+				if (input)
+				{
+					refreshInputSources();
+				}
+			}, Qt::QueuedConnection);
+		connect(engine, &AudioEngine::inputSourcesChanged, this,
+			&SampleTrackWindow::refreshInputSources, Qt::QueuedConnection);
+	}
 
 	m_effectRack = new EffectRackView(stv->model()->audioBusHandle()->effects());
 	m_effectRack->setFixedSize(EffectRackView::DEFAULT_WIDTH, 242);
@@ -220,9 +251,12 @@ void SampleTrackWindow::modelChanged()
 	m_nameLineEdit->setText(m_track->name());
 
 	m_track->disconnect(SIGNAL(nameChanged()), this);
+	m_track->disconnect(SIGNAL(inputAssignmentChanged()), this);
 
 	connect(m_track, SIGNAL(nameChanged()),
 			this, SLOT(updateName()));
+	connect(m_track, &SampleTrack::inputAssignmentChanged,
+			this, &SampleTrackWindow::refreshInputSources);
 
 	m_volumeKnob->setModel(&m_track->m_volumeModel);
 	m_panningKnob->setModel(&m_track->m_panningModel);
@@ -242,7 +276,59 @@ void SampleTrackWindow::modelChanged()
 		m_inputMonitoringCheckBox->setChecked(m_track->isInputMonitoring());
 	}
 
+	refreshInputSources();
+
 	updateName();
+}
+
+
+
+void SampleTrackWindow::refreshInputSources()
+{
+	const auto sources = m_track->availableInputSources();
+	const auto savedId = m_track->inputSourceId().trimmed().isEmpty()
+		? QStringLiteral("auto")
+		: m_track->inputSourceId().trimmed();
+
+	const QSignalBlocker blocker(m_inputSourceComboBox);
+	m_inputSourceComboBox->clear();
+
+	int selectedIndex = -1;
+	for (const auto& source : sources)
+	{
+		m_inputSourceComboBox->addItem(source.displayName, source.id);
+		if (selectedIndex < 0 && source.id == savedId)
+		{
+			selectedIndex = m_inputSourceComboBox->count() - 1;
+		}
+	}
+
+	if (sources.empty())
+	{
+		m_inputSourceComboBox->addItem(tr("No capture inputs available"));
+		selectedIndex = 0;
+	}
+	else if (selectedIndex < 0)
+	{
+		m_inputSourceComboBox->addItem(tr("Unavailable: %1").arg(savedId), savedId);
+		selectedIndex = m_inputSourceComboBox->count() - 1;
+	}
+
+	m_inputSourceComboBox->setCurrentIndex(selectedIndex);
+	m_inputSourceComboBox->setEnabled(!sources.empty());
+	updateInputStatus();
+}
+
+
+
+void SampleTrackWindow::updateInputStatus()
+{
+	const auto status = m_track->inputAssignmentStatus();
+	m_inputStatusLabel->setText(status);
+	m_inputStatusLabel->setVisible(!status.isEmpty());
+	m_inputSourceComboBox->setToolTip(status.isEmpty()
+		? tr("Choose the capture input used when recording this track")
+		: status);
 }
 
 
