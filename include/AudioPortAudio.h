@@ -88,7 +88,7 @@ private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 
-	auto supportsTrackInputPorts() const -> bool override { return true; }
+	auto supportsTrackInputPorts() const -> bool override { return m_supportsCapture; }
 	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
 	void unregisterTrackInputPort(quint64 id) override;
 	auto inputSources() const -> std::vector<AudioInputSource> override;

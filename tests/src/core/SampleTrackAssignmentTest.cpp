@@ -27,8 +27,6 @@
 
 #include <QDomDocument>
 
-#include <vector>
-
 #include "Engine.h"
 #include "Song.h"
 
@@ -55,47 +53,42 @@ private slots:
 
 	void cleanupTestCase() { Engine::destroy(); }
 
-	//! The saved input id and channel override survive a project round trip
+	//! The saved input endpoint survives a project round trip
 	void Assignment_SaveLoadRoundTrip()
 	{
 		auto* song = Engine::getSong();
 		auto track = SampleTrack{song};
-		track.setInputAssignment(QStringLiteral("device:2+3"), {2, 3});
-		QCOMPARE(track.inputSourceId(), QStringLiteral("device:2+3"));
-		QCOMPARE(track.inputChannels(), (std::vector<ch_cnt_t>{2, 3}));
+		track.setInputAssignment(QStringLiteral("portaudio:USB Mic"));
+		QCOMPARE(track.inputSourceId(), QStringLiteral("portaudio:USB Mic"));
 
 		auto doc = QDomDocument{};
 		auto element = makeTrackElement(doc);
 		track.saveTrackSpecificSettings(doc, element, false);
 		QCOMPARE(element.attribute(QStringLiteral("input_source")),
-			QStringLiteral("device:2+3"));
-		QCOMPARE(element.attribute(QStringLiteral("input_channels")),
-			QStringLiteral("2,3"));
+			QStringLiteral("portaudio:USB Mic"));
 
 		auto loaded = SampleTrack{song};
 		loaded.loadTrackSpecificSettings(element);
-		QCOMPARE(loaded.inputSourceId(), QStringLiteral("device:2+3"));
-		QCOMPARE(loaded.inputChannels(), (std::vector<ch_cnt_t>{2, 3}));
+		QCOMPARE(loaded.inputSourceId(), QStringLiteral("portaudio:USB Mic"));
 
 		track.setInputAssignment(QStringLiteral("auto"));
 		track.saveTrackSpecificSettings(doc, element, false);
 		loaded.loadTrackSpecificSettings(element);
-		QCOMPARE(loaded.inputSourceId(), QStringLiteral("auto"));
+		QCOMPARE(loaded.inputSourceId(), QStringLiteral("system-default"));
 	}
 
-	//! Projects without input attributes require an explicit input assignment.
+	//! New and legacy projects without an explicit input default to the system input.
 	void Assignment_MissingAttributesDefault()
 	{
 		auto* song = Engine::getSong();
 		auto track = SampleTrack{song};
-		track.setInputAssignment(QStringLiteral("device:5"), {5});
+		track.setInputAssignment(QStringLiteral("portaudio:USB Mic"));
 
 		auto doc = QDomDocument{};
 		auto element = makeTrackElement(doc);
 		track.loadTrackSpecificSettings(element);
 
-		QCOMPARE(track.inputSourceId(), QStringLiteral("none"));
-		QVERIFY(track.inputChannels().empty());
+		QCOMPARE(track.inputSourceId(), QStringLiteral("system-default"));
 	}
 
 	//! An unavailable saved id is reported and never resolved silently
@@ -103,7 +96,7 @@ private slots:
 	{
 		auto* song = Engine::getSong();
 		auto track = SampleTrack{song};
-		track.setInputAssignment(QStringLiteral("device:99"), {0, 1});
+		track.setInputAssignment(QStringLiteral("portaudio:Missing Mic"));
 
 		QVERIFY(!track.inputAssignmentStatus().isEmpty());
 		QVERIFY(track.resolvedInputSource() == std::nullopt);

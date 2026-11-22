@@ -57,8 +57,8 @@ private slots:
 		for (const auto& source : first)
 		{
 			QVERIFY(source.valid());
-			QVERIFY(source.trackPort);
-			QVERIFY(source.id.startsWith(QStringLiteral("portaudio:")));
+			QVERIFY(source.id == QString::fromLatin1(SystemDefaultInputSourceId)
+				|| source.id.startsWith(QStringLiteral("portaudio:")));
 			QVERIFY(source.channels == 1 || source.channels == 2);
 			QVERIFY(source.endpointPorts == QStringList{source.id});
 			QVERIFY(!source.displayName.isEmpty());
@@ -80,7 +80,11 @@ private slots:
 		engine->registerTrackInput(trackId, QStringLiteral("PortAudio input test"), 2);
 		QVERIFY(!backend->registerTrackInputPort(trackId, QStringLiteral("PortAudio input test"), 1));
 		QVERIFY(backend->registerTrackInputPort(trackId, QStringLiteral("PortAudio input test"), 2));
+		QVERIFY(!backend->supportsExternalPatchbayInput());
+		backend->setTrackInputSource(trackId, {QStringLiteral("portaudio:missing")});
+		QVERIFY(engine->trackInputCaptureFailed(trackId));
 		backend->setTrackInputSource(trackId, first.front().endpointPorts);
+		QVERIFY(!engine->trackInputCaptureFailed(trackId));
 		backend->startProcessing();
 
 		QElapsedTimer timer;

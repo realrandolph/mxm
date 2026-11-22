@@ -184,9 +184,8 @@ AudioSndio::AudioSndio(bool& _success_ful, AudioEngine* _audioEngine)
 		return;
 	}
 
-	// sndio offers no device enumeration, so the configured playback device is
-	// also the only capture endpoint that can be selected honestly.
-	m_supportsCapture = capturesAudio(m_configuredDevice, sampleRate(),
+	// sndio offers no device enumeration; its default recording endpoint is used.
+	m_supportsCapture = capturesAudio({}, sampleRate(),
 		audioEngine()->framesPerAudioBuffer());
 	_success_ful = true;
 }
@@ -216,19 +215,10 @@ auto AudioSndio::inputSources() const -> std::vector<AudioInputSource>
 	auto sources = std::vector<AudioInputSource>{};
 	if (!m_supportsCapture) { return sources; }
 
-	const auto label = m_configuredDevice.isEmpty()
-		? AudioSndio::tr("System Default input") : m_configuredDevice;
-	const auto idSuffix = m_configuredDevice.isEmpty()
-		? QStringLiteral("system-default") : m_configuredDevice;
-	sources.push_back(AudioInputSource{
-		QStringLiteral("sndio-rec:") + idSuffix,
-		label,
+	sources.push_back(makeAudioInputSource(
+		QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
 		CaptureChannels,
-		AudioChannelLayout::stereo(),
-		{0, 1},
-		true,
-		{m_configuredDevice.isEmpty() ? QStringLiteral("system-default") : m_configuredDevice},
-	});
+		{QString::fromLatin1(SystemDefaultInputSourceId)}));
 	return sources;
 }
 
@@ -272,6 +262,7 @@ void AudioSndio::setTrackInputSource(quint64 id, const QStringList& endpointPort
 	auto& capture = *found->second;
 	stopTrackCapture(capture);
 	capture.device.reset();
+	audioEngine()->setTrackInputCaptureFailed(id, false);
 	if (endpointPorts.isEmpty()) { return; }
 
 	const auto endpoint = endpointPorts.front();
@@ -329,6 +320,7 @@ void AudioSndio::captureThread(TrackCapture& capture)
 	{
 		qWarning("sndio: cannot open capture device '%s'",
 			qUtf8Printable(capture.device->isEmpty() ? QStringLiteral("default") : *capture.device));
+		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
 		return;
 	}
 
@@ -380,6 +372,10 @@ void AudioSndio::captureThread(TrackCapture& capture)
 
 	sio_stop(handle);
 	sio_close(handle);
+	if (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
+	{
+		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
+	}
 }
 
 

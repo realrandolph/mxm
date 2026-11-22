@@ -238,7 +238,7 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	successful = true;
 	setSampleRate(sampleRate);
 	setChannels(static_cast<ch_cnt_t>(outputChannels));
-	setCaptureChannels(0);
+	m_supportsCapture = !inputSources().empty();
 
 	QObject::connect(&m_streamMonitor, &QTimer::timeout, [this] { checkStreamStatus(); });
 	m_streamMonitor.start(1000);
@@ -291,6 +291,19 @@ void AudioPortAudio::closeTrackInput(TrackInput& input)
 auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
 {
 	auto sources = std::vector<AudioInputSource>{};
+	const auto defaultInput = Pa_GetDefaultInputDevice();
+	if (defaultInput != paNoDevice)
+	{
+		const auto* info = Pa_GetDeviceInfo(defaultInput);
+		if (info && info->maxInputChannels > 0)
+		{
+			const auto channels = static_cast<ch_cnt_t>(
+				std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
+			sources.push_back(makeAudioInputSource(
+				QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"), channels,
+				{QString::fromLatin1(SystemDefaultInputSourceId)}));
+		}
+	}
 	const auto deviceCount = Pa_GetDeviceCount();
 	for (PaDeviceIndex index = 0; index < deviceCount; ++index)
 	{
@@ -301,15 +314,11 @@ auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
 			std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
 		const auto id = inputSourceId(index);
 		const auto label = inputSourceLabel(index);
-		sources.push_back(AudioInputSource{
+		sources.push_back(makeAudioInputSource(
 			id,
 			label,
 			channels,
-			channels == 1 ? AudioChannelLayout::mono() : AudioChannelLayout::stereo(),
-			channels == 1 ? std::vector<ch_cnt_t>{0} : std::vector<ch_cnt_t>{0, 1},
-			true,
-			{id},
-		});
+			{id}));
 	}
 	return sources;
 }
@@ -339,14 +348,20 @@ void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpoint
 	if (found == m_trackInputs.end()) { return; }
 	auto& input = *found->second;
 	closeTrackInput(input);
-	if (endpointPorts.isEmpty()) { return; }
+	if (endpointPorts.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
 
-	const auto deviceIndex = findInputDevice(endpointPorts.front());
+	const auto deviceIndex = endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId)
+		? Pa_GetDefaultInputDevice() : findInputDevice(endpointPorts.front());
 	const auto* info = deviceIndex != paNoDevice ? Pa_GetDeviceInfo(deviceIndex) : nullptr;
 	if (!info || info->maxInputChannels <= 0)
 	{
 		std::cerr << "PortAudio: input source not available: "
 			<< endpointPorts.front().toStdString() << '\n';
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 
@@ -365,6 +380,7 @@ void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpoint
 	{
 		std::cerr << "PortAudio: input format not supported for "
 			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 
@@ -375,10 +391,12 @@ void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpoint
 		std::cerr << "PortAudio: could not open input "
 			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
 		input.stream = nullptr;
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 
 	input.channels = channels;
+	audioEngine()->setTrackInputCaptureFailed(id, false);
 	if (isRunning()) { Pa_StartStream(input.stream); }
 }
 

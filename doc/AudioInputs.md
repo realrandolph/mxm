@@ -12,14 +12,10 @@ routing to the track's input ports.
 - stable `id`;
 - human-readable `displayName`;
 - source `channels` and `AudioChannelLayout`;
-- `captureChannels`, mapping shared capture channels to the source;
-- `trackPort` and `endpointPorts` for independently opened or backend-routed
-  per-track sources.
+- `endpointPorts` for independently opened or backend-routed per-track sources.
 
-The track stores `input_source` and an optional `input_channels` list in the
-project. The channel list makes nonadjacent and future multichannel mappings
-explicit; it is not inferred from a stereo assumption. Projects without these
-attributes load without an assigned source.
+New tracks and projects without an explicit assignment default to the backend's
+**System Default** input. The track stores its `input_source` id in the project.
 
 The list is rebuilt from the active backend. A saved assignment that no longer
 exists is shown as unavailable; recording does not silently fall back to a
@@ -53,8 +49,14 @@ capture endpoint when available. JACK enumerates source clients and connects
 the selected source to the track.
 
 JACK exposes each track's inputs as `<track> In L` / `<track> In R` ports for
-optional routing in tools such as qpwgraph.
+optional routing in tools such as qpwgraph. The **External patchbay input**
+choice is offered only there: other backends cannot leave a track port open
+without a selected device, so that assignment is not accepted and does not
+close the capture that is already open.
+
+If the selected device fails to open, or its capture reader exits, recording
+does not start a silently discarded empty take. The failure is reported through
+the track input status and the existing unavailable-input error.
 
 Shared synchronized recording and the final multi-track start/stop flow belong
-to #50. Full surround routing remains in #63; this input model already carries
-arbitrary channel maps so it can feed those layouts without a redesign.
+to #50. Full surround routing remains in #63.

@@ -214,7 +214,11 @@ AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 	}
 	delete[] ufds;
 	m_monitoredDevice = probeDevice();
-	m_supportsCapture = !inputSources().empty();
+	auto defaultCapture = openCaptureStream(QStringLiteral("default"), sampleRate(),
+		_audioEngine->framesPerAudioBuffer());
+	m_supportsCapture = defaultCapture.handle != nullptr;
+	if (defaultCapture.handle) { snd_pcm_close(defaultCapture.handle); }
+	if (!m_supportsCapture) { m_supportsCapture = !inputSources().empty(); }
 	_success_ful = true;
 }
 
@@ -311,6 +315,12 @@ auto AudioAlsa::supportsTrackInputPorts() const -> bool
 auto AudioAlsa::inputSources() const -> std::vector<AudioInputSource>
 {
 	auto sources = std::vector<AudioInputSource>{};
+	if (m_supportsCapture)
+	{
+		sources.push_back(makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
+			CaptureChannels, {QString::fromLatin1(SystemDefaultInputSourceId)}));
+	}
 
 	char** hints = nullptr;
 	if (snd_device_name_hint(-1, "pcm", reinterpret_cast<void***>(&hints)) != 0)
@@ -327,15 +337,11 @@ auto AudioAlsa::inputSources() const -> std::vector<AudioInputSource>
 		if (isInputHint(name, ioid))
 		{
 			const auto deviceName = QString::fromUtf8(name);
-			sources.push_back(AudioInputSource{
+			sources.push_back(makeAudioInputSource(
 				QStringLiteral("alsa-pcm:") + deviceName,
 				hintLabel(name, description),
 				CaptureChannels,
-				AudioChannelLayout::stereo(),
-				{0, 1},
-				true,
-				{deviceName},
-			});
+				{deviceName}));
 		}
 
 		free(name);
@@ -386,7 +392,10 @@ void AudioAlsa::setTrackInputSource(quint64 id, const QStringList& endpointPorts
 
 	auto& capture = *found->second;
 	stopTrackCapture(capture);
-	capture.device = endpointPorts.isEmpty() ? QString{} : endpointPorts.front();
+	capture.device = endpointPorts.isEmpty() ? QString{}
+		: endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId)
+			? QStringLiteral("default") : endpointPorts.front();
+	audioEngine()->setTrackInputCaptureFailed(id, false);
 	if (!capture.device.isEmpty() && AudioDevice::isRunning())
 	{
 		startTrackCapture(capture);
@@ -440,6 +449,7 @@ void AudioAlsa::captureThread(TrackCapture& capture)
 	if (pcm == nullptr)
 	{
 		qWarning("ALSA: cannot open capture device '%s'", qUtf8Printable(capture.device));
+		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
 		return;
 	}
 
@@ -533,6 +543,10 @@ void AudioAlsa::captureThread(TrackCapture& capture)
 	}
 
 	snd_pcm_close(pcm);
+	if (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
+	{
+		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
+	}
 }
 
 

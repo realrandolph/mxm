@@ -287,7 +287,7 @@ void SampleTrackWindow::refreshInputSources()
 {
 	const auto sources = m_track->availableInputSources();
 	const auto savedId = m_track->inputSourceId().trimmed().isEmpty()
-		? QStringLiteral("none")
+		? QStringLiteral("system-default")
 		: m_track->inputSourceId().trimmed();
 
 	const QSignalBlocker blocker(m_inputSourceComboBox);

@@ -37,17 +37,14 @@
 namespace mxm
 {
 
+inline constexpr auto SystemDefaultInputSourceId = "system-default";
+//! Synthetic source for a track's own ports, patched externally rather than opened.
+inline constexpr auto TrackInputSourceId = "track";
+
 /**
  * @brief A selectable capture endpoint for a recordable track.
  *
- * `captureChannels` maps each source channel to a channel in the engine's
- * current capture snapshot. Keeping the mapping explicit (instead of assuming
- * adjacent stereo pairs) lets a track record nonadjacent interface channels
- * today and arbitrary layouts later.
- *
- * A track-port source is provided by a backend that can route a named source
- * to one track (currently JACK). Its `endpointPorts` identify the source and
- * its `captureChannels` index the track's capture snapshot.
+ * `endpointPorts` identifies the backend source to open or connect.
  */
 struct MXM_EXPORT AudioInputSource
 {
@@ -55,70 +52,30 @@ struct MXM_EXPORT AudioInputSource
 	QString displayName;
 	ch_cnt_t channels = 0;
 	AudioChannelLayout layout;
-	std::vector<ch_cnt_t> captureChannels;
-	bool trackPort = false;
 	QStringList endpointPorts;
 
 	auto valid() const -> bool
 	{
-		return channels > 0 && layout.channels() == channels
-			&& captureChannels.size() == channels;
+		return channels > 0 && layout.channels() == channels;
 	}
 };
 
-/**
- * @brief Builds selectable mono, stereo-pair and all-channel sources.
- *
- * The first entry is always "Auto" for the complete configured capture
- * layout. Mono inputs and adjacent stereo pairs follow, then an explicit
- * all-channel entry.
- */
-MXM_EXPORT auto makeDeviceInputSources(ch_cnt_t deviceChannels,
-	const AudioChannelLayout& deviceLayout, const QString& deviceName = {})
-	-> std::vector<AudioInputSource>;
+MXM_EXPORT auto makeAudioInputSource(QString id, QString displayName,
+	ch_cnt_t channels, QStringList endpointPorts) -> AudioInputSource;
 
 /**
- * @brief Validates an assignment against the current device snapshot.
+ * @brief Views selected channels in one track's capture block.
  *
- * @param source selected source
- * @param overrideChannels optional channel map; when empty, the source's own
- *        captureChannels are used
- * @param deviceChannels current engine capture channel count
- * @returns true when every selected channel is available
- */
-MXM_EXPORT auto validateInputSource(const AudioInputSource& source,
-	const std::vector<ch_cnt_t>& overrideChannels, ch_cnt_t deviceChannels) -> bool;
-
-//! @returns the effective channel map for an assignment.
-MXM_EXPORT auto inputSourceChannels(const AudioInputSource& source,
-	const std::vector<ch_cnt_t>& overrideChannels) -> const std::vector<ch_cnt_t>&;
-
-/**
- * @brief Copies selected source channels from the device capture snapshot.
- *
- * @param deviceInput planar snapshot as returned by AudioEngine::inputBuffer()
+ * @param deviceInput planar per-track capture block
  * @param source source assignment
- * @param overrideChannels optional channel map; empty uses source.captureChannels
- * @param destination planar destination with `channels` buffers
- * @param gain constant gain applied while copying
- * @returns true when the mapping was valid
- */
-MXM_EXPORT auto copyInputSource(PlanarBufferView<const float> deviceInput,
-	const AudioInputSource& source, const std::vector<ch_cnt_t>& overrideChannels,
-	PlanarBufferView<float> destination, float gain = 1.0f) -> bool;
-
-/**
- * @brief Creates a non-owning planar view of the selected source channels.
- *
- * @param deviceInput planar snapshot
- * @param source source assignment
- * @param overrideChannels optional channel map
+ * @param firstChannel first source channel to expose
  * @param pointers storage for `source.channels` non-owning channel pointers
  * @returns a view valid while @a deviceInput and @a source are unchanged
  */
 MXM_EXPORT auto inputSourceView(PlanarBufferView<const float> deviceInput,
-	const AudioInputSource& source, const std::vector<ch_cnt_t>& overrideChannels,
-	std::vector<const float*>& pointers) -> PlanarBufferView<const float>;
+	const AudioInputSource& source, ch_cnt_t firstChannel,
+	std::vector<const float*>& pointers)
+	-> PlanarBufferView<const float>;
 
 } // namespace mxm
 

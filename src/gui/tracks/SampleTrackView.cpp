@@ -335,7 +335,9 @@ void SampleTrackView::updateRecordingControls()
 	const auto audioDevice = Engine::audioEngine()->audioDev();
 	const bool captureAvailable = audioDevice && audioDevice->supportsCapture();
 	m_recordButton->setText(recording ? tr("STOP") : armed ? tr("ARM") : tr("REC"));
-	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") : armed ?
+	const auto assignmentStatus = track->inputAssignmentStatus();
+	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") :
+		(captureAvailable && !assignmentStatus.isEmpty()) ? assignmentStatus : armed ?
 		tr("Recording is armed; click to cancel. Right-click to change start mode.") :
 		(captureAvailable ?
 			tr("Record audio to this sample track. Right-click for delayed or input-triggered start.") :

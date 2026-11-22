@@ -79,12 +79,19 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
 	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
-	const auto input = m_session->source.trackPort && m_session->trackInputId != 0
-		? Engine::audioEngine()->trackInputBuffer(m_session->trackInputId)
-		: Engine::audioEngine()->inputBuffer();
+	auto* engine = Engine::audioEngine();
+	// An empty snapshot is normal before the first callback. Only a reported
+	// open failure or reader exit means the assigned capture is gone.
+	if (engine->trackInputCaptureFailed(m_session->trackInputId))
+	{
+		m_session->inputUnavailable.store(true, std::memory_order_relaxed);
+		m_track->updateInputLevel(0.f);
+	}
+	const auto input = engine->trackInputBuffer(m_session->trackInputId);
 	if (input.empty()) { return; }
 
-	const auto source = inputSourceView(input, m_session->source, {}, m_sourcePointers);
+	const auto source = inputSourceView(input, m_session->source,
+		m_session->firstInputChannel, m_sourcePointers);
 	if (source.empty())
 	{
 		// The take was started against a validated endpoint. If the device or

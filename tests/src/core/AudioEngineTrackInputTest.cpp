@@ -54,12 +54,11 @@ private slots:
 		engine->registerTrackInput(id, QStringLiteral("Guitar"), 2);
 		QVERIFY(engine->hasTrackInput(id));
 
-		const auto source = engine->trackInputSource(id, QStringLiteral("Guitar"));
-		QVERIFY(source.has_value());
-		QCOMPARE(source->id, QStringLiteral("track"));
-		QVERIFY(source->trackPort);
-		QCOMPARE(source->channels, ch_cnt_t{2});
-		QCOMPARE(source->captureChannels.size(), std::size_t{2});
+		// The synthetic external-patchbay source is not a device endpoint. The
+		// dummy backend cannot route one, so it must not be offered.
+		QVERIFY(engine->audioDev() != nullptr);
+		QVERIFY(!engine->audioDev()->supportsExternalPatchbayInput());
+		QVERIFY(!engine->trackInputSource(id, QStringLiteral("Guitar")).has_value());
 
 		constexpr auto frames = f_cnt_t{16};
 		auto left = std::vector<float>(frames);

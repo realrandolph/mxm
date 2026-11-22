@@ -74,6 +74,7 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 	{
 		m_trackInputId = static_cast<quint64>(reinterpret_cast<std::uintptr_t>(this));
 		engine->registerTrackInput(m_trackInputId, name(), 2);
+		engine->setTrackInputSource(m_trackInputId, m_inputSourceId);
 	}
 }
 
@@ -210,9 +211,6 @@ void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& this
 	m_panningModel.saveSettings(doc, thisElem, "pan");
 	m_mixerChannelModel.saveSettings(doc, thisElem, "mixch");
 	thisElem.setAttribute("input_source", m_inputSourceId);
-	QStringList inputChannels;
-	for (const auto channel : m_inputChannels) { inputChannels.append(QString::number(channel)); }
-	if (!inputChannels.isEmpty()) { thisElem.setAttribute("input_channels", inputChannels.join(',')); }
 	thisElem.setAttribute("recordchannel", recordChannel());
 	thisElem.setAttribute("inputmonitor", isInputMonitoring());
 }
@@ -239,19 +237,12 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	m_panningModel.loadSettings(thisElem, "pan");
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
-	const auto inputSource = thisElem.attribute("input_source", "none");
-	auto inputChannels = std::vector<ch_cnt_t>{};
-	const auto inputChannelText = thisElem.attribute("input_channels");
-	for (const auto& entry : inputChannelText.split(',', Qt::SkipEmptyParts))
+	auto inputSource = thisElem.attribute("input_source", "system-default");
+	if (inputSource == QStringLiteral("auto") || inputSource.startsWith(QStringLiteral("device:")))
 	{
-		bool ok = false;
-		const auto channel = entry.trimmed().toUInt(&ok);
-		if (ok && channel < MaxChannelsPerAudioBuffer)
-		{
-			inputChannels.push_back(static_cast<ch_cnt_t>(channel));
-		}
+		inputSource = QString::fromLatin1(SystemDefaultInputSourceId);
 	}
-	setInputAssignment(inputSource, std::move(inputChannels));
+	setInputAssignment(inputSource);
 	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
 	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
 }
@@ -265,13 +256,13 @@ void SampleTrack::setRecordChannel(int channel)
 
 
 
-void SampleTrack::setInputAssignment(const QString& sourceId, std::vector<ch_cnt_t> channels)
+void SampleTrack::setInputAssignment(const QString& sourceId)
 {
-	const auto normalized = sourceId.trimmed().isEmpty() ? QStringLiteral("auto") : sourceId.trimmed();
-	if (m_inputSourceId == normalized && m_inputChannels == channels) { return; }
+	const auto normalized = sourceId.trimmed().isEmpty()
+		? QString::fromLatin1(SystemDefaultInputSourceId) : sourceId.trimmed();
+	if (m_inputSourceId == normalized) { return; }
 
 	m_inputSourceId = normalized;
-	m_inputChannels = std::move(channels);
 	if (m_trackInputId != 0 && Engine::audioEngine())
 	{
 		Engine::audioEngine()->setTrackInputSource(m_trackInputId, m_inputSourceId);
@@ -306,10 +297,11 @@ auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
 	auto* engine = Engine::audioEngine();
 	if (!engine) { return std::nullopt; }
 
-	const auto id = m_inputSourceId.trimmed().isEmpty() ? QStringLiteral("auto") : m_inputSourceId;
+	const auto id = m_inputSourceId.trimmed().isEmpty()
+		? QString::fromLatin1(SystemDefaultInputSourceId) : m_inputSourceId;
 	if (id == QStringLiteral("none")) { return std::nullopt; }
 	std::optional<AudioInputSource> source;
-	if (id == QStringLiteral("track"))
+	if (id == QLatin1String(TrackInputSourceId))
 	{
 		if (m_trackInputId == 0) { return std::nullopt; }
 		source = engine->trackInputSource(m_trackInputId, tr("Track input port: %1").arg(name()));
@@ -320,10 +312,7 @@ auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
 	}
 	if (!source) { return std::nullopt; }
 
-	if (!validateInputSource(*source, m_inputChannels, engine->inputChannels()))
-	{
-		return std::nullopt;
-	}
+	if (!source->valid()) { return std::nullopt; }
 	return source;
 }
 
@@ -338,9 +327,10 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 		return tr("No audio capture inputs are available.");
 	}
 
-	const auto id = m_inputSourceId.trimmed().isEmpty() ? QStringLiteral("auto") : m_inputSourceId;
+	const auto id = m_inputSourceId.trimmed().isEmpty()
+		? QString::fromLatin1(SystemDefaultInputSourceId) : m_inputSourceId;
 	if (id == QStringLiteral("none")) { return tr("Select an input source before recording."); }
-	const auto source = id == QStringLiteral("track")
+	const auto source = id == QLatin1String(TrackInputSourceId)
 		? (m_trackInputId != 0 ? engine->trackInputSource(
 			m_trackInputId, tr("Track input port: %1").arg(name())) : std::nullopt)
 		: engine->inputSource(id);
@@ -348,9 +338,9 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 	{
 		return tr("Saved input \"%1\" is unavailable. Select another input before recording.").arg(id);
 	}
-	if (!validateInputSource(*source, m_inputChannels, engine->inputChannels()))
+	if (engine->trackInputCaptureFailed(m_trackInputId))
 	{
-		return tr("The saved input channels for \"%1\" are unavailable.").arg(source->displayName);
+		return tr("The assigned input could not be opened.");
 	}
 	return {};
 }
@@ -371,7 +361,7 @@ bool SampleTrack::startRecording()
 	}
 
 	const auto source = resolvedInputSource();
-	if (!source)
+	if (!source || engine->trackInputCaptureFailed(m_trackInputId))
 	{
 		if (Engine::getSong())
 		{
@@ -380,30 +370,19 @@ bool SampleTrack::startRecording()
 		}
 		return false;
 	}
-	const auto effectiveChannels = inputSourceChannels(*source, m_inputChannels);
-	if (effectiveChannels.size() != source->channels)
-	{
-		if (Engine::getSong())
-		{
-			Engine::getSong()->collectError(tr("Cannot record on \"%1\": the input channel map is invalid.").arg(name()));
-		}
-		return false;
-	}
-
 	// Snapshot the physical assignment at take start. Device or assignment
 	// changes mid-take must never silently remap the recording to another source.
 	auto takeSource = *source;
-	takeSource.captureChannels = effectiveChannels;
+	auto firstInputChannel = ch_cnt_t{0};
 	auto destinationChannels = std::vector<ch_cnt_t>{};
 	auto captureLayout = AudioChannelLayout{};
 
 	if (recordChannel() == 1 || recordChannel() == 2)
 	{
-		const auto sourceIndex = std::min<std::size_t>(
-			static_cast<std::size_t>(recordChannel() - 1), effectiveChannels.size() - 1);
+		firstInputChannel = std::min<ch_cnt_t>(
+			static_cast<ch_cnt_t>(recordChannel() - 1), source->channels - 1);
 		takeSource.channels = 1;
 		takeSource.layout = AudioChannelLayout::mono();
-		takeSource.captureChannels = {effectiveChannels[sourceIndex]};
 		captureLayout = AudioChannelLayout::stereo();
 		destinationChannels = {static_cast<ch_cnt_t>(recordChannel() - 1)};
 	}
@@ -430,13 +409,13 @@ bool SampleTrack::startRecording()
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
 
 	m_recordingSession = std::make_shared<SampleRecordSession>();
-	m_recordingSession->engineDroppedAtStart = source->trackPort
-		? engine->trackInputDroppedFrames(m_trackInputId) : engine->inputDroppedFrames();
+	m_recordingSession->engineDroppedAtStart = engine->trackInputDroppedFrames(m_trackInputId);
 	m_recordingSession->source = std::move(takeSource);
 	m_recordingSession->destinationChannels = std::move(destinationChannels);
-	m_recordingSession->trackInputId = source->trackPort ? m_trackInputId : 0;
+	m_recordingSession->trackInputId = m_trackInputId;
+	m_recordingSession->firstInputChannel = firstInputChannel;
 	m_recordingSession->capture = std::make_shared<SampleCapture>(
-		engine->inputSampleRate(), captureLayout, engine->framesPerPeriod(), 64);
+		engine->outputSampleRate(), captureLayout, engine->framesPerPeriod(), 64);
 	m_recordingClip = clip;
 	clip->changeLength(TimePos(1));
 	song->trackRecordingStarted();
@@ -453,7 +432,7 @@ void SampleTrack::updateRecordingClipLength()
 	if (!isRecording() || !m_recordingClip) { return; }
 	if (!m_recordingSession) { return; }
 	const auto frames = m_recordingSession->recordedFrames.load(std::memory_order_relaxed);
-	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->inputSampleRate());
+	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->outputSampleRate());
 	const auto ticks = std::min<double>(static_cast<double>(frames) / framesPerTick,
 		std::numeric_limits<tick_t>::max());
 	m_recordingClip->changeLength(TimePos(static_cast<tick_t>(ticks)));
@@ -474,10 +453,8 @@ void SampleTrack::stopRecording(bool stopTransport)
 				// is stopped, so no accepted block can be published afterwards.
 				const auto guard = Engine::audioEngine()->requestChangesGuard();
 				recorded = m_recordingSession->capture->finish();
-				const auto engineDropped = (m_recordingSession->source.trackPort
-					? Engine::audioEngine()->trackInputDroppedFrames(m_recordingSession->trackInputId)
-					: Engine::audioEngine()->inputDroppedFrames())
-					- m_recordingSession->engineDroppedAtStart;
+				const auto engineDropped = Engine::audioEngine()->trackInputDroppedFrames(
+					m_recordingSession->trackInputId) - m_recordingSession->engineDroppedAtStart;
 				const auto dropped = m_recordingSession->capture->droppedFrames() + engineDropped;
 				if (dropped > 0 && Engine::getSong())
 				{
@@ -489,8 +466,9 @@ void SampleTrack::stopRecording(bool stopTransport)
 					Engine::getSong()->collectError(tr("Recording could not be written to disk: %1")
 						.arg(m_recordingSession->capture->errorString()));
 				}
-				if (m_recordingSession->inputUnavailable.load(std::memory_order_relaxed)
-					&& Engine::getSong())
+				const auto captureFailed = m_recordingSession->inputUnavailable.load(std::memory_order_relaxed)
+					|| Engine::audioEngine()->trackInputCaptureFailed(m_recordingSession->trackInputId);
+				if (captureFailed && Engine::getSong())
 				{
 					Engine::getSong()->collectError(tr("Recording on \"%1\": the assigned input became unavailable; no other input was substituted.")
 						.arg(name()));
@@ -518,15 +496,12 @@ float SampleTrack::inputPeak() const
 	const auto source = resolvedInputSource();
 	if (!source) { return 0.f; }
 
-	const auto input = source->trackPort && m_trackInputId != 0
-		? engine->trackInputBuffer(m_trackInputId) : engine->inputBuffer();
+	const auto input = engine->trackInputBuffer(m_trackInputId);
 	if (input.empty()) { return 0.f; }
 
-	const auto& channels = inputSourceChannels(*source, m_inputChannels);
 	auto peak = 0.f;
-	for (const auto channel : channels)
+	for (ch_cnt_t channel = 0; channel < source->channels; ++channel)
 	{
-		if (channel >= input.channels()) { return 0.f; }
 		const auto* data = input.bufferPtr(channel);
 		for (f_cnt_t frame = 0; frame < input.frames(); ++frame)
 		{

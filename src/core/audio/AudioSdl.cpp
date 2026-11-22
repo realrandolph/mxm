@@ -184,7 +184,6 @@ AudioSdl::AudioSdl(bool& _success_ful, AudioEngine* _audioEngine)
 
 	// Workaround for a race condition that causes SDL to segfault
 	SDL_Delay(50);
-	setCaptureChannels(0);
 	m_supportsCapture = SDL_GetNumAudioDevices(1) > 0;
 
 	m_monitoredPlaybackDevice = resolveSdlDeviceName(
@@ -216,21 +215,23 @@ AudioSdl::~AudioSdl()
 auto AudioSdl::inputSources() const -> std::vector<AudioInputSource>
 {
 	auto sources = std::vector<AudioInputSource>{};
+	if (m_supportsCapture)
+	{
+		sources.push_back(makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"), 2,
+			{QString::fromLatin1(SystemDefaultInputSourceId)}));
+	}
 	const auto count = SDL_GetNumAudioDevices(1);
 	for (int index = 0; index < count; ++index)
 	{
 		const auto* name = SDL_GetAudioDeviceName(index, 1);
 		if (!name || !*name) { continue; }
 		const auto deviceName = QString::fromUtf8(name);
-		sources.push_back(AudioInputSource{
+		sources.push_back(makeAudioInputSource(
 			QStringLiteral("sdl:") + deviceName,
 			deviceName,
 			2,
-			AudioChannelLayout::stereo(),
-			{0, 1},
-			true,
-			{deviceName},
-		});
+			{deviceName}));
 	}
 	return sources;
 }
@@ -262,7 +263,11 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 		SDL_CloseAudioDevice(capture.device);
 		capture.device = 0;
 	}
-	if (endpointPorts.isEmpty()) { return; }
+	if (endpointPorts.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
 
 	SDL_AudioSpec desired{};
 	desired.freq = sampleRate();
@@ -271,18 +276,21 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 	desired.samples = static_cast<Uint16>(audioEngine()->framesPerAudioBuffer());
 	desired.callback = sdlTrackInputCallback;
 	desired.userdata = &capture;
+	const auto useDefault = endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId);
 	const auto deviceName = endpointPorts.front().toUtf8();
 	SDL_AudioSpec actual{};
-	capture.device = SDL_OpenAudioDevice(deviceName.constData(), 1, &desired, &actual,
+	capture.device = SDL_OpenAudioDevice(useDefault ? nullptr : deviceName.constData(), 1, &desired, &actual,
 		SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
 	if (capture.device == 0 || actual.format != AUDIO_F32SYS || actual.channels == 0)
 	{
 		qWarning("Couldn't open SDL capture device '%s': %s", deviceName.constData(), SDL_GetError());
 		if (capture.device != 0) { SDL_CloseAudioDevice(capture.device); }
 		capture.device = 0;
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 	capture.inputChannels = actual.channels;
+	audioEngine()->setTrackInputCaptureFailed(id, false);
 	if (isRunning()) { SDL_PauseAudioDevice(capture.device, 0); }
 }
 

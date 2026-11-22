@@ -79,15 +79,11 @@ void sourceInfoCallback(pa_context*, const pa_source_info* info, int eol, void* 
 	const auto name = QString::fromUtf8(info->name);
 	if (name.isEmpty()) { return; }
 	const auto description = info->description ? QString::fromUtf8(info->description) : QString{};
-	enumeration.sources.push_back(AudioInputSource{
+	enumeration.sources.push_back(makeAudioInputSource(
 		QStringLiteral("pulse-source:") + name,
 		description.isEmpty() ? name : description,
 		CaptureChannels,
-		AudioChannelLayout::stereo(),
-		{0, 1},
-		true,
-		{name},
-	});
+		{name}));
 }
 
 //! Enumerates capture sources with a temporary connection so that device
@@ -458,7 +454,15 @@ void AudioPulseAudio::signalConnected( bool connected )
 
 auto AudioPulseAudio::inputSources() const -> std::vector<AudioInputSource>
 {
-	return enumeratePulseSources();
+	auto sources = enumeratePulseSources();
+	if (!sources.empty())
+	{
+		sources.insert(sources.begin(), makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
+			CaptureChannels,
+			{QString::fromLatin1(SystemDefaultInputSourceId)}));
+	}
+	return sources;
 }
 
 
@@ -494,11 +498,16 @@ void AudioPulseAudio::setTrackInputSource(quint64 id, const QStringList& endpoin
 	if (found == m_trackInputs.end()) { return; }
 	auto& input = found->second;
 	closeTrackInput(input);
-	if (endpointPorts.isEmpty()) { return; }
+	if (endpointPorts.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
 
 	if (!ensureCaptureContext())
 	{
 		qWarning("PulseAudio: no capture connection available for track input.");
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 
@@ -522,23 +531,28 @@ void AudioPulseAudio::setTrackInputSource(quint64 id, const QStringList& endpoin
 	{
 		pa_threaded_mainloop_unlock(m_captureMainLoop);
 		qWarning("PulseAudio: pa_stream_new() failed for track input.");
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 	pa_stream_set_read_callback(stream, captureReadCallback, &input);
 	pa_stream_set_state_callback(stream, captureStreamStateCallback, &input);
 
+	const auto isDefault = endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId);
 	const auto source = endpointPorts.front().toUtf8();
-	if (pa_stream_connect_record(stream, source.constData(), &attributes,
+	if (pa_stream_connect_record(stream, isDefault ? nullptr : source.constData(), &attributes,
 		PA_STREAM_ADJUST_LATENCY) < 0)
 	{
-		qWarning("PulseAudio: cannot open capture source '%s': %s", source.constData(),
+		qWarning("PulseAudio: cannot open capture source '%s': %s",
+			isDefault ? "System Default" : source.constData(),
 			pa_strerror(pa_context_errno(m_captureContext)));
 		pa_stream_unref(stream);
 		pa_threaded_mainloop_unlock(m_captureMainLoop);
+		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 	input.stream = stream;
 	pa_threaded_mainloop_unlock(m_captureMainLoop);
+	audioEngine()->setTrackInputCaptureFailed(id, false);
 }
 
 
@@ -572,11 +586,12 @@ void AudioPulseAudio::captureReadCallback(pa_stream* stream, size_t, void* userd
 
 void AudioPulseAudio::captureStreamStateCallback(pa_stream* stream, void* userdata)
 {
-	Q_UNUSED(userdata);
+	auto& input = *static_cast<TrackInput*>(userdata);
 	if (pa_stream_get_state(stream) == PA_STREAM_FAILED)
 	{
 		qWarning("PulseAudio: track input stream failed: %s",
 			pa_strerror(pa_context_errno(pa_stream_get_context(stream))));
+		if (input.engine) { input.engine->setTrackInputCaptureFailed(input.trackId, true); }
 	}
 }
 

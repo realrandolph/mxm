@@ -79,17 +79,12 @@ public:
 	//! @returns the saved input endpoint id for this track.
 	auto inputSourceId() const -> const QString& { return m_inputSourceId; }
 
-	//! @returns the optional saved channel override; empty means the source default.
-	auto inputChannels() const -> const std::vector<ch_cnt_t>& { return m_inputChannels; }
-
 	/**
 	 * @brief Assigns this track's physical capture endpoint.
 	 *
 	 * @param sourceId endpoint id from availableInputSources()
-	 * @param channels optional explicit channel map
 	 */
-	void setInputAssignment(const QString& sourceId,
-		std::vector<ch_cnt_t> channels = {});
+	void setInputAssignment(const QString& sourceId);
 
 	//! @returns all inputs the active backend can offer this track.
 	auto availableInputSources() const -> std::vector<AudioInputSource>;
@@ -152,8 +147,7 @@ private:
 	bool m_isPlaying;
 	std::atomic_bool m_recording{false};
 	std::atomic_int m_recordChannel{0};
-	QString m_inputSourceId = QStringLiteral("none");
-	std::vector<ch_cnt_t> m_inputChannels;
+	QString m_inputSourceId = QStringLiteral("system-default");
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};
 	std::shared_ptr<SampleRecordSession> m_recordingSession;

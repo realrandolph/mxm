@@ -54,6 +54,7 @@ struct SampleRecordSession
 	AudioInputSource source;
 	std::vector<ch_cnt_t> destinationChannels;
 	quint64 trackInputId = 0;
+	ch_cnt_t firstInputChannel = 0;
 	std::atomic_bool inputUnavailable{false};
 };
 

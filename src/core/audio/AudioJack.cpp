@@ -103,7 +103,6 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 	}
 
 	m_supportsCapture = successful;
-	setCaptureChannels(0);
 }
 
 
@@ -433,6 +432,11 @@ auto AudioJack::supportsTrackInputPorts() const -> bool
 	return m_supportsCapture && m_client != nullptr;
 }
 
+auto AudioJack::supportsExternalPatchbayInput() const -> bool
+{
+	return supportsTrackInputPorts();
+}
+
 auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 {
 	auto sources = std::vector<AudioInputSource>{};
@@ -452,6 +456,20 @@ auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 	}
 	jack_free(ports);
 
+	const auto systemPorts = portsByClient.value(QStringLiteral("system"));
+	QStringList defaultPorts;
+	for (const auto& expected : {QStringLiteral("system:capture_1"), QStringLiteral("system:capture_2")})
+	{
+		if (systemPorts.contains(expected)) { defaultPorts.append(expected); }
+	}
+	if (!defaultPorts.isEmpty())
+	{
+		const auto channels = static_cast<ch_cnt_t>(defaultPorts.size());
+		sources.push_back(makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
+			channels, defaultPorts));
+	}
+
 	for (auto it = portsByClient.cbegin(); it != portsByClient.cend(); ++it)
 	{
 		const auto& clientPorts = it.value();
@@ -460,13 +478,11 @@ auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 		const auto id = QStringLiteral("jack-device:") + it.key();
 		if (channels == 1)
 		{
-			sources.push_back(AudioInputSource{
-				id, it.key(), 1, AudioChannelLayout::mono(), {0}, true, endpoints});
+			sources.push_back(makeAudioInputSource(id, it.key(), 1, endpoints));
 		}
 		else
 		{
-			sources.push_back(AudioInputSource{
-				id, it.key(), 2, AudioChannelLayout::stereo(), {0, 1}, true, endpoints});
+			sources.push_back(makeAudioInputSource(id, it.key(), 2, endpoints));
 		}
 	}
 
