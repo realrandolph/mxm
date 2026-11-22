@@ -242,6 +242,24 @@ private slots:
 		QVERIFY(invalidView.empty());
 		QVERIFY(invalidPointers.empty());
 	}
+
+	//! Per-track endpoints map their own capture snapshot, not the shared device snapshot.
+	void View_SelectsTrackPortChannels()
+	{
+		const auto snapshot = makeSnapshot(2, DeviceFrames);
+		const auto pointers = constPointers(snapshot);
+		const auto trackInput = PlanarBufferView<const float>{pointers.data(), 2, DeviceFrames};
+		const auto source = AudioInputSource{
+			QStringLiteral("sdl:headset"), QStringLiteral("Headset microphone"),
+			2, AudioChannelLayout::stereo(), {0, 1}, true, {QStringLiteral("Headset microphone")}};
+		auto sourcePointers = std::vector<const float*>{};
+		const auto view = inputSourceView(trackInput, source, {}, sourcePointers);
+
+		QCOMPARE(view.channels(), ch_cnt_t{2});
+		QCOMPARE(view.frames(), DeviceFrames);
+		QCOMPARE(sourcePointers[0], snapshot[0].data());
+		QCOMPARE(sourcePointers[1], snapshot[1].data());
+	}
 };
 
 QTEST_GUILESS_MAIN(AudioInputSourceTest)

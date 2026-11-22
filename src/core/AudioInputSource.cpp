@@ -151,7 +151,7 @@ auto inputSourceView(PlanarBufferView<const float> deviceInput,
 	std::vector<const float*>& pointers) -> PlanarBufferView<const float>
 {
 	pointers.clear();
-	if (source.trackPort || deviceInput.empty() || source.channels == 0) { return {}; }
+	if (deviceInput.empty() || source.channels == 0) { return {}; }
 
 	const auto& channels = inputSourceChannels(source, overrideChannels);
 	if (channels.size() != source.channels) { return {}; }

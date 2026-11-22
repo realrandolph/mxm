@@ -196,6 +196,47 @@ private slots:
 
 		engine->setInputChannels(0);
 	}
+
+	//! A per-track backend stream reaches the recording writer.
+	void Recording_UsesPerTrackCaptureBuffer()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		const auto guard = engine->requestChangesGuard();
+		constexpr auto trackInputId = quint64{0x51a3};
+		const auto frames = engine->framesPerPeriod();
+		const auto left = std::vector<float>(frames, 0.25f);
+		const auto right = std::vector<float>(frames, -0.5f);
+		const auto pointers = std::array<const float*, 2>{left.data(), right.data()};
+		engine->registerTrackInput(trackInputId, QStringLiteral("Track input"), 2);
+		engine->pushTrackInputFrames(trackInputId, {pointers.data(), 2, frames});
+		engine->renderNextPeriod();
+
+		auto song = Engine::getSong();
+		auto track = SampleTrack{song};
+		auto clip = SampleClip{&track};
+		auto session = std::make_shared<SampleRecordSession>();
+		session->source = AudioInputSource{
+			QStringLiteral("sdl:headset"), QStringLiteral("Headset microphone"),
+			2, AudioChannelLayout::stereo(), {0, 1}, true,
+			{QStringLiteral("Headset microphone")}};
+		session->trackInputId = trackInputId;
+		session->destinationChannels = {0, 1};
+		session->capture = std::make_shared<SampleCapture>(
+			engine->inputSampleRate(), AudioChannelLayout::stereo(), frames, 8);
+		auto handle = SampleRecordHandle{&clip, session};
+		handle.play(nullptr);
+
+		QCOMPARE(session->recordedFrames.load(), static_cast<std::uint64_t>(frames));
+		const auto result = session->capture->finish();
+		QVERIFY(result && !result->empty());
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(result->sample(frame, 0), 0.25f);
+			QCOMPARE(result->sample(frame, 1), -0.5f);
+		}
+		engine->unregisterTrackInput(trackInputId);
+	}
 };
 
 QTEST_GUILESS_MAIN(PerTrackRecordingTest)
