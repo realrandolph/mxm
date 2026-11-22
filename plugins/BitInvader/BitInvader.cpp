@@ -306,12 +306,8 @@ BitInvaderView::BitInvaderView( Instrument * _instrument,
 					QWidget * _parent ) :
 	InstrumentViewFixedSize( _instrument, _parent )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap(
-								"artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap(
+								"artwork" ));
 	
 	m_sampleLengthKnob = new Knob( KnobType::Dark28, this );
 	m_sampleLengthKnob->move( 6, 201 );
@@ -327,7 +323,7 @@ BitInvaderView::BitInvaderView( Instrument * _instrument,
 	));
 
 
-	pal = QPalette();
+	QPalette pal;
 	pal.setBrush( backgroundRole(), 
 			PLUGIN_NAME::getIconPixmap("wavegraph") );
 	m_graph->setPalette( pal );

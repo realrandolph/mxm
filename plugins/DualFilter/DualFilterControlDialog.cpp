@@ -24,6 +24,7 @@
  */
 
 
+#include "embed.h"
 #include "DualFilterControlDialog.h"
 #include "DualFilterControls.h"
 #include "FontHelper.h"
@@ -37,10 +38,7 @@ namespace mxm::gui
 DualFilterControlDialog::DualFilterControlDialog( DualFilterControls* controls ) :
 	EffectControlDialog( controls )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 	setFixedSize( 373, 109 );
 
 	auto makeKnob = [this](int x, int y, Model* model,

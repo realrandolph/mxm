@@ -26,6 +26,7 @@
 #include "DelayControls.h"
 #include "DelayEffect.h"
 #include "Engine.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -47,26 +48,13 @@ DelayControls::DelayControls( DelayEffect* effect ):
 
 
 
-void DelayControls::loadSettings( const QDomElement &_this )
-{
-	m_delayTimeModel.loadSettings(_this, "DelayTimeSamples" );
-	m_feedbackModel.loadSettings( _this, "FeebackAmount" );
-	m_lfoTimeModel.loadSettings( _this , "LfoFrequency");
-	m_lfoAmountModel.loadSettings( _this, "LfoAmount");
-	m_outGainModel.loadSettings( _this, "OutGain" );
-}
-
-
-
-
-void DelayControls::saveSettings( QDomDocument& doc, QDomElement& _this )
-{
-	m_delayTimeModel.saveSettings( doc, _this, "DelayTimeSamples" );
-	m_feedbackModel.saveSettings( doc, _this ,"FeebackAmount" );
-	m_lfoTimeModel.saveSettings( doc, _this, "LfoFrequency" );
-	m_lfoAmountModel.saveSettings( doc, _this ,"LfoAmount" );
-	m_outGainModel.saveSettings( doc, _this, "OutGain" );
-}
+MXM_DEFINE_MODEL_SETTINGS(DelayControls,
+	visit(m_delayTimeModel, "DelayTimeSamples");
+	visit(m_feedbackModel, "FeebackAmount");
+	visit(m_lfoTimeModel, "LfoFrequency");
+	visit(m_lfoAmountModel, "LfoAmount");
+	visit(m_outGainModel, "OutGain");
+)
 
 
 

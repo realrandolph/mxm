@@ -140,6 +140,8 @@ public slots:
 	void updateMixerChannel();
 
 private:
+	auto lookupAssignedInput(QString& id) const -> std::optional<AudioInputSource>;
+
 	FloatModel m_volumeModel;
 	FloatModel m_panningModel;
 	IntModel m_mixerChannelModel;

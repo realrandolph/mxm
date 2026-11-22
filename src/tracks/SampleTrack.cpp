@@ -292,28 +292,26 @@ auto SampleTrack::availableInputSources() const -> std::vector<AudioInputSource>
 
 
 
-auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
+auto SampleTrack::lookupAssignedInput(QString& id) const -> std::optional<AudioInputSource>
 {
 	auto* engine = Engine::audioEngine();
-	if (!engine) { return std::nullopt; }
-
-	const auto id = m_inputSourceId.trimmed().isEmpty()
+	id = m_inputSourceId.trimmed().isEmpty()
 		? QString::fromLatin1(SystemDefaultInputSourceId) : m_inputSourceId;
-	if (id == QStringLiteral("none")) { return std::nullopt; }
-	std::optional<AudioInputSource> source;
-	if (id == QLatin1String(TrackInputSourceId))
-	{
-		if (m_trackInputId == 0) { return std::nullopt; }
-		source = engine->trackInputSource(m_trackInputId, tr("Track input port: %1").arg(name()));
-	}
-	else
-	{
-		source = engine->inputSource(id);
-	}
-	if (!source) { return std::nullopt; }
+	if (!engine || id == QStringLiteral("none")) { return std::nullopt; }
 
-	if (!source->valid()) { return std::nullopt; }
-	return source;
+	auto source = id == QLatin1String(TrackInputSourceId)
+		? (m_trackInputId != 0 ? engine->trackInputSource(
+			m_trackInputId, tr("Track input port: %1").arg(name())) : std::nullopt)
+		: engine->inputSource(id);
+	return source && source->valid() ? source : std::nullopt;
+}
+
+
+auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
+{
+	if (!Engine::audioEngine()) { return std::nullopt; }
+	QString id;
+	return lookupAssignedInput(id);
 }
 
 
@@ -327,13 +325,9 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 		return tr("No audio capture inputs are available.");
 	}
 
-	const auto id = m_inputSourceId.trimmed().isEmpty()
-		? QString::fromLatin1(SystemDefaultInputSourceId) : m_inputSourceId;
+	QString id;
+	const auto source = lookupAssignedInput(id);
 	if (id == QStringLiteral("none")) { return tr("Select an input source before recording."); }
-	const auto source = id == QLatin1String(TrackInputSourceId)
-		? (m_trackInputId != 0 ? engine->trackInputSource(
-			m_trackInputId, tr("Track input port: %1").arg(name())) : std::nullopt)
-		: engine->inputSource(id);
 	if (!source)
 	{
 		return tr("Saved input \"%1\" is unavailable. Select another input before recording.").arg(id);

@@ -46,10 +46,7 @@ EqControlsDialog::EqControlsDialog( EqControls *controls ) :
 	EffectControlDialog( controls ),
 	m_controls( controls )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 	setFixedSize( 500, 500 );
 
 	auto inSpec = new EqSpectrumView(&controls->m_inFftBands, this);

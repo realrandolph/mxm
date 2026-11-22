@@ -25,6 +25,7 @@
 
 #include "GranularPitchShifterControls.h"
 #include "GranularPitchShifterEffect.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -48,12 +49,8 @@ GranularPitchShifterControls::GranularPitchShifterControls(GranularPitchShifterE
 	m_glideModel(0.01f, 0.f, 1.f, 0.0001f, this, tr("Glide")),
 	m_rangeModel(this, tr("Ring Buffer Length"))
 {
-	m_sizeModel.setScaleLogarithmic(true);
-	m_sprayModel.setScaleLogarithmic(true);
-	m_spraySpreadModel.setScaleLogarithmic(true);
-	m_minLatencyModel.setScaleLogarithmic(true);
-	m_densityModel.setScaleLogarithmic(true);
-	m_glideModel.setScaleLogarithmic(true);
+	setLogarithmicModels(m_sizeModel, m_sprayModel, m_spraySpreadModel,
+		m_minLatencyModel, m_densityModel, m_glideModel);
 	
 	m_rangeModel.addItem(tr("5 Seconds"));
 	m_rangeModel.addItem(tr("10 Seconds (Size)"));
@@ -104,45 +101,23 @@ void GranularPitchShifterControls::updateRange()
 	m_effect->sampleRateNeedsUpdate();
 }
 
-void GranularPitchShifterControls::loadSettings(const QDomElement& parent)
-{
-	// must be loaded first so the ranges are set properly
-	m_rangeModel.loadSettings(parent, "range");
-	
-	m_pitchModel.loadSettings(parent, "pitch");
-	m_sizeModel.loadSettings(parent, "size");
-	m_sprayModel.loadSettings(parent, "spray");
-	m_jitterModel.loadSettings(parent, "jitter");
-	m_twitchModel.loadSettings(parent, "twitch");
-	m_pitchSpreadModel.loadSettings(parent, "pitchSpread");
-	m_spraySpreadModel.loadSettings(parent, "spraySpread");
-	m_shapeModel.loadSettings(parent, "shape");
-	m_fadeLengthModel.loadSettings(parent, "fadeLength");
-	m_feedbackModel.loadSettings(parent, "feedback");
-	m_minLatencyModel.loadSettings(parent, "minLatency");
-	m_prefilterModel.loadSettings(parent, "prefilter");
-	m_densityModel.loadSettings(parent, "density");
-	m_glideModel.loadSettings(parent, "glide");
-}
-
-void GranularPitchShifterControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_rangeModel.saveSettings(doc, parent, "range");
-	m_pitchModel.saveSettings(doc, parent, "pitch");
-	m_sizeModel.saveSettings(doc, parent, "size");
-	m_sprayModel.saveSettings(doc, parent, "spray");
-	m_jitterModel.saveSettings(doc, parent, "jitter");
-	m_twitchModel.saveSettings(doc, parent, "twitch");
-	m_pitchSpreadModel.saveSettings(doc, parent, "pitchSpread");
-	m_spraySpreadModel.saveSettings(doc, parent, "spraySpread");
-	m_shapeModel.saveSettings(doc, parent, "shape");
-	m_fadeLengthModel.saveSettings(doc, parent, "fadeLength");
-	m_feedbackModel.saveSettings(doc, parent, "feedback");
-	m_minLatencyModel.saveSettings(doc, parent, "minLatency");
-	m_prefilterModel.saveSettings(doc, parent, "prefilter");
-	m_densityModel.saveSettings(doc, parent, "density");
-	m_glideModel.saveSettings(doc, parent, "glide");
-}
+MXM_DEFINE_MODEL_SETTINGS(GranularPitchShifterControls,
+	visit(m_rangeModel, "range");
+	visit(m_pitchModel, "pitch");
+	visit(m_sizeModel, "size");
+	visit(m_sprayModel, "spray");
+	visit(m_jitterModel, "jitter");
+	visit(m_twitchModel, "twitch");
+	visit(m_pitchSpreadModel, "pitchSpread");
+	visit(m_spraySpreadModel, "spraySpread");
+	visit(m_shapeModel, "shape");
+	visit(m_fadeLengthModel, "fadeLength");
+	visit(m_feedbackModel, "feedback");
+	visit(m_minLatencyModel, "minLatency");
+	visit(m_prefilterModel, "prefilter");
+	visit(m_densityModel, "density");
+	visit(m_glideModel, "glide");
+)
 
 
 } // namespace mxm

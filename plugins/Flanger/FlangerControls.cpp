@@ -27,6 +27,7 @@
 #include "FlangerEffect.h"
 #include "Engine.h"
 #include "Song.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -51,31 +52,15 @@ FlangerControls::FlangerControls( FlangerEffect *effect ) :
 
 
 
-void FlangerControls::loadSettings( const QDomElement &_this )
-{
-	m_delayTimeModel.loadSettings( _this, "DelayTimeSamples" );
-	m_lfoFrequencyModel.loadSettings( _this, "LfoFrequency" );
-	m_lfoAmountModel.loadSettings( _this, "LfoAmount" );
-	m_lfoPhaseModel.loadSettings( _this, "LfoPhase" );
-	m_feedbackModel.loadSettings( _this, "Feedback" );
-	m_whiteNoiseAmountModel.loadSettings( _this, "WhiteNoise" );
-	m_invertFeedbackModel.loadSettings( _this, "Invert" );
-
-}
-
-
-
-
-void FlangerControls::saveSettings( QDomDocument &doc, QDomElement &parent )
-{
-	m_delayTimeModel.saveSettings( doc , parent, "DelayTimeSamples" );
-	m_lfoFrequencyModel.saveSettings( doc, parent , "LfoFrequency" );
-	m_lfoAmountModel.saveSettings( doc, parent , "LfoAmount" );
-	m_lfoPhaseModel.saveSettings( doc, parent , "LfoPhase" );
-	m_feedbackModel.saveSettings( doc, parent, "Feedback" ) ;
-	m_whiteNoiseAmountModel.saveSettings( doc, parent , "WhiteNoise" ) ;
-	m_invertFeedbackModel.saveSettings( doc, parent, "Invert" );
-}
+MXM_DEFINE_MODEL_SETTINGS(FlangerControls,
+	visit(m_delayTimeModel, "DelayTimeSamples");
+	visit(m_lfoFrequencyModel, "LfoFrequency");
+	visit(m_lfoAmountModel, "LfoAmount");
+	visit(m_lfoPhaseModel, "LfoPhase");
+	visit(m_feedbackModel, "Feedback");
+	visit(m_whiteNoiseAmountModel, "WhiteNoise");
+	visit(m_invertFeedbackModel, "Invert");
+)
 
 
 

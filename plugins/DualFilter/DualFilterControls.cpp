@@ -30,6 +30,7 @@
 #include "DualFilter.h"
 #include "embed.h"
 #include "Engine.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -121,42 +122,21 @@ void DualFilterControls::updateFilters()
 
 
 
-void DualFilterControls::loadSettings( const QDomElement& _this )
-{
-	m_enabled1Model.loadSettings( _this, "enabled1" );
-	m_filter1Model.loadSettings( _this, "filter1" );
-	m_cut1Model.loadSettings( _this, "cut1" );
-	m_res1Model.loadSettings( _this, "res1" );
-	m_gain1Model.loadSettings( _this, "gain1" );
+MXM_DEFINE_MODEL_SETTINGS(DualFilterControls,
+	visit(m_enabled1Model, "enabled1");
+	visit(m_filter1Model, "filter1");
+	visit(m_cut1Model, "cut1");
+	visit(m_res1Model, "res1");
+	visit(m_gain1Model, "gain1");
 
-	m_mixModel.loadSettings( _this, "mix" );
+	visit(m_mixModel, "mix");
 
-	m_enabled2Model.loadSettings( _this, "enabled2" );
-	m_filter2Model.loadSettings( _this, "filter2" );
-	m_cut2Model.loadSettings( _this, "cut2" );
-	m_res2Model.loadSettings( _this, "res2" );
-	m_gain2Model.loadSettings( _this, "gain2" );
-}
-
-
-
-
-void DualFilterControls::saveSettings( QDomDocument& _doc, QDomElement& _this )
-{
-	m_enabled1Model.saveSettings( _doc, _this, "enabled1" );
-	m_filter1Model.saveSettings( _doc, _this, "filter1" );
-	m_cut1Model.saveSettings( _doc, _this, "cut1" );
-	m_res1Model.saveSettings( _doc, _this, "res1" );
-	m_gain1Model.saveSettings( _doc, _this, "gain1" );
-
-	m_mixModel.saveSettings( _doc, _this, "mix" );
-
-	m_enabled2Model.saveSettings( _doc, _this, "enabled2" );
-	m_filter2Model.saveSettings( _doc, _this, "filter2" );
-	m_cut2Model.saveSettings( _doc, _this, "cut2" );
-	m_res2Model.saveSettings( _doc, _this, "res2" );
-	m_gain2Model.saveSettings( _doc, _this, "gain2" );
-}
+	visit(m_enabled2Model, "enabled2");
+	visit(m_filter2Model, "filter2");
+	visit(m_cut2Model, "cut2");
+	visit(m_res2Model, "res2");
+	visit(m_gain2Model, "gain2");
+)
 
 
 } // namespace mxm

@@ -27,6 +27,7 @@
 #include "ReverbSCControls.h"
 #include "ReverbSC.h"
 #include "Engine.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -47,21 +48,12 @@ void ReverbSCControls::changeControl()
 {
 }
 
-void ReverbSCControls::loadSettings( const QDomElement& _this )
-{
-	m_inputGainModel.loadSettings( _this, "input_gain" );
-	m_sizeModel.loadSettings( _this, "size" );
-	m_colorModel.loadSettings( _this, "color" );
-	m_outputGainModel.loadSettings( _this, "output_gain" );
-}
-
-void ReverbSCControls::saveSettings( QDomDocument& doc, QDomElement& _this )
-{
-	m_inputGainModel.saveSettings( doc, _this, "input_gain" ); 
-	m_sizeModel.saveSettings( doc, _this, "size" ); 
-	m_colorModel.saveSettings( doc, _this, "color" );
-	m_outputGainModel.saveSettings( doc, _this, "output_gain" ); 
-}
+MXM_DEFINE_MODEL_SETTINGS(ReverbSCControls,
+	visit(m_inputGainModel, "input_gain");
+	visit(m_sizeModel, "size");
+	visit(m_colorModel, "color");
+	visit(m_outputGainModel, "output_gain");
+)
 
 void ReverbSCControls::changeSampleRate()
 {

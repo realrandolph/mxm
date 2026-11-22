@@ -433,11 +433,7 @@ PatmanView::PatmanView( Instrument * _instrument, QWidget * _parent ) :
 	InstrumentViewFixedSize( _instrument, _parent ),
 	m_pi(castModel<PatmanInstrument>())
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(),
-				PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 
 
 	m_openFileButton = new PixmapButton( this, nullptr );

@@ -26,6 +26,7 @@
 
 #include "StereoMatrixControls.h"
 #include "StereoMatrix.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -64,25 +65,12 @@ void StereoMatrixControls::changeMatrix()
 
 
 
-void StereoMatrixControls::loadSettings( const QDomElement & _this )
-{
-	m_llModel.loadSettings( _this, "l-l" );
-	m_lrModel.loadSettings( _this, "l-r" );
-	m_rlModel.loadSettings( _this, "r-l" );
-	m_rrModel.loadSettings( _this, "r-r" );
-}
-
-
-
-
-void StereoMatrixControls::saveSettings( QDomDocument & _doc, 
-							QDomElement & _this )
-{
-	m_llModel.saveSettings( _doc, _this, "l-l" );
-	m_lrModel.saveSettings( _doc, _this, "l-r" );
-	m_rlModel.saveSettings( _doc, _this, "r-l" );
-	m_rrModel.saveSettings( _doc, _this, "r-r" );
-}
+MXM_DEFINE_MODEL_SETTINGS(StereoMatrixControls,
+	visit(m_llModel, "l-l");
+	visit(m_lrModel, "l-r");
+	visit(m_rlModel, "r-l");
+	visit(m_rrModel, "r-r");
+)
 
 
 } // namespace mxm

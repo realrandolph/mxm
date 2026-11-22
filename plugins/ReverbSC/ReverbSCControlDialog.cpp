@@ -38,10 +38,7 @@ namespace mxm::gui
 ReverbSCControlDialog::ReverbSCControlDialog( ReverbSCControls* controls ) :
 	EffectControlDialog( controls )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 
 	auto knobLayout = new QHBoxLayout(this);
 	knobLayout->setSizeConstraint(QLayout::SetFixedSize);

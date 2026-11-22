@@ -25,6 +25,7 @@
 
 #include "DispersionControls.h"
 #include "Dispersion.h"
+#include "ModelSettings.h"
 
 
 namespace mxm
@@ -45,26 +46,13 @@ DispersionControls::DispersionControls(DispersionEffect* effect) :
 
 
 
-void DispersionControls::loadSettings(const QDomElement& parent)
-{
-	m_amountModel.loadSettings(parent, "amount");
-	m_freqModel.loadSettings(parent, "freq");
-	m_resoModel.loadSettings(parent, "reso");
-	m_feedbackModel.loadSettings(parent, "feedback");
-	m_dcModel.loadSettings(parent, "dc");
-}
-
-
-
-
-void DispersionControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_amountModel.saveSettings(doc, parent, "amount");
-	m_freqModel.saveSettings(doc, parent, "freq");
-	m_resoModel.saveSettings(doc, parent, "reso");
-	m_feedbackModel.saveSettings(doc, parent, "feedback");
-	m_dcModel.saveSettings(doc, parent, "dc");
-}
+MXM_DEFINE_MODEL_SETTINGS(DispersionControls,
+	visit(m_amountModel, "amount");
+	visit(m_freqModel, "freq");
+	visit(m_resoModel, "reso");
+	visit(m_feedbackModel, "feedback");
+	visit(m_dcModel, "dc");
+)
 
 
 } // namespace mxm

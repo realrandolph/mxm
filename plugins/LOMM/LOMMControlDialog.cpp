@@ -23,6 +23,7 @@
  */
 
 
+#include "embed.h"
 #include "LOMMControlDialog.h"
 
 #include <QMouseEvent>
@@ -41,10 +42,7 @@ LOMMControlDialog::LOMMControlDialog(LOMMControls* controls) :
 	EffectControlDialog(controls),
 	m_controls(controls)
 {
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 	setFixedSize(400, 256);
 
 	createKnob(KnobType::Bright26, this, 10, 4, &controls->m_depthModel, tr("Depth:"), "", tr("Compression amount for all bands"));

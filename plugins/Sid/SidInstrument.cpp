@@ -468,10 +468,7 @@ SidInstrumentView::SidInstrumentView( Instrument * _instrument,
 	InstrumentViewFixedSize( _instrument, _parent )
 {
 
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 
 	m_volKnob = new sidKnob( this );
 	m_volKnob->setHintText( tr( "Volume:" ), "" );

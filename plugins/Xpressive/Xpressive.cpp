@@ -315,11 +315,7 @@ XpressiveView::XpressiveView(Instrument * _instrument, QWidget * _parent) :
 	const int EXPR_TEXT_Y = BASE_START + 102;
 	const int EXPR_TEXT_H = 90;
 
-	setAutoFillBackground(true);
-	QPalette pal;
-
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 
 	m_graph = new Graph(this, Graph::Style::Linear, 180, 81);
 	m_graph->move(3, BASE_START + 1);
@@ -330,7 +326,7 @@ XpressiveView::XpressiveView(Instrument * _instrument, QWidget * _parent) :
 	m_graph->setToolTip(tr("Draw your own waveform here "
 			"by dragging your mouse on this graph."));
 
-	pal = QPalette();
+	QPalette pal;
 	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("wavegraph"));
 	m_graph->setPalette(pal);
 

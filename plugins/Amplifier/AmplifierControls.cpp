@@ -26,6 +26,7 @@
 
 #include "AmplifierControls.h"
 #include "Amplifier.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -41,22 +42,12 @@ AmplifierControls::AmplifierControls(AmplifierEffect* effect) :
 }
 
 
-void AmplifierControls::loadSettings(const QDomElement& parent)
-{
-	m_volumeModel.loadSettings(parent, "volume");
-	m_panModel.loadSettings(parent, "pan");
-	m_leftModel.loadSettings(parent, "left");
-	m_rightModel.loadSettings(parent, "right");
-}
-
-
-void AmplifierControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_volumeModel.saveSettings(doc, parent, "volume"); 
-	m_panModel.saveSettings(doc, parent, "pan");
-	m_leftModel.saveSettings(doc, parent, "left");
-	m_rightModel.saveSettings(doc, parent, "right");
-}
+MXM_DEFINE_MODEL_SETTINGS(AmplifierControls,
+	visit(m_volumeModel, "volume");
+	visit(m_panModel, "pan");
+	visit(m_leftModel, "left");
+	visit(m_rightModel, "right");
+)
 
 
 } // namespace mxm

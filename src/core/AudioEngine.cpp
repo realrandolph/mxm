@@ -302,6 +302,33 @@ auto AudioEngine::trackInputSource(quint64 id, const QString& displayName) const
 
 
 
+namespace
+{
+
+template<typename Slot, typename Copy>
+void enqueueTrackInputBlocks(Slot& slot, f_cnt_t frames, std::uint32_t blockCount, Copy&& copy)
+{
+	f_cnt_t frameOffset = 0;
+	while (frameOffset < frames)
+	{
+		const auto write = slot.writeIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % blockCount;
+		if (next == slot.readIndex.load(std::memory_order_acquire))
+		{
+			slot.droppedFrames.fetch_add(frames - frameOffset, std::memory_order_relaxed);
+			return;
+		}
+
+		const auto copied = std::min(frames - frameOffset, slot.queueBlockFrames);
+		copy(write, frameOffset, copied);
+		slot.blockFrames[write] = copied;
+		slot.writeIndex.store(next, std::memory_order_release);
+		frameOffset += copied;
+	}
+}
+
+} // namespace
+
 void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float> frames)
 {
 	if (id == 0 || frames.empty() || frames.channels() == 0) { return; }
@@ -315,28 +342,14 @@ void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float>
 		return;
 	}
 
-	f_cnt_t frameOffset = 0;
-	while (frameOffset < frames.frames())
-	{
-		const auto write = slot->writeIndex.load(std::memory_order_relaxed);
-		const auto next = (write + 1) % static_cast<std::uint32_t>(InputCaptureBlocks);
-		if (next == slot->readIndex.load(std::memory_order_acquire))
-		{
-			slot->droppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
-			return;
-		}
-
-		const auto copied = std::min(frames.frames() - frameOffset, slot->queueBlockFrames);
-		for (ch_cnt_t channel = 0; channel < slot->channels; ++channel)
-		{
-			const auto* source = frames.bufferPtr(channel) + frameOffset;
-			auto* destination = slot->queue->buffer(channel).data() + write * slot->queueBlockFrames;
-			std::copy_n(source, copied, destination);
-		}
-		slot->blockFrames[write] = copied;
-		slot->writeIndex.store(next, std::memory_order_release);
-		frameOffset += copied;
-	}
+	enqueueTrackInputBlocks(*slot, frames.frames(), InputCaptureBlocks,
+		[&](std::uint32_t write, f_cnt_t frameOffset, f_cnt_t copied) {
+			for (ch_cnt_t channel = 0; channel < slot->channels; ++channel)
+			{
+				std::copy_n(frames.bufferPtr(channel) + frameOffset, copied,
+					slot->queue->buffer(channel).data() + write * slot->queueBlockFrames);
+			}
+		});
 }
 
 void AudioEngine::pushTrackInputFrames(quint64 id, InterleavedBufferView<const float> frames)
@@ -348,31 +361,18 @@ void AudioEngine::pushTrackInputFrames(quint64 id, InterleavedBufferView<const f
 	});
 	if (found == m_trackInputs.end() || !found->queue || found->queueBlockFrames == 0) { return; }
 
-	f_cnt_t frameOffset = 0;
-	while (frameOffset < frames.frames())
-	{
-		const auto write = found->writeIndex.load(std::memory_order_relaxed);
-		const auto next = (write + 1) % static_cast<std::uint32_t>(InputCaptureBlocks);
-		if (next == found->readIndex.load(std::memory_order_acquire))
-		{
-			found->droppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
-			return;
-		}
-
-		const auto copied = std::min(frames.frames() - frameOffset, found->queueBlockFrames);
-		for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
-		{
-			const auto inputChannel = std::min<ch_cnt_t>(channel, frames.channels() - 1);
-			auto* destination = found->queue->buffer(channel).data() + write * found->queueBlockFrames;
-			for (f_cnt_t frame = 0; frame < copied; ++frame)
+	enqueueTrackInputBlocks(*found, frames.frames(), InputCaptureBlocks,
+		[&](std::uint32_t write, f_cnt_t frameOffset, f_cnt_t copied) {
+			for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
 			{
-				destination[frame] = frames.framePtr(frameOffset + frame)[inputChannel];
+				const auto inputChannel = std::min<ch_cnt_t>(channel, frames.channels() - 1);
+				auto* destination = found->queue->buffer(channel).data() + write * found->queueBlockFrames;
+				for (f_cnt_t frame = 0; frame < copied; ++frame)
+				{
+					destination[frame] = frames.framePtr(frameOffset + frame)[inputChannel];
+				}
 			}
-		}
-		found->blockFrames[write] = copied;
-		found->writeIndex.store(next, std::memory_order_release);
-		frameOffset += copied;
-	}
+		});
 }
 
 
