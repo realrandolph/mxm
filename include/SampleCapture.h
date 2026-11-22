@@ -74,14 +74,6 @@ public:
 
 	//! Real-time safe. Copies every source channel in order.
 	void write(PlanarBufferView<const float> frames);
-	void write(InterleavedBufferView<const float> frames);
-
-	/**
-	 * @brief Writes a stereo take from one source channel.
-	 *
-	 * @param channel 1 = left, 2 = right; any other value records all channels
-	 */
-	void write(PlanarBufferView<const float> frames, int channel);
 
 	/**
 	 * @brief Writes @a frames into explicit destination channels.
@@ -112,7 +104,6 @@ public:
 
 private:
 	void writerLoop();
-	void copyBlock(PlanarBufferView<const float> frames, int selectedChannel);
 	void copyBlock(PlanarBufferView<const float> frames, const std::vector<ch_cnt_t>& destinationChannels);
 	bool openWriter();
 

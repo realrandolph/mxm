@@ -250,6 +250,7 @@ void AudioEngine::registerTrackInput(quint64 id, const QString& name, ch_cnt_t c
 			slot.snapshotFrames = 0;
 			slot.readIndex.store(0, std::memory_order_relaxed);
 			slot.writeIndex.store(0, std::memory_order_relaxed);
+			slot.droppedFrames.store(0, std::memory_order_relaxed);
 			slot.id.store(id, std::memory_order_release);
 			registered = true;
 			break;
@@ -268,6 +269,7 @@ void AudioEngine::registerTrackInput(quint64 id, const QString& name, ch_cnt_t c
 void AudioEngine::unregisterTrackInput(quint64 id)
 {
 	const auto guard = requestChangesGuard();
+	if (m_audioDev) { m_audioDev->unregisterTrackInputPort(id); }
 	{
 		const auto lock = std::lock_guard{m_trackInputMutex};
 		for (auto& slot : m_trackInputs)
@@ -283,7 +285,6 @@ void AudioEngine::unregisterTrackInput(quint64 id)
 			break;
 		}
 	}
-	if (m_audioDev) { m_audioDev->unregisterTrackInputPort(id); }
 }
 
 
@@ -341,16 +342,10 @@ void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float>
 {
 	if (id == 0 || frames.empty() || frames.channels() == 0) { return; }
 
-	const auto lock = std::lock_guard{m_trackInputMutex};
-	TrackInputSlot* slot = nullptr;
-	for (auto& candidate : m_trackInputs)
-	{
-		if (candidate.id.load(std::memory_order_acquire) == id)
-		{
-			slot = &candidate;
-			break;
-		}
-	}
+	const auto found = std::ranges::find_if(m_trackInputs, [id](const auto& candidate) {
+		return candidate.id.load(std::memory_order_acquire) == id;
+	});
+	auto* slot = found == m_trackInputs.end() ? nullptr : &*found;
 	if (!slot || !slot->queue || slot->queueBlockFrames == 0 || frames.channels() != slot->channels)
 	{
 		return;
@@ -363,6 +358,7 @@ void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float>
 		const auto next = (write + 1) % static_cast<std::uint32_t>(InputCaptureBlocks);
 		if (next == slot->readIndex.load(std::memory_order_acquire))
 		{
+			slot->droppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
 			return;
 		}
 
@@ -375,6 +371,42 @@ void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float>
 		}
 		slot->blockFrames[write] = copied;
 		slot->writeIndex.store(next, std::memory_order_release);
+		frameOffset += copied;
+	}
+}
+
+void AudioEngine::pushTrackInputFrames(quint64 id, InterleavedBufferView<const float> frames)
+{
+	if (id == 0 || frames.empty() || frames.channels() == 0) { return; }
+
+	const auto found = std::ranges::find_if(m_trackInputs, [id](const auto& slot) {
+		return slot.id.load(std::memory_order_acquire) == id;
+	});
+	if (found == m_trackInputs.end() || !found->queue || found->queueBlockFrames == 0) { return; }
+
+	f_cnt_t frameOffset = 0;
+	while (frameOffset < frames.frames())
+	{
+		const auto write = found->writeIndex.load(std::memory_order_relaxed);
+		const auto next = (write + 1) % static_cast<std::uint32_t>(InputCaptureBlocks);
+		if (next == found->readIndex.load(std::memory_order_acquire))
+		{
+			found->droppedFrames.fetch_add(frames.frames() - frameOffset, std::memory_order_relaxed);
+			return;
+		}
+
+		const auto copied = std::min(frames.frames() - frameOffset, found->queueBlockFrames);
+		for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
+		{
+			const auto inputChannel = std::min<ch_cnt_t>(channel, frames.channels() - 1);
+			auto* destination = found->queue->buffer(channel).data() + write * found->queueBlockFrames;
+			for (f_cnt_t frame = 0; frame < copied; ++frame)
+			{
+				destination[frame] = frames.framePtr(frameOffset + frame)[inputChannel];
+			}
+		}
+		found->blockFrames[write] = copied;
+		found->writeIndex.store(next, std::memory_order_release);
 		frameOffset += copied;
 	}
 }
@@ -392,6 +424,15 @@ auto AudioEngine::trackInputBuffer(quint64 id) const -> PlanarBufferView<const f
 		return {slot.snapshot->allBuffers().data(), slot.channels, slot.snapshotFrames};
 	}
 	return {};
+}
+
+auto AudioEngine::trackInputDroppedFrames(quint64 id) const -> std::uint64_t
+{
+	const auto lock = std::lock_guard{m_trackInputMutex};
+	const auto found = std::ranges::find_if(m_trackInputs, [id](const auto& slot) {
+		return slot.id.load(std::memory_order_acquire) == id;
+	});
+	return found == m_trackInputs.end() ? 0 : found->droppedFrames.load(std::memory_order_relaxed);
 }
 
 
@@ -956,6 +997,11 @@ void AudioEngine::requestChangeInModel()
 {
 	if (s_renderingThread) { return; }
 	m_changeMutex.lock();
+}
+
+auto AudioEngine::tryRequestChangeInModel() -> bool
+{
+	return s_renderingThread || m_changeMutex.try_lock();
 }
 
 void AudioEngine::doneChangeInModel()

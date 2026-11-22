@@ -24,11 +24,17 @@
  */
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "mxmconfig.h"
 
 #ifdef MXM_HAVE_PORTAUDIO
+
+#include <QSignalBlocker>
 
 #include "AudioBufferView.h"
 #include "AudioEngine.h"
@@ -37,12 +43,6 @@
 #include "LcdSpinBox.h"
 
 namespace {
-enum class Direction
-{
-	Input,
-	Output
-};
-
 constexpr auto tag()
 {
 	return "audioportaudio";
@@ -53,48 +53,98 @@ constexpr auto backendAttribute()
 	return "backend";
 }
 
-constexpr auto deviceNameAttribute(Direction direction)
+constexpr auto outputDeviceAttribute()
 {
-	switch (direction)
-	{
-	case Direction::Input:
-		return "inputdevice";
-	case Direction::Output:
-		return "outputdevice";
-	}
-
-	return "";
+	return "outputdevice";
 }
 
-constexpr auto channelsAttribute(Direction direction)
+constexpr auto outputChannelsAttribute()
 {
-	switch (direction)
-	{
-	case Direction::Input:
-		return "inputchannels";
-	case Direction::Output:
-		return "outputchannels";
-	}
-
-	return "";
+	return "outputchannels";
 }
 
-int maxChannels(const PaDeviceInfo* info, Direction direction)
+auto hostApiName(PaHostApiIndex index) -> QString
 {
-	switch (direction)
-	{
-	case Direction::Input:
-		return info->maxInputChannels;
-	case Direction::Output:
-		return info->maxOutputChannels;
-	}
-
-	return 0;
+	const auto* info = index >= 0 ? Pa_GetHostApiInfo(index) : nullptr;
+	return info && info->name ? QString::fromUtf8(info->name)
+		: QStringLiteral("Host API %1").arg(index);
 }
+
+auto deviceName(const PaDeviceInfo* info) -> QString
+{
+	return info && info->name ? QString::fromUtf8(info->name) : QString{};
+}
+
+//! Distinguishes otherwise identical devices that a host API exposes twice.
+auto duplicateIndex(PaDeviceIndex index, const PaDeviceInfo* info) -> int
+{
+	auto duplicates = 0;
+	for (PaDeviceIndex other = 0; other < index; ++other)
+	{
+		const auto* otherInfo = Pa_GetDeviceInfo(other);
+		if (otherInfo && otherInfo->hostApi == info->hostApi
+			&& otherInfo->name && info->name
+			&& std::strcmp(otherInfo->name, info->name) == 0)
+		{
+			++duplicates;
+		}
+	}
+	return duplicates;
+}
+
+//! Stable identity independent of PortAudio's device enumeration order.
+auto inputSourceId(PaDeviceIndex index) -> QString
+{
+	const auto* info = Pa_GetDeviceInfo(index);
+	if (!info) { return {}; }
+
+	auto id = QStringLiteral("portaudio:%1:%2").arg(
+		hostApiName(info->hostApi), deviceName(info));
+	const auto duplicate = duplicateIndex(index, info);
+	if (duplicate > 0) { id += QStringLiteral("#%1").arg(duplicate + 1); }
+	return id;
+}
+
+auto inputSourceLabel(PaDeviceIndex index) -> QString
+{
+	const auto* info = Pa_GetDeviceInfo(index);
+	if (!info) { return {}; }
+
+	auto label = QStringLiteral("%1 (%2)").arg(
+		deviceName(info), hostApiName(info->hostApi));
+	const auto duplicate = duplicateIndex(index, info);
+	if (duplicate > 0) { label += QStringLiteral(" #%1").arg(duplicate + 1); }
+	return label;
+}
+
+auto findInputDevice(const QString& id) -> PaDeviceIndex
+{
+	const auto deviceCount = Pa_GetDeviceCount();
+	for (PaDeviceIndex index = 0; index < deviceCount; ++index)
+	{
+		const auto* info = Pa_GetDeviceInfo(index);
+		if (info && info->maxInputChannels > 0 && inputSourceId(index) == id)
+		{
+			return index;
+		}
+	}
+	return paNoDevice;
+}
+
+constexpr auto MaxTrackInputChannels = mxm::ch_cnt_t{2};
 
 } // namespace
 
 namespace mxm {
+
+struct AudioPortAudio::TrackInput
+{
+	AudioEngine* engine = nullptr;
+	quint64 trackId = 0;
+	PaStream* stream = nullptr;
+	ch_cnt_t channels = 0;
+};
+
 AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	: AudioDevice(DEFAULT_CHANNELS, engine)
 {
@@ -107,15 +157,8 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 	}
 
 	const auto backend = ConfigManager::inst()->value(tag(), backendAttribute());
-	
-	const auto inputDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(Direction::Input));
-	auto inputDeviceChannels = ConfigManager::inst()->value(tag(), channelsAttribute(Direction::Input)).toInt();
-
-	const auto outputDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(Direction::Output));
-	const auto outputDeviceChannels = ConfigManager::inst()->value(tag(), channelsAttribute(Direction::Output)).toInt();
-
-	auto inputDeviceIndex = paNoDevice;
-	auto outputDeviceIndex = paNoDevice;
+	const auto outputDeviceName = ConfigManager::inst()->value(tag(), outputDeviceAttribute());
+	const auto configuredOutputChannels = ConfigManager::inst()->value(tag(), outputChannelsAttribute()).toInt();
 
 	auto backendIndex = -1;
 	for (auto i = 0, backendCount = Pa_GetHostApiCount(); i < backendCount; ++i)
@@ -132,79 +175,48 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		backendIndex = Pa_GetDefaultHostApi();
 	}
 
-	for (auto i = 0; i < numDevices && (inputDeviceIndex == paNoDevice || outputDeviceIndex == paNoDevice); ++i)
+	auto outputDeviceIndex = paNoDevice;
+	for (auto i = 0; i < numDevices; ++i)
 	{
-		const auto deviceInfo = Pa_GetDeviceInfo(i);
-		if (deviceInfo->hostApi == backendIndex)
+		const auto* deviceInfo = Pa_GetDeviceInfo(i);
+		if (deviceInfo && deviceInfo->hostApi == backendIndex
+			&& deviceInfo->name == outputDeviceName)
 		{
-			if (deviceInfo->name == inputDeviceName) { inputDeviceIndex = i; }
-			if (deviceInfo->name == outputDeviceName) { outputDeviceIndex = i; }
+			outputDeviceIndex = i;
+			break;
 		}
 	}
 
-	if (inputDeviceIndex == paNoDevice && inputDeviceName.isEmpty())
+	if (outputDeviceIndex == paNoDevice)
 	{
 		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
-		if (hostApiInfo && hostApiInfo->defaultInputDevice != paNoDevice)
-		{
-			inputDeviceIndex = hostApiInfo->defaultInputDevice;
-		}
-	}
-
-	if (outputDeviceIndex == paNoDevice && outputDeviceName.isEmpty())
-	{
-		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
-		if (hostApiInfo && hostApiInfo->defaultOutputDevice != paNoDevice)
-		{
-			outputDeviceIndex = hostApiInfo->defaultOutputDevice;
-		}
+		if (hostApiInfo) { outputDeviceIndex = hostApiInfo->defaultOutputDevice; }
 	}
 
 	const auto* outInfo = outputDeviceIndex != paNoDevice ? Pa_GetDeviceInfo(outputDeviceIndex) : nullptr;
-	m_monitoredOutputDevice = outInfo && outInfo->name ? QString::fromUtf8(outInfo->name) : outputDeviceName;
-
-	const auto* inInfo = inputDeviceIndex != paNoDevice ? Pa_GetDeviceInfo(inputDeviceIndex) : nullptr;
-	m_monitoredInputDevice = inInfo && inInfo->name ? QString::fromUtf8(inInfo->name) : inputDeviceName;
-
-	if (inputDeviceIndex != paNoDevice)
+	if (!outInfo || outInfo->maxOutputChannels <= 0)
 	{
-		const auto maxInputChannels = Pa_GetDeviceInfo(inputDeviceIndex)->maxInputChannels;
-		if (maxInputChannels > 0)
-		{
-			inputDeviceChannels = std::clamp(inputDeviceChannels > 0 ? inputDeviceChannels : 2,
-			1, std::min(maxInputChannels, static_cast<int>(MaxChannelsPerAudioBuffer)));
-		}
-		else { inputDeviceIndex = paNoDevice; }
+		std::cerr << "PortAudio: no usable output device\n";
+		successful = false;
+		return;
 	}
-	else { inputDeviceChannels = 0; }
+	m_monitoredOutputDevice = deviceName(outInfo);
+
+	const auto outputChannels = std::clamp(
+		configuredOutputChannels > 0 ? configuredOutputChannels : static_cast<int>(DEFAULT_CHANNELS),
+		1, outInfo->maxOutputChannels);
 
 	const auto sampleRate = engine->baseSampleRate();
 	const auto framesPerBuffer = engine->framesPerPeriod();
-	const auto inputLatency
-		= inputDeviceIndex == paNoDevice ? 0. : Pa_GetDeviceInfo(inputDeviceIndex)->defaultLowInputLatency;
-	const auto outputLatency
-		= outputDeviceIndex == paNoDevice ? 0. : Pa_GetDeviceInfo(outputDeviceIndex)->defaultLowOutputLatency;
-
-	const auto inputParameters = PaStreamParameters {
-		.device = inputDeviceIndex,
-		.channelCount = inputDeviceChannels,
-		.sampleFormat = paFloat32,
-		.suggestedLatency = inputLatency,
-		.hostApiSpecificStreamInfo = nullptr
-	};
-	
 	const auto outputParameters = PaStreamParameters {
 		.device = outputDeviceIndex,
-		.channelCount = outputDeviceChannels,
+		.channelCount = outputChannels,
 		.sampleFormat = paFloat32,
-		.suggestedLatency = outputLatency,
+		.suggestedLatency = outInfo->defaultLowOutputLatency,
 		.hostApiSpecificStreamInfo = nullptr
 	};
 
-	const auto inputParametersPtr = inputDeviceIndex == paNoDevice ? nullptr : &inputParameters; 
-	const auto outputParametersPtr = outputDeviceIndex == paNoDevice ? nullptr : &outputParameters;
-	auto err = Pa_IsFormatSupported(inputParametersPtr, outputParametersPtr, sampleRate);
-
+	auto err = Pa_IsFormatSupported(nullptr, &outputParameters, sampleRate);
 	if (err != paFormatIsSupported)
 	{
 		std::cerr << "Pa_IsFormatSupported() failed: " << Pa_GetErrorText(err) << '\n';
@@ -212,9 +224,8 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 		return;
 	}
 
-	err = Pa_OpenStream(&m_paStream, inputParametersPtr, outputParametersPtr, sampleRate, framesPerBuffer, paNoFlag,
-		&AudioPortAudio::processCallback, this);
-	
+	err = Pa_OpenStream(&m_paStream, nullptr, &outputParameters, sampleRate, framesPerBuffer,
+		paNoFlag, &AudioPortAudio::processCallback, this);
 	if (err != paNoError)
 	{
 		std::cerr << "Pa_OpenStream() failed: " << Pa_GetErrorText(err) << '\n';
@@ -226,15 +237,8 @@ AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
 
 	successful = true;
 	setSampleRate(sampleRate);
-	setChannels(outputDeviceChannels);
-	m_inputChannels = inputDeviceIndex == paNoDevice ? 0 : static_cast<ch_cnt_t>(inputDeviceChannels);
-	setCaptureChannels(m_inputChannels);
-	if (m_inputChannels > DEFAULT_CHANNELS)
-	{
-		// PortAudio cannot report speaker roles, so expose the captured channels as discrete.
-		setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
-	}
-	m_supportsCapture = m_inputChannels > 0;
+	setChannels(static_cast<ch_cnt_t>(outputChannels));
+	setCaptureChannels(0);
 
 	QObject::connect(&m_streamMonitor, &QTimer::timeout, [this] { checkStreamStatus(); });
 	m_streamMonitor.start(1000);
@@ -244,17 +248,138 @@ AudioPortAudio::~AudioPortAudio()
 {
 	m_streamMonitor.stop();
 	stopProcessing();
-	Pa_CloseStream(m_paStream);
+	for (auto& [id, input] : m_trackInputs)
+	{
+		Q_UNUSED(id);
+		closeTrackInput(*input);
+	}
+	m_trackInputs.clear();
+	if (m_paStream) { Pa_CloseStream(m_paStream); }
 }
 
 void AudioPortAudio::startProcessingImpl()
 {
-	Pa_StartStream(m_paStream);
+	if (m_paStream) { Pa_StartStream(m_paStream); }
+	for (auto& [id, input] : m_trackInputs)
+	{
+		Q_UNUSED(id);
+		if (input->stream) { Pa_StartStream(input->stream); }
+	}
 }
 
 void AudioPortAudio::stopProcessingImpl()
 {
-	Pa_StopStream(m_paStream);
+	if (m_paStream) { Pa_StopStream(m_paStream); }
+	for (auto& [id, input] : m_trackInputs)
+	{
+		Q_UNUSED(id);
+		if (input->stream) { Pa_StopStream(input->stream); }
+	}
+}
+
+void AudioPortAudio::closeTrackInput(TrackInput& input)
+{
+	if (input.stream)
+	{
+		Pa_StopStream(input.stream);
+		Pa_CloseStream(input.stream);
+		input.stream = nullptr;
+	}
+	input.channels = 0;
+}
+
+auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
+{
+	auto sources = std::vector<AudioInputSource>{};
+	const auto deviceCount = Pa_GetDeviceCount();
+	for (PaDeviceIndex index = 0; index < deviceCount; ++index)
+	{
+		const auto* info = Pa_GetDeviceInfo(index);
+		if (!info || info->maxInputChannels <= 0) { continue; }
+
+		const auto channels = static_cast<ch_cnt_t>(
+			std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
+		const auto id = inputSourceId(index);
+		const auto label = inputSourceLabel(index);
+		sources.push_back(AudioInputSource{
+			id,
+			label,
+			channels,
+			channels == 1 ? AudioChannelLayout::mono() : AudioChannelLayout::stereo(),
+			channels == 1 ? std::vector<ch_cnt_t>{0} : std::vector<ch_cnt_t>{0, 1},
+			true,
+			{id},
+		});
+	}
+	return sources;
+}
+
+auto AudioPortAudio::registerTrackInputPort(quint64 id, const QString&, ch_cnt_t channels) -> bool
+{
+	if (id == 0 || channels != MaxTrackInputChannels) { return false; }
+	unregisterTrackInputPort(id);
+
+	auto input = std::make_unique<TrackInput>();
+	input->engine = audioEngine();
+	input->trackId = id;
+	return m_trackInputs.emplace(id, std::move(input)).second;
+}
+
+void AudioPortAudio::unregisterTrackInputPort(quint64 id)
+{
+	const auto found = m_trackInputs.find(id);
+	if (found == m_trackInputs.end()) { return; }
+	closeTrackInput(*found->second);
+	m_trackInputs.erase(found);
+}
+
+void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+{
+	const auto found = m_trackInputs.find(id);
+	if (found == m_trackInputs.end()) { return; }
+	auto& input = *found->second;
+	closeTrackInput(input);
+	if (endpointPorts.isEmpty()) { return; }
+
+	const auto deviceIndex = findInputDevice(endpointPorts.front());
+	const auto* info = deviceIndex != paNoDevice ? Pa_GetDeviceInfo(deviceIndex) : nullptr;
+	if (!info || info->maxInputChannels <= 0)
+	{
+		std::cerr << "PortAudio: input source not available: "
+			<< endpointPorts.front().toStdString() << '\n';
+		return;
+	}
+
+	const auto channels = static_cast<ch_cnt_t>(
+		std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
+	const auto inputParameters = PaStreamParameters {
+		.device = deviceIndex,
+		.channelCount = channels,
+		.sampleFormat = paFloat32,
+		.suggestedLatency = info->defaultLowInputLatency,
+		.hostApiSpecificStreamInfo = nullptr
+	};
+
+	auto err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate());
+	if (err != paFormatIsSupported)
+	{
+		std::cerr << "PortAudio: input format not supported for "
+			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+		return;
+	}
+
+	err = Pa_OpenStream(&input.stream, &inputParameters, nullptr, sampleRate(),
+		audioEngine()->framesPerPeriod(), paNoFlag, &AudioPortAudio::trackInputCallback, &input);
+	if (err != paNoError)
+	{
+		std::cerr << "PortAudio: could not open input "
+			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+		input.stream = nullptr;
+		return;
+	}
+
+	input.channels = channels;
+	if (isRunning()) { Pa_StartStream(input.stream); }
 }
 
 void AudioPortAudio::streamFinishedCallback(void* userData)
@@ -267,10 +392,6 @@ void AudioPortAudio::handleStreamFinished()
 	if (isRunning() && !m_streamFinishedReported.exchange(true, std::memory_order_acq_rel))
 	{
 		reportDeviceChange(false, m_monitoredOutputDevice, QString{}, false);
-		if (m_supportsCapture)
-		{
-			reportDeviceChange(true, m_monitoredInputDevice, QString{}, false);
-		}
 	}
 }
 
@@ -286,7 +407,7 @@ void AudioPortAudio::checkStreamStatus()
 	}
 }
 
-int AudioPortAudio::processCallback(const void* input, void* output, unsigned long frameCount,
+int AudioPortAudio::processCallback(const void*, void* output, unsigned long frameCount,
 	const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* userData)
 {
 	const auto device = static_cast<AudioPortAudio*>(userData);
@@ -299,33 +420,39 @@ int AudioPortAudio::processCallback(const void* input, void* output, unsigned lo
 		return paComplete;
 	}
 
-	if (input && device->m_inputChannels > 0)
-	{
-		device->audioEngine()->pushInputFrames(InterleavedBufferView<const float>{
-			static_cast<const float*>(input), device->m_inputChannels, frameCount});
-	}
-
 	if (outputBuffer) { device->audioEngine()->renderNextBuffer({outputBuffer, channels, frameCount}); }
+	return paContinue;
+}
+
+int AudioPortAudio::trackInputCallback(const void* input, void*, unsigned long frameCount,
+	const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* userData)
+{
+	auto& inputState = *static_cast<TrackInput*>(userData);
+	if (input && inputState.channels > 0)
+	{
+		inputState.engine->pushTrackInputFrames(inputState.trackId,
+			InterleavedBufferView<const float>{static_cast<const float*>(input),
+				inputState.channels, frameCount});
+	}
 	return paContinue;
 }
 } // namespace mxm
 
 namespace mxm::gui {
 
-class AudioPortAudioSetupWidget::DeviceSelectorWidget : public QGroupBox
+class AudioPortAudioSetupWidget::OutputSelectorWidget : public QGroupBox
 {
 public:
-	DeviceSelectorWidget(const QString& deviceLabel, Direction direction, QWidget* parent = nullptr)
+	explicit OutputSelectorWidget(QWidget* parent = nullptr)
 		: QGroupBox{parent}
 		, m_deviceComboBox{new QComboBox{this}}
 		, m_channelSpinBox{new LcdSpinBox{1, this}}
-		, m_direction(direction)
 	{
 		m_channelSpinBox->setModel(&m_channelModel);
 
 		const auto layout = new QFormLayout{this};
 		m_deviceComboBox->setMinimumHeight(m_deviceComboBox->sizeHint().height());
-		layout->addRow(deviceLabel, m_deviceComboBox);
+		layout->addRow(tr("Output device"), m_deviceComboBox);
 		layout->addRow(tr("Channels"), m_channelSpinBox);
 
 		connect(m_deviceComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -334,18 +461,15 @@ public:
 
 	void refreshFromConfig(PaHostApiIndex backendIndex)
 	{
-		using namespace mxm;
-
 		m_deviceComboBox->clear();
 
-		const auto hostApiInfo = Pa_GetHostApiInfo(backendIndex);
-		const auto defaultIndex = hostApiInfo ? (m_direction == Direction::Input
-			? hostApiInfo->defaultInputDevice : hostApiInfo->defaultOutputDevice) : paNoDevice;
+		const auto* hostApiInfo = backendIndex >= 0 ? Pa_GetHostApiInfo(backendIndex) : nullptr;
+		const auto defaultIndex = hostApiInfo ? hostApiInfo->defaultOutputDevice : paNoDevice;
 		QString resolvedDefaultName;
 		if (defaultIndex != paNoDevice && defaultIndex < Pa_GetDeviceCount())
 		{
 			const auto* defInfo = Pa_GetDeviceInfo(defaultIndex);
-			if (defInfo && defInfo->name) { resolvedDefaultName = QString::fromUtf8(defInfo->name); }
+			if (defInfo) { resolvedDefaultName = deviceName(defInfo); }
 		}
 		const auto defaultText = resolvedDefaultName.isEmpty()
 			? tr("[System Default]")
@@ -354,27 +478,28 @@ public:
 
 		for (auto i = 0, deviceCount = Pa_GetDeviceCount(); i < deviceCount; ++i)
 		{
-			const auto deviceInfo = Pa_GetDeviceInfo(i);
-
-			if (maxChannels(deviceInfo, m_direction) > 0 && deviceInfo->hostApi == backendIndex)
+			const auto* deviceInfo = Pa_GetDeviceInfo(i);
+			if (deviceInfo && deviceInfo->maxOutputChannels > 0 && deviceInfo->hostApi == backendIndex)
 			{
-				m_deviceComboBox->addItem(deviceInfo->name, i);
+				m_deviceComboBox->addItem(deviceName(deviceInfo), i);
 			}
 		}
 
-		const auto selectedDeviceName = ConfigManager::inst()->value(tag(), deviceNameAttribute(m_direction));
+		const auto selectedDeviceName = ConfigManager::inst()->value(tag(), outputDeviceAttribute());
 		const auto selectedDeviceIndex = selectedDeviceName.isEmpty()
 			? 0 : std::max(0, m_deviceComboBox->findText(selectedDeviceName));
 		m_deviceComboBox->setCurrentIndex(selectedDeviceIndex);
+		refreshChannels(m_deviceComboBox->currentData().toInt());
 	}
 
 	void refreshChannels(PaDeviceIndex deviceIndex)
 	{
 		if (deviceIndex < 0 || deviceIndex >= Pa_GetDeviceCount()) { return; }
-		const auto maxChannelCount = maxChannels(Pa_GetDeviceInfo(deviceIndex), m_direction);
-		const auto channelCount = ConfigManager::inst()->value(tag(), channelsAttribute(m_direction)).toInt();
-		m_channelModel.setRange(1, m_direction == Direction::Input
-			? std::min(maxChannelCount, static_cast<int>(MaxChannelsPerAudioBuffer)) : maxChannelCount);
+		const auto* deviceInfo = Pa_GetDeviceInfo(deviceIndex);
+		if (!deviceInfo) { return; }
+		const auto maxChannelCount = deviceInfo->maxOutputChannels;
+		const auto channelCount = ConfigManager::inst()->value(tag(), outputChannelsAttribute()).toInt();
+		m_channelModel.setRange(1, maxChannelCount);
 		m_channelModel.setValue(channelCount == 0 ? DEFAULT_CHANNELS : channelCount);
 		m_channelSpinBox->setNumDigits(QString::number(maxChannelCount).length());
 	}
@@ -382,23 +507,21 @@ public:
 	void saveToConfig()
 	{
 		const auto isDefault = m_deviceComboBox->currentIndex() == 0;
-		ConfigManager::inst()->setValue(tag(), deviceNameAttribute(m_direction),
+		ConfigManager::inst()->setValue(tag(), outputDeviceAttribute(),
 			isDefault ? QString{} : m_deviceComboBox->currentText());
-		ConfigManager::inst()->setValue(tag(), channelsAttribute(m_direction), QString::number(m_channelModel.value()));
+		ConfigManager::inst()->setValue(tag(), outputChannelsAttribute(), QString::number(m_channelModel.value()));
 	}
 
 private:
 	QComboBox* m_deviceComboBox = nullptr;
 	LcdSpinBox* m_channelSpinBox = nullptr;
 	IntModel m_channelModel;
-	Direction m_direction;
 };
 
 AudioPortAudioSetupWidget::AudioPortAudioSetupWidget(QWidget* parent)
 	: AudioDeviceSetupWidget{AudioPortAudio::name(), parent}
 	, m_backendComboBox{new QComboBox{this}}
-	, m_inputDevice{new DeviceSelectorWidget{tr("Input device"), Direction::Input}}
-	, m_outputDevice(new DeviceSelectorWidget{tr("Output device"), Direction::Output})
+	, m_outputDevice{new OutputSelectorWidget{this}}
 {
 	constexpr auto formVerticalSpacing = 10;
 	const auto form = new QFormLayout{this};
@@ -407,13 +530,10 @@ AudioPortAudioSetupWidget::AudioPortAudioSetupWidget(QWidget* parent)
 
 	form->addRow(tr("Backend"), m_backendComboBox);
 	form->addRow(m_outputDevice);
-	form->addRow(m_inputDevice);
 
 	connect(m_backendComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-		m_inputDevice->refreshFromConfig(m_backendComboBox->itemData(index).toInt());
 		m_outputDevice->refreshFromConfig(m_backendComboBox->itemData(index).toInt());
 	});
-
 }
 
 void AudioPortAudioSetupWidget::show()
@@ -422,14 +542,17 @@ void AudioPortAudioSetupWidget::show()
 
 	if (m_backendComboBox->count() == 0)
 	{
+		const auto blocker = QSignalBlocker{m_backendComboBox};
 		for (auto i = 0, backendCount = Pa_GetHostApiCount(); i < backendCount; ++i)
 		{
-			m_backendComboBox->addItem(Pa_GetHostApiInfo(i)->name, i);
+			const auto* hostApiInfo = Pa_GetHostApiInfo(i);
+			if (hostApiInfo) { m_backendComboBox->addItem(hostApiInfo->name, i); }
 		}
 
 		const auto selectedBackendName = ConfigManager::inst()->value(tag(), backendAttribute());
 		const auto selectedBackendIndex = std::max(0, m_backendComboBox->findText(selectedBackendName));
 		m_backendComboBox->setCurrentIndex(selectedBackendIndex);
+		m_outputDevice->refreshFromConfig(m_backendComboBox->currentData().toInt());
 	}
 
 	AudioDeviceSetupWidget::show();
@@ -438,7 +561,6 @@ void AudioPortAudioSetupWidget::show()
 void AudioPortAudioSetupWidget::saveSettings()
 {
 	ConfigManager::inst()->setValue(tag(), backendAttribute(), m_backendComboBox->currentText());
-	m_inputDevice->saveToConfig();
 	m_outputDevice->saveToConfig();
 }
 } // namespace mxm::gui

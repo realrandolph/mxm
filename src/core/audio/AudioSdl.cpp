@@ -32,7 +32,6 @@
 #include <QLabel>
 #include <SDL.h>
 
-#include <array>
 #include <cstring>
 
 #include "AudioBufferView.h"
@@ -48,8 +47,6 @@ struct AudioSdl::TrackCapture
 	quint64 trackId = 0;
 	SDL_AudioDeviceID device = 0;
 	int inputChannels = 0;
-	std::vector<float> scratch;
-	std::array<const float*, 2> pointers{};
 };
 
 constexpr auto SectionSDL = "audiosdl";
@@ -255,10 +252,6 @@ void AudioSdl::unregisterTrackInputPort(quint64 id)
 	m_trackCaptures.erase(found);
 }
 
-void AudioSdl::renameTrackInputPort(quint64, const QString&)
-{
-}
-
 void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 {
 	const auto found = m_trackCaptures.find(id);
@@ -269,7 +262,6 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 		SDL_CloseAudioDevice(capture.device);
 		capture.device = 0;
 	}
-	capture.scratch.clear();
 	if (endpointPorts.isEmpty()) { return; }
 
 	SDL_AudioSpec desired{};
@@ -291,7 +283,6 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 		return;
 	}
 	capture.inputChannels = actual.channels;
-	capture.scratch.resize(static_cast<std::size_t>(std::max<f_cnt_t>(audioEngine()->framesPerAudioBuffer(), 1)) * 2);
 	if (isRunning()) { SDL_PauseAudioDevice(capture.device, 0); }
 }
 
@@ -300,23 +291,9 @@ void AudioSdl::sdlTrackInputCallback(void* data, Uint8* buffer, int length)
 	auto& capture = *static_cast<TrackCapture*>(data);
 	if (length <= 0 || capture.inputChannels <= 0) { return; }
 	const auto frames = static_cast<f_cnt_t>(length / (sizeof(float) * capture.inputChannels));
-	const auto* input = reinterpret_cast<const float*>(buffer);
-	const auto chunkSize = static_cast<f_cnt_t>(capture.scratch.size() / 2);
-	for (f_cnt_t offset = 0; offset < frames; offset += chunkSize)
-	{
-		const auto chunk = std::min(chunkSize, frames - offset);
-		auto* left = capture.scratch.data();
-		auto* right = left + chunkSize;
-		for (f_cnt_t frame = 0; frame < chunk; ++frame)
-		{
-			const auto source = static_cast<std::size_t>(offset + frame) * capture.inputChannels;
-			left[frame] = input[source];
-			right[frame] = input[source + std::min(capture.inputChannels - 1, 1)];
-		}
-		capture.pointers = {left, right};
-		capture.engine->pushTrackInputFrames(capture.trackId,
-			PlanarBufferView<const float>{capture.pointers.data(), 2, chunk});
-	}
+	capture.engine->pushTrackInputFrames(capture.trackId,
+		InterleavedBufferView<const float>{reinterpret_cast<const float*>(buffer),
+			static_cast<ch_cnt_t>(capture.inputChannels), frames});
 }
 
 void AudioSdl::checkDeviceRoutes()

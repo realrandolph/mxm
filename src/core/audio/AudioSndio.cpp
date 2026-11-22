@@ -27,12 +27,22 @@
 
 #ifdef MXM_HAVE_SNDIO
 
+#include <poll.h>
+
+#include <algorithm>
+#include <cerrno>
 #include <cstdlib>
+#include <functional>
+#include <optional>
+#include <thread>
+#include <vector>
+
 #include <QFormLayout>
 #include <QLineEdit>
 
 #include "endian_handling.h"
 #include "LcdSpinBox.h"
+#include "AudioBufferView.h"
 #include "AudioEngine.h"
 
 #include "ConfigManager.h"
@@ -40,6 +50,75 @@
 
 namespace mxm
 {
+
+struct AudioSndio::TrackCapture
+{
+	AudioEngine* engine = nullptr;
+	quint64 trackId = 0;
+	std::optional<QString> device;
+	std::atomic_bool stop{false};
+	std::thread reader;
+};
+
+namespace
+{
+
+constexpr auto CaptureChannels = ch_cnt_t{2};
+
+auto configureCapture(sio_hdl* handle, sample_rate_t rate, f_cnt_t periodFrames,
+	ch_cnt_t channels) -> bool
+{
+	struct sio_par parameters;
+	sio_initpar(&parameters);
+	parameters.rchan = channels;
+	parameters.bits = 16;
+	parameters.sig = 1;
+	parameters.le = SIO_LE_NATIVE;
+	parameters.rate = rate;
+	parameters.round = std::max<f_cnt_t>(periodFrames, 1);
+	parameters.appbufsz = parameters.round * 4;
+
+	if (!sio_setpar(handle, &parameters)) { return false; }
+	if (!sio_getpar(handle, &parameters)) { return false; }
+	return parameters.rchan == channels
+		&& parameters.rate == static_cast<unsigned int>(rate)
+		&& parameters.bits == 16
+		&& parameters.sig == 1
+		&& parameters.le == SIO_LE_NATIVE;
+}
+
+auto openCaptureStream(const QString& device, sample_rate_t rate, f_cnt_t periodFrames,
+	ch_cnt_t& channels) -> sio_hdl*
+{
+	const auto name = device.toLatin1();
+	const auto* path = device.isEmpty() ? nullptr : name.constData();
+
+	for (const auto candidate : {CaptureChannels, ch_cnt_t{1}})
+	{
+		auto* handle = sio_open(path, SIO_REC, 0);
+		if (handle == nullptr) { return nullptr; }
+		if (configureCapture(handle, rate, periodFrames, candidate) && sio_start(handle))
+		{
+			channels = candidate;
+			return handle;
+		}
+		sio_close(handle);
+	}
+
+	return nullptr;
+}
+
+auto capturesAudio(const QString& device, sample_rate_t rate, f_cnt_t periodFrames) -> bool
+{
+	auto channels = CaptureChannels;
+	auto* handle = openCaptureStream(device, rate, periodFrames, channels);
+	if (handle == nullptr) { return false; }
+	sio_stop(handle);
+	sio_close(handle);
+	return true;
+}
+
+} // namespace
 
 AudioSndio::AudioSndio(bool& _success_ful, AudioEngine* _audioEngine)
 	: AudioDevice(std::clamp<ch_cnt_t>(ConfigManager::inst()->value("audiosndio", "channels").toInt(), DEFAULT_CHANNELS,
@@ -49,6 +128,7 @@ AudioSndio::AudioSndio(bool& _success_ful, AudioEngine* _audioEngine)
 	_success_ful = false;
 
 	QString dev = ConfigManager::inst()->value( "audiosndio", "device" );
+	m_configuredDevice = dev;
 	m_monitoredDevice = dev.isEmpty() ? QStringLiteral("default") : dev;
 
 	if (dev == "")
@@ -104,12 +184,17 @@ AudioSndio::AudioSndio(bool& _success_ful, AudioEngine* _audioEngine)
 		return;
 	}
 
+	// sndio offers no device enumeration, so the configured playback device is
+	// also the only capture endpoint that can be selected honestly.
+	m_supportsCapture = capturesAudio(m_configuredDevice, sampleRate(),
+		audioEngine()->framesPerAudioBuffer());
 	_success_ful = true;
 }
 
 
 AudioSndio::~AudioSndio()
 {
+	stopTrackCaptures();
 	if (m_hdl != nullptr)
 	{
 		sio_close( m_hdl );
@@ -118,14 +203,202 @@ AudioSndio::~AudioSndio()
 }
 
 
+auto AudioSndio::supportsTrackInputPorts() const -> bool
+{
+	return m_supportsCapture;
+}
+
+
+
+
+auto AudioSndio::inputSources() const -> std::vector<AudioInputSource>
+{
+	auto sources = std::vector<AudioInputSource>{};
+	if (!m_supportsCapture) { return sources; }
+
+	const auto label = m_configuredDevice.isEmpty()
+		? AudioSndio::tr("System Default input") : m_configuredDevice;
+	const auto idSuffix = m_configuredDevice.isEmpty()
+		? QStringLiteral("system-default") : m_configuredDevice;
+	sources.push_back(AudioInputSource{
+		QStringLiteral("sndio-rec:") + idSuffix,
+		label,
+		CaptureChannels,
+		AudioChannelLayout::stereo(),
+		{0, 1},
+		true,
+		{m_configuredDevice.isEmpty() ? QStringLiteral("system-default") : m_configuredDevice},
+	});
+	return sources;
+}
+
+
+
+
+auto AudioSndio::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool
+{
+	Q_UNUSED(name);
+	if (!supportsTrackInputPorts() || id == 0 || channels != CaptureChannels)
+	{
+		return false;
+	}
+
+	unregisterTrackInputPort(id);
+	auto capture = std::make_unique<TrackCapture>();
+	capture->engine = audioEngine();
+	capture->trackId = id;
+	return m_trackCaptures.emplace(id, std::move(capture)).second;
+}
+
+
+
+
+void AudioSndio::unregisterTrackInputPort(quint64 id)
+{
+	const auto found = m_trackCaptures.find(id);
+	if (found == m_trackCaptures.end()) { return; }
+	stopTrackCapture(*found->second);
+	m_trackCaptures.erase(found);
+}
+
+
+
+
+void AudioSndio::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+{
+	const auto found = m_trackCaptures.find(id);
+	if (found == m_trackCaptures.end()) { return; }
+
+	auto& capture = *found->second;
+	stopTrackCapture(capture);
+	capture.device.reset();
+	if (endpointPorts.isEmpty()) { return; }
+
+	const auto endpoint = endpointPorts.front();
+	capture.device = endpoint == QStringLiteral("system-default") ? QString{} : endpoint;
+	if (AudioDevice::isRunning()) { startTrackCapture(capture); }
+}
+
+
+
+
+void AudioSndio::startTrackCapture(TrackCapture& capture)
+{
+	if (!capture.device || capture.reader.joinable()) { return; }
+	capture.stop.store(false, std::memory_order_release);
+	capture.reader = std::thread(&AudioSndio::captureThread, this, std::ref(capture));
+}
+
+
+
+
+void AudioSndio::stopTrackCapture(TrackCapture& capture)
+{
+	capture.stop.store(true, std::memory_order_release);
+	if (capture.reader.joinable()) { capture.reader.join(); }
+}
+
+
+
+
+void AudioSndio::stopTrackCaptures()
+{
+	for (auto& [id, capture] : m_trackCaptures)
+	{
+		Q_UNUSED(id);
+		capture->stop.store(true, std::memory_order_release);
+	}
+	for (auto& [id, capture] : m_trackCaptures)
+	{
+		Q_UNUSED(id);
+		if (capture->reader.joinable()) { capture->reader.join(); }
+	}
+}
+
+
+
+
+void AudioSndio::captureThread(TrackCapture& capture)
+{
+	const auto framesPerRead = std::max<f_cnt_t>(audioEngine()->framesPerAudioBuffer(), 1);
+	if (!capture.device) { return; }
+
+	auto channels = CaptureChannels;
+	auto* handle = openCaptureStream(*capture.device, sampleRate(), framesPerRead, channels);
+	if (handle == nullptr)
+	{
+		qWarning("sndio: cannot open capture device '%s'",
+			qUtf8Printable(capture.device->isEmpty() ? QStringLiteral("default") : *capture.device));
+		return;
+	}
+
+	std::vector<int16_t> integerFrames(static_cast<std::size_t>(framesPerRead) * channels);
+	std::vector<float> interleaved(integerFrames.size());
+
+	auto descriptorCount = sio_nfds(handle);
+	if (descriptorCount <= 0) { descriptorCount = 1; }
+	std::vector<pollfd> descriptors(static_cast<std::size_t>(descriptorCount));
+
+	while (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
+	{
+		const auto count = sio_pollfd(handle, descriptors.data(), descriptorCount);
+		if (count <= 0) { break; }
+
+		const auto ready = poll(descriptors.data(), static_cast<nfds_t>(count), 50);
+		if (ready < 0)
+		{
+			if (errno == EINTR) { continue; }
+			break;
+		}
+		if (ready == 0) { continue; }
+
+		const auto events = sio_revents(handle, descriptors.data());
+		if (events & (POLLHUP | POLLERR)) { break; }
+		if (!(events & POLLIN)) { continue; }
+
+		const auto bytes = sio_read(handle, integerFrames.data(),
+			integerFrames.size() * sizeof(int16_t));
+		if (bytes == 0)
+		{
+			if (sio_eof(handle)) { break; }
+			continue;
+		}
+
+		const auto frames = static_cast<f_cnt_t>(
+			bytes / (sizeof(int16_t) * static_cast<std::size_t>(channels)));
+		if (frames == 0) { continue; }
+
+		const auto samples = static_cast<std::size_t>(frames) * channels;
+		for (std::size_t sample = 0; sample < samples; ++sample)
+		{
+			interleaved[sample] = static_cast<float>(integerFrames[sample]) / 32767.0f;
+		}
+
+		capture.engine->pushTrackInputFrames(capture.trackId,
+			InterleavedBufferView<const float>{interleaved.data(), channels, frames});
+	}
+
+	sio_stop(handle);
+	sio_close(handle);
+}
+
+
+
+
 void AudioSndio::startProcessingImpl()
 {
 	start(QThread::HighPriority);
+	for (auto& [id, capture] : m_trackCaptures)
+	{
+		Q_UNUSED(id);
+		startTrackCapture(*capture);
+	}
 }
 
 
 void AudioSndio::stopProcessingImpl()
 {
+	stopTrackCaptures();
 	stopProcessingThread( this );
 }
 

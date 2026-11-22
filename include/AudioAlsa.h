@@ -36,6 +36,9 @@
 #include <QThread>
 
 #include <atomic>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "AudioDevice.h"
 
@@ -97,6 +100,19 @@ private:
 	void stopProcessingImpl() override;
 	void run() override;
 
+	auto supportsTrackInputPorts() const -> bool override;
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
+
+	struct TrackCapture;
+
+	void startTrackCapture(TrackCapture& capture);
+	void stopTrackCapture(TrackCapture& capture);
+	void stopTrackCaptures();
+	void captureThread(TrackCapture& capture);
+
 	int setHWParams( const ch_cnt_t _channels, snd_pcm_access_t _access );
 	int setSWParams();
 	int handleError( int _err );
@@ -113,6 +129,8 @@ private:
 	QString m_monitoredDevice;
 	std::atomic_bool m_deviceDisconnected{false};
 	std::atomic_bool m_disconnectionReported{false};
+
+	std::unordered_map<quint64, std::unique_ptr<TrackCapture>> m_trackCaptures;
 } ;
 
 } // namespace mxm

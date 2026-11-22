@@ -251,8 +251,7 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 			inputChannels.push_back(static_cast<ch_cnt_t>(channel));
 		}
 	}
-	setInputAssignment(inputSource == QStringLiteral("auto") ? QStringLiteral("none") : inputSource,
-		std::move(inputChannels));
+	setInputAssignment(inputSource, std::move(inputChannels));
 	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
 	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
 }
@@ -431,7 +430,8 @@ bool SampleTrack::startRecording()
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
 
 	m_recordingSession = std::make_shared<SampleRecordSession>();
-	m_recordingSession->engineDroppedAtStart = engine->inputDroppedFrames();
+	m_recordingSession->engineDroppedAtStart = source->trackPort
+		? engine->trackInputDroppedFrames(m_trackInputId) : engine->inputDroppedFrames();
 	m_recordingSession->source = std::move(takeSource);
 	m_recordingSession->destinationChannels = std::move(destinationChannels);
 	m_recordingSession->trackInputId = source->trackPort ? m_trackInputId : 0;
@@ -474,7 +474,9 @@ void SampleTrack::stopRecording(bool stopTransport)
 				// is stopped, so no accepted block can be published afterwards.
 				const auto guard = Engine::audioEngine()->requestChangesGuard();
 				recorded = m_recordingSession->capture->finish();
-				const auto engineDropped = Engine::audioEngine()->inputDroppedFrames()
+				const auto engineDropped = (m_recordingSession->source.trackPort
+					? Engine::audioEngine()->trackInputDroppedFrames(m_recordingSession->trackInputId)
+					: Engine::audioEngine()->inputDroppedFrames())
 					- m_recordingSession->engineDroppedAtStart;
 				const auto dropped = m_recordingSession->capture->droppedFrames() + engineDropped;
 				if (dropped > 0 && Engine::getSong())

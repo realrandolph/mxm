@@ -76,6 +76,11 @@ private slots:
 		loaded.loadTrackSpecificSettings(element);
 		QCOMPARE(loaded.inputSourceId(), QStringLiteral("device:2+3"));
 		QCOMPARE(loaded.inputChannels(), (std::vector<ch_cnt_t>{2, 3}));
+
+		track.setInputAssignment(QStringLiteral("auto"));
+		track.saveTrackSpecificSettings(doc, element, false);
+		loaded.loadTrackSpecificSettings(element);
+		QCOMPARE(loaded.inputSourceId(), QStringLiteral("auto"));
 	}
 
 	//! Projects without input attributes require an explicit input assignment.

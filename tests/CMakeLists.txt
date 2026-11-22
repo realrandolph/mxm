@@ -25,6 +25,14 @@ set(MXM_TESTS
 	src/tracks/AutomationTrackTest.cpp
 )
 
+if(MXM_HAVE_SDL)
+	list(APPEND MXM_TESTS src/core/AudioSdlTrackInputTest.cpp)
+endif()
+
+if(MXM_HAVE_PORTAUDIO)
+	list(APPEND MXM_TESTS src/core/AudioPortAudioTrackInputTest.cpp)
+endif()
+
 foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	# TODO CMake 3.20: Use cmake_path
 	get_filename_component(MXM_TEST_NAME ${MXM_TEST_SRC} NAME_WE)
@@ -32,6 +40,12 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	add_executable(${MXM_TEST_NAME} ${MXM_TEST_SRC})
 	add_test(NAME ${MXM_TEST_NAME} COMMAND ${MXM_TEST_NAME})
 	set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit")
+	if(MXM_TEST_NAME STREQUAL "AudioSdlTrackInputTest")
+		set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit;audio;sdl" ENVIRONMENT "SDL_AUDIODRIVER=dummy")
+	endif()
+	if(MXM_TEST_NAME STREQUAL "AudioPortAudioTrackInputTest")
+		set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit;audio;portaudio" TIMEOUT 60)
+	endif()
 
 	# TODO CMake 3.12: Propagate usage requirements by linking to mxmobjs
 	target_include_directories(${MXM_TEST_NAME} PRIVATE $<TARGET_PROPERTY:mxmobjs,INCLUDE_DIRECTORIES>)
@@ -45,19 +59,6 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_features(${MXM_TEST_NAME} PRIVATE cxx_std_20)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
-
-if(MXM_HAVE_SDL)
-	add_executable(AudioSdlTrackInputTest src/core/AudioSdlTrackInputTest.cpp)
-	add_test(NAME AudioSdlTrackInputTest COMMAND AudioSdlTrackInputTest)
-	set_tests_properties(AudioSdlTrackInputTest PROPERTIES
-		LABELS "unit;audio;sdl"
-		ENVIRONMENT "SDL_AUDIODRIVER=dummy"
-	)
-	target_include_directories(AudioSdlTrackInputTest PRIVATE $<TARGET_PROPERTY:mxmobjs,INCLUDE_DIRECTORIES>)
-	target_static_libraries(AudioSdlTrackInputTest PRIVATE mxmobjs)
-	target_link_libraries(AudioSdlTrackInputTest PRIVATE ${QT_LIBRARIES} ${QT_QTTEST_LIBRARY})
-	target_compile_features(AudioSdlTrackInputTest PRIVATE cxx_std_20)
-endif()
 
 if(MXM_HAVE_OGGVORBIS)
 	target_compile_definitions(SampleDecoderChannelTest PRIVATE

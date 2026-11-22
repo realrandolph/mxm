@@ -79,6 +79,7 @@ private:
 	std::shared_ptr<SampleRecordSession> m_session;
 	int m_recordChannel;
 	bool m_inputMonitoring;
+	std::vector<const float*> m_sourcePointers;
 
 } ;
 

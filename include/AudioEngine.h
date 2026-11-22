@@ -80,10 +80,17 @@ public:
 		friend class AudioEngine;
 
 	private:
-		RequestChangesGuard(AudioEngine* audioEngine)
-			: m_audioEngine{audioEngine}
+		RequestChangesGuard(AudioEngine* audioEngine, bool tryOnly = false)
 		{
-			m_audioEngine->requestChangeInModel();
+			if (!tryOnly)
+			{
+				m_audioEngine = audioEngine;
+				m_audioEngine->requestChangeInModel();
+			}
+			else if (audioEngine->tryRequestChangeInModel())
+			{
+				m_audioEngine = audioEngine;
+			}
 		}
 	public:
 
@@ -107,6 +114,8 @@ public:
 				m_audioEngine->doneChangeInModel();
 			}
 		}
+
+		explicit operator bool() const { return m_audioEngine != nullptr; }
 
 	private:
 		AudioEngine* m_audioEngine;
@@ -289,9 +298,11 @@ public:
 
 	//! Publishes backend track-port audio. Real-time safe in normal use.
 	void pushTrackInputFrames(quint64 id, PlanarBufferView<const float> frames);
+	void pushTrackInputFrames(quint64 id, InterleavedBufferView<const float> frames);
 
 	//! @returns the last drained block for a track input port.
 	auto trackInputBuffer(quint64 id) const -> PlanarBufferView<const float>;
+	auto trackInputDroppedFrames(quint64 id) const -> std::uint64_t;
 
 	//! @returns frames dropped because the real-time capture buffer was full
 	auto inputDroppedFrames() const -> std::uint64_t
@@ -362,11 +373,13 @@ public:
 	//! Block until a change in model can be done (i.e. wait for audio thread)
 	void requestChangeInModel();
 	void doneChangeInModel();
+	auto tryRequestChangeInModel() -> bool;
 
 	RequestChangesGuard requestChangesGuard()
 	{
 		return RequestChangesGuard{this};
 	}
+	RequestChangesGuard tryRequestChangesGuard() { return RequestChangesGuard{this, true}; }
 
 	static bool isAudioDevNameValid(QString name);
 	static bool isMidiDevNameValid(QString name);
@@ -482,6 +495,7 @@ private:
 		f_cnt_t snapshotFrames = 0;
 		std::atomic<std::uint32_t> readIndex{0};
 		std::atomic<std::uint32_t> writeIndex{0};
+		std::atomic<std::uint64_t> droppedFrames{0};
 	};
 
 	std::array<TrackInputSlot, MaxTrackInputs> m_trackInputs;

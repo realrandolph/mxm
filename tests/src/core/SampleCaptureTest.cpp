@@ -141,52 +141,6 @@ private slots:
 		}
 	}
 
-	//! Interleaved writes preserve channel order as well
-	void Capture_Interleaved()
-	{
-		constexpr auto blockFrames = f_cnt_t{32};
-		constexpr auto blockTotal = size_t{2};
-		const auto layout = AudioChannelLayout::surround51();
-		const auto channels = layout.channels();
-
-		auto capture = SampleCapture{44100, layout, blockFrames, size_t{8}};
-
-		for (size_t blockIndex = 0; blockIndex < blockTotal; ++blockIndex)
-		{
-			auto interleaved = std::vector<float>(blockFrames * channels);
-			for (f_cnt_t frame = 0; frame < blockFrames; ++frame)
-			{
-				for (ch_cnt_t channel = 0; channel < channels; ++channel)
-				{
-					interleaved[frame * channels + channel]
-						= expectedSample(blockIndex, channel, frame);
-				}
-			}
-			capture.write(InterleavedBufferView<const float>{interleaved.data(), channels, blockFrames});
-		}
-
-		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(blockTotal * blockFrames));
-		QCOMPARE(capture.droppedFrames(), std::uint64_t{0});
-
-		const auto result = capture.finish();
-		QVERIFY(result != nullptr);
-		QVERIFY(!result->empty());
-		QCOMPARE(result->channels(), channels);
-		QVERIFY(result->layout() == layout);
-		QCOMPARE(result->frames(), static_cast<f_cnt_t>(blockTotal * blockFrames));
-
-		for (f_cnt_t frame = 0; frame < result->frames(); ++frame)
-		{
-			const auto blockIndex = static_cast<size_t>(frame / blockFrames);
-			const auto frameInBlock = static_cast<f_cnt_t>(frame % blockFrames);
-			for (ch_cnt_t channel = 0; channel < channels; ++channel)
-			{
-				QVERIFY(result->sample(frame, channel)
-					== expectedSample(blockIndex, channel, frameInBlock));
-			}
-		}
-	}
-
 	//! A mapped mono source lands in the requested capture channel only
 	void Capture_MappedMonoDestination()
 	{

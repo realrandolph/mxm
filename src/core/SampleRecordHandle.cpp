@@ -50,6 +50,7 @@ SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleR
 	m_recordChannel(0),
 	m_inputMonitoring(false)
 {
+	m_sourcePointers.reserve(m_session->source.channels);
 	if (m_track)
 	{
 		m_recordChannel = m_track->recordChannel();
@@ -83,8 +84,7 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 		: Engine::audioEngine()->inputBuffer();
 	if (input.empty()) { return; }
 
-	std::vector<const float*> pointers;
-	const auto source = inputSourceView(input, m_session->source, {}, pointers);
+	const auto source = inputSourceView(input, m_session->source, {}, m_sourcePointers);
 	if (source.empty())
 	{
 		// The take was started against a validated endpoint. If the device or

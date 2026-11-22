@@ -32,9 +32,13 @@
 #include <QComboBox>
 #include <QFormLayout>
 #include <QString>
+#include <QStringList>
 #include <QWidget>
 #include <QTimer>
 #include <atomic>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 #include <portaudio.h>
 
 #include "AudioDevice.h"
@@ -84,19 +88,29 @@ private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 
+	auto supportsTrackInputPorts() const -> bool override { return true; }
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
+
 	static int processCallback(const void* input, void* output, unsigned long frameCount,
+		const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData);
+	static int trackInputCallback(const void* input, void* output, unsigned long frameCount,
 		const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData);
 	static void streamFinishedCallback(void* userData);
 	void handleStreamFinished();
 	void checkStreamStatus();
 
+	struct TrackInput;
+	void closeTrackInput(TrackInput& input);
+
 	detail::PortAudioInitializationGuard m_initGuard;
 	PaStream* m_paStream = nullptr;
-	ch_cnt_t m_inputChannels = 0;
 	QString m_monitoredOutputDevice;
-	QString m_monitoredInputDevice;
 	std::atomic_bool m_streamFinishedReported{false};
 	QTimer m_streamMonitor;
+	std::unordered_map<quint64, std::unique_ptr<TrackInput>> m_trackInputs;
 };
 } // namespace mxm
 
@@ -110,10 +124,9 @@ public:
 	void saveSettings() override;
 
 private:
-	class DeviceSelectorWidget;
+	class OutputSelectorWidget;
 	QComboBox* m_backendComboBox = nullptr;
-	DeviceSelectorWidget* m_inputDevice = nullptr;
-	DeviceSelectorWidget* m_outputDevice = nullptr;
+	OutputSelectorWidget* m_outputDevice = nullptr;
 };
 } // namespace mxm::gui
 

@@ -90,7 +90,6 @@ private:
 	auto supportsTrackInputPorts() const -> bool override { return m_supportsCapture; }
 	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
 	void unregisterTrackInputPort(quint64 id) override;
-	void renameTrackInputPort(quint64 id, const QString& name) override;
 	auto inputSources() const -> std::vector<AudioInputSource> override;
 	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
 	void checkDeviceRoutes();
@@ -101,7 +100,6 @@ private:
 
 	struct TrackCapture;
 	static void sdlTrackInputCallback(void* data, Uint8* buffer, int length);
-	void sdlTrackInputCallback(TrackCapture& capture, Uint8* buffer, int length);
 
 	SDL_AudioSpec m_audioHandle;
 	SDL_AudioDeviceID m_outputDevice;

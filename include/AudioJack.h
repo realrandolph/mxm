@@ -126,7 +126,7 @@ private:
 	static void portRegistrationCallback(jack_port_id_t port, int registered, void* udata);
 	static void shutdownCallback(void* _udata);
 
-	jack_client_t* m_client;
+	std::atomic<jack_client_t*> m_client{nullptr};
 
 	bool m_active;
 
@@ -149,6 +149,7 @@ private:
 
 	struct TrackInputPort
 	{
+		QString name;
 		ch_cnt_t channels = 0;
 		std::vector<jack_port_t*> ports;
 		QStringList endpointPorts;

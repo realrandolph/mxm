@@ -34,6 +34,9 @@
 #include <sndio.h>
 
 #include <atomic>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
@@ -81,10 +84,25 @@ private:
 	void stopProcessingImpl() override;
 	void run() override;
 
+	auto supportsTrackInputPorts() const -> bool override;
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
+
+	struct TrackCapture;
+
+	void startTrackCapture(TrackCapture& capture);
+	void stopTrackCapture(TrackCapture& capture);
+	void stopTrackCaptures();
+	void captureThread(TrackCapture& capture);
+
 	struct sio_hdl *m_hdl;
 	struct sio_par m_par;
+	QString m_configuredDevice;
 	QString m_monitoredDevice;
 	std::atomic_bool m_errorReported{false};
+	std::unordered_map<quint64, std::unique_ptr<TrackCapture>> m_trackCaptures;
 };
 
 } // namespace mxm

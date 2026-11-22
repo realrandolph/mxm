@@ -83,6 +83,9 @@ QString buildOutputName(ch_cnt_t ch)
 	return QString("master out ") + buildChannelSuffix(ch);
 }
 
+auto trackPortName(const QString& trackName, quint64 id, ch_cnt_t channels,
+	ch_cnt_t channel) -> QString;
+
 } // namespace
 
 AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
@@ -140,6 +143,24 @@ void AudioJack::restartAfterZombified()
 {
 	if (initJackClient())
 	{
+		for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
+		{
+			auto& trackInput = it.value();
+			trackInput.ports.clear();
+			for (ch_cnt_t channel = 0; channel < trackInput.channels; ++channel)
+			{
+				const auto portName = trackPortName(trackInput.name, it.key(),
+					trackInput.channels, channel);
+				auto* port = jack_port_register(m_client, portName.toLatin1().constData(),
+					JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+				if (port) { trackInput.ports.push_back(port); }
+			}
+		}
+		for (auto it = m_trackInputPorts.cbegin(); it != m_trackInputPorts.cend(); ++it)
+		{
+			const auto endpoints = it->endpointPorts;
+			if (!endpoints.isEmpty()) { setTrackInputSource(it.key(), endpoints); }
+		}
 		m_active = false;
 		m_zombieReported.store(false, std::memory_order_release);
 		startProcessing();
@@ -491,6 +512,7 @@ auto AudioJack::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t
 	unregisterTrackInputPort(id);
 
 	TrackInputPort port;
+	port.name = name;
 	port.channels = channels;
 	for (ch_cnt_t channel = 0; channel < channels; ++channel)
 	{
@@ -531,7 +553,7 @@ void AudioJack::unregisterTrackInputPort(quint64 id)
 	if (found == m_trackInputPorts.end()) { return; }
 	for (auto* port : found->ports)
 	{
-		if (port != nullptr) { jack_port_unregister(m_client, port); }
+		if (m_client != nullptr && port != nullptr) { jack_port_unregister(m_client, port); }
 	}
 	m_trackInputPorts.erase(found);
 }
@@ -604,7 +626,8 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 		audioEngine()->renderNextBuffer({m_tempOutBufs, channels(), nframes});
 	}
 
-	const auto guard = audioEngine()->requestChangesGuard();
+	const auto guard = audioEngine()->tryRequestChangesGuard();
+	if (!guard) { return 0; }
 	for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
 	{
 		const auto frames = std::min<jack_nframes_t>(nframes, m_bufferFrames);
