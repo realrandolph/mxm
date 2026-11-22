@@ -23,7 +23,9 @@ the existing embedded sample data, so old stereo projects load unchanged.
 
 ## Capture
 
-* PortAudio and SDL capture every channel reported by the opened device.
+* SDL opens the selected input device per track and captures its first two
+  channels (duplicating mono to stereo). PortAudio captures every channel
+  reported by its configured device.
 * JACK exposes audio inputs through the per-track source assignment and
   registers input ports for each recordable track. Its capture channel count is
   not configured globally.

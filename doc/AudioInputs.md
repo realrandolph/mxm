@@ -1,8 +1,9 @@
 # Per-track audio inputs
 
-Every recordable Sample Track owns its own capture assignment. On JACK, each
-track's **Input** dropdown selects a named source client directly; no global
-recording input or patchbay setup is needed for ordinary use. Other backends
+Every recordable Sample Track owns its own capture assignment. On SDL, each
+track's **Input** dropdown selects an enumerated capture device and opens that
+device for the track. On JACK, it selects a named source client. Neither needs
+a global recording-input choice or patchbay setup for ordinary use. Backends
 that expose only one capture stream provide per-track channel assignments from
 that stream.
 
@@ -51,9 +52,10 @@ track records silence and reports the problem when recording stops.
 
 ## Backend behavior
 
-Backends report capture sources through the existing variable-channel engine
-input. One shared timestamped capture stream per device is used; per-track
-selection maps channels from that stream.
+Backends can either provide per-track capture endpoints or share one capture
+stream. SDL opens the selected device independently for each assigned track;
+PortAudio currently shares its configured capture stream and offers channel
+assignments from it.
 
 When a backend supports independently routable track ports
 (`AudioDevice::supportsTrackInputPorts()`), a recordable track gets its own

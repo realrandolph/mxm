@@ -46,6 +46,19 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	target_compile_definitions(${MXM_TEST_NAME} PRIVATE MXM_TESTING)
 endforeach()
 
+if(MXM_HAVE_SDL)
+	add_executable(AudioSdlTrackInputTest src/core/AudioSdlTrackInputTest.cpp)
+	add_test(NAME AudioSdlTrackInputTest COMMAND AudioSdlTrackInputTest)
+	set_tests_properties(AudioSdlTrackInputTest PROPERTIES
+		LABELS "unit;audio;sdl"
+		ENVIRONMENT "SDL_AUDIODRIVER=dummy"
+	)
+	target_include_directories(AudioSdlTrackInputTest PRIVATE $<TARGET_PROPERTY:mxmobjs,INCLUDE_DIRECTORIES>)
+	target_static_libraries(AudioSdlTrackInputTest PRIVATE mxmobjs)
+	target_link_libraries(AudioSdlTrackInputTest PRIVATE ${QT_LIBRARIES} ${QT_QTTEST_LIBRARY})
+	target_compile_features(AudioSdlTrackInputTest PRIVATE cxx_std_20)
+endif()
+
 if(MXM_HAVE_OGGVORBIS)
 	target_compile_definitions(SampleDecoderChannelTest PRIVATE
 		MXM_TEST_HAVE_OGGVORBIS
