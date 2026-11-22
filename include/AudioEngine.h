@@ -264,14 +264,15 @@ public:
 	/**
 	 * @brief Selectable capture sources for recordable tracks.
 	 *
-	 * Sources map explicitly onto channels of @ref inputBuffer(). A newly
-	 * configured device yields mono channels, adjacent stereo pairs and an
-	 * Auto/all-inputs entry.
+	 * Sources map onto either shared capture channels or backend-specific
+	 * per-track endpoints such as named JACK ports.
 	 */
 	auto inputSources() const -> std::vector<AudioInputSource>;
+	void notifyInputSourcesChanged() { emit inputSourcesChanged(); }
 
 	//! @returns the source with @a id, or std::nullopt when it is unavailable.
 	auto inputSource(const QString& id) const -> std::optional<AudioInputSource>;
+	void setTrackInputSource(quint64 id, const QString& sourceId);
 
 	/**
 	 * @brief Registers a backend-exposed input for one recordable track.

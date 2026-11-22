@@ -287,13 +287,13 @@ void SampleTrackWindow::refreshInputSources()
 {
 	const auto sources = m_track->availableInputSources();
 	const auto savedId = m_track->inputSourceId().trimmed().isEmpty()
-		? QStringLiteral("auto")
+		? QStringLiteral("none")
 		: m_track->inputSourceId().trimmed();
 
 	const QSignalBlocker blocker(m_inputSourceComboBox);
 	m_inputSourceComboBox->clear();
-
-	int selectedIndex = -1;
+	m_inputSourceComboBox->addItem(tr("No input selected"), QStringLiteral("none"));
+	int selectedIndex = savedId == QStringLiteral("none") ? 0 : -1;
 	for (const auto& source : sources)
 	{
 		m_inputSourceComboBox->addItem(source.displayName, source.id);
@@ -306,7 +306,7 @@ void SampleTrackWindow::refreshInputSources()
 	if (sources.empty())
 	{
 		m_inputSourceComboBox->addItem(tr("No capture inputs available"));
-		selectedIndex = 0;
+		if (selectedIndex < 0) { selectedIndex = 0; }
 	}
 	else if (selectedIndex < 0)
 	{

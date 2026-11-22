@@ -1,8 +1,10 @@
 # Per-track audio inputs
 
-Every recordable Sample Track owns its own capture assignment. Selecting an
-input does not change a global recording source and does not require a
-patchbay for ordinary use.
+Every recordable Sample Track owns its own capture assignment. On JACK, each
+track's **Input** dropdown selects a named source client directly; no global
+recording input or patchbay setup is needed for ordinary use. Other backends
+that expose only one capture stream provide per-track channel assignments from
+that stream.
 
 ## Assignment model
 
@@ -11,16 +13,15 @@ patchbay for ordinary use.
 - stable `id`;
 - human-readable `displayName`;
 - source `channels` and `AudioChannelLayout`;
-- `captureChannels`, mapping each source channel to a channel of the current
-  device capture snapshot;
-- `trackPort` for backend-exposed per-track ports.
+- `captureChannels`, mapping each source channel to the shared capture snapshot;
+- `trackPort` and `endpointPorts` for backend-routed per-track sources.
 
 The track stores `input_source` and an optional `input_channels` list in the
 project. The channel list makes nonadjacent and future multichannel mappings
 explicit; it is not inferred from a stereo assumption. Projects without these
-attributes load as `auto`.
+attributes load without an assigned source.
 
-The normal device source list contains:
+Backends with a shared capture stream expose sources such as:
 
 - `auto`: all configured capture channels;
 - one mono source per hardware channel;
@@ -56,11 +57,10 @@ selection maps channels from that stream.
 
 When a backend supports independently routable track ports
 (`AudioDevice::supportsTrackInputPorts()`), a recordable track gets its own
-backend input ports and a symbolic `track` assignment can read that track's
-stream. JACK implements this with per-track ports named after the track
-(`<track> In L`, `<track> In R`), so tools such as qpwgraph can patch sources
-directly to individual MXM tracks. The dropdown still lists normal device
-inputs; external patching is optional.
+backend input ports. JACK lists external source clients in the track's **Input**
+dropdown and connects the chosen source to that track. It also exposes each
+track's inputs as `<track> In L` / `<track> In R` ports for optional routing in
+tools such as qpwgraph.
 
 Shared synchronized recording and the final multi-track start/stop flow belong
 to #50. Full surround routing remains in #63; this input model already carries

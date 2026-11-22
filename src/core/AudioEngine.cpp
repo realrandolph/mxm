@@ -190,10 +190,12 @@ void AudioEngine::setInputChannels(ch_cnt_t channels)
 
 auto AudioEngine::inputSources() const -> std::vector<AudioInputSource>
 {
-	if (!m_audioDev || m_inputChannels == 0)
+	if (!m_audioDev)
 	{
 		return {};
 	}
+	if (m_audioDev->supportsTrackInputPorts()) { return m_audioDev->inputSources(); }
+	if (m_inputChannels == 0) { return {}; }
 
 	const auto& layout = m_audioDev->captureLayout();
 	const auto deviceLayout = layout.channels() == m_inputChannels
@@ -209,6 +211,14 @@ auto AudioEngine::inputSource(const QString& id) const -> std::optional<AudioInp
 	});
 	if (found == sources.end()) { return std::nullopt; }
 	return *found;
+}
+
+void AudioEngine::setTrackInputSource(quint64 id, const QString& sourceId)
+{
+	if (!m_audioDev || !m_audioDev->supportsTrackInputPorts()) { return; }
+	const auto source = inputSource(sourceId);
+	m_audioDev->setTrackInputSource(id,
+		source && source->trackPort ? source->endpointPorts : QStringList{});
 }
 
 

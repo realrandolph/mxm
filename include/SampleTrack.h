@@ -152,7 +152,7 @@ private:
 	bool m_isPlaying;
 	std::atomic_bool m_recording{false};
 	std::atomic_int m_recordChannel{0};
-	QString m_inputSourceId = QStringLiteral("auto");
+	QString m_inputSourceId = QStringLiteral("none");
 	std::vector<ch_cnt_t> m_inputChannels;
 	std::atomic_bool m_inputMonitoring{false};
 	std::atomic<float> m_inputLevel{0.f};

@@ -26,9 +26,11 @@
 #define MXM_AUDIO_DEVICE_H
 
 #include <QMutex>
+#include <QStringList>
 #include <samplerate.h>
 
 #include "AudioChannelLayout.h"
+#include "AudioInputSource.h"
 #include "MxmTypes.h"
 
 class QThread;
@@ -73,6 +75,13 @@ public:
 	virtual void renameTrackInputPort(quint64 id, const QString& name)
 	{
 		Q_UNUSED(id); Q_UNUSED(name);
+	}
+	//! Sources exposed by a routable capture backend, independent of global channels.
+	virtual auto inputSources() const -> std::vector<AudioInputSource> { return {}; }
+	//! Routes one selected backend source into a track's capture ports.
+	virtual void setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+	{
+		Q_UNUSED(id); Q_UNUSED(endpointPorts);
 	}
 
 	inline ch_cnt_t captureChannels() const

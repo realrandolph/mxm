@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <QString>
+#include <QStringList>
 
 #include "AudioBufferView.h"
 #include "AudioChannelLayout.h"
@@ -44,9 +45,9 @@ namespace mxm
  * adjacent stereo pairs) lets a track record nonadjacent interface channels
  * today and arbitrary layouts later.
  *
- * A track-port source is provided by a backend that can expose one routable
- * input port per track (currently JACK). Its `captureChannels` are not used;
- * the engine's per-track input snapshot is read instead.
+ * A track-port source is provided by a backend that can route a named source
+ * to one track (currently JACK). Its `endpointPorts` identify the source and
+ * its `captureChannels` index the track's capture snapshot.
  */
 struct MXM_EXPORT AudioInputSource
 {
@@ -56,6 +57,7 @@ struct MXM_EXPORT AudioInputSource
 	AudioChannelLayout layout;
 	std::vector<ch_cnt_t> captureChannels;
 	bool trackPort = false;
+	QStringList endpointPorts;
 
 	auto valid() const -> bool
 	{

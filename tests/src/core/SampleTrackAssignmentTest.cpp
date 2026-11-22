@@ -78,7 +78,7 @@ private slots:
 		QCOMPARE(loaded.inputChannels(), (std::vector<ch_cnt_t>{2, 3}));
 	}
 
-	//! Projects without input attributes reset the track to the default input
+	//! Projects without input attributes require an explicit input assignment.
 	void Assignment_MissingAttributesDefault()
 	{
 		auto* song = Engine::getSong();
@@ -89,7 +89,7 @@ private slots:
 		auto element = makeTrackElement(doc);
 		track.loadTrackSpecificSettings(element);
 
-		QCOMPARE(track.inputSourceId(), QStringLiteral("auto"));
+		QCOMPARE(track.inputSourceId(), QStringLiteral("none"));
 		QVERIFY(track.inputChannels().empty());
 	}
 
