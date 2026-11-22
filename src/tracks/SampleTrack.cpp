@@ -508,18 +508,6 @@ float SampleTrack::inputPeak() const
 
 
 
-void SampleTrack::updateInputLevel(float level)
-{
-	float current = m_inputLevel.load(std::memory_order_relaxed);
-	while (current < level &&
-		!m_inputLevel.compare_exchange_weak(current, level, std::memory_order_relaxed))
-	{
-	}
-}
-
-
-
-
 void SampleTrack::updateClips()
 {
 	Engine::audioEngine()->removePlayHandlesOfTypes( this, PlayHandle::Type::SamplePlayHandle );

@@ -97,9 +97,6 @@ public:
 
 	bool isInputMonitoring() const { return m_inputMonitoring.load(std::memory_order_relaxed); }
 	void setInputMonitoring(bool enabled) { m_inputMonitoring.store(enabled, std::memory_order_relaxed); }
-	void updateInputLevel(float level);
-	float takeInputLevel() { return m_inputLevel.exchange(0.f, std::memory_order_relaxed); }
-
 	//! @returns the current peak of this track's assigned capture source.
 	float inputPeak() const;
 	void updateRecordingClipLength();
@@ -151,7 +148,6 @@ private:
 	std::atomic_int m_recordChannel{0};
 	QString m_inputSourceId = QStringLiteral("system-default");
 	std::atomic_bool m_inputMonitoring{false};
-	std::atomic<float> m_inputLevel{0.f};
 	std::shared_ptr<SampleRecordSession> m_recordingSession;
 	QPointer<SampleClip> m_recordingClip;
 	quint64 m_trackInputId = 0;

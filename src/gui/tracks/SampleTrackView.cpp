@@ -344,8 +344,7 @@ void SampleTrackView::updateRecordingControls()
 			tr("The selected audio device does not support input recording")));
 	m_recordButton->setEnabled(recording || captureAvailable);
 
-	const auto inputLevel = std::clamp(
-		armed ? track->inputPeak() : track->takeInputLevel(), 0.f, 1.f);
+	const auto inputLevel = std::clamp(track->inputPeak(), 0.f, 1.f);
 	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));
 }
 

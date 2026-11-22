@@ -26,7 +26,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 
 #include <QMetaObject>
 
@@ -85,7 +84,6 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 	if (engine->trackInputCaptureFailed(m_session->trackInputId))
 	{
 		m_session->inputUnavailable.store(true, std::memory_order_relaxed);
-		m_track->updateInputLevel(0.f);
 	}
 	const auto input = engine->trackInputBuffer(m_session->trackInputId);
 	if (input.empty()) { return; }
@@ -98,7 +96,6 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 		// channel map changes mid-take, record silence and report it at stop
 		// instead of substituting another physical input.
 		m_session->inputUnavailable.store(true, std::memory_order_relaxed);
-		m_track->updateInputLevel(0.f);
 		return;
 	}
 
@@ -167,22 +164,8 @@ void SampleRecordHandle::writeBuffer( PlanarBufferView<const float> frames )
 {
 	if (frames.empty() || !m_session->capture) { return; }
 
-	auto peak = 0.f;
-	for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
-	{
-		const auto* data = frames.bufferPtr(channel);
-		for (f_cnt_t frame = 0; frame < frames.frames(); ++frame)
-		{
-			peak = std::max(peak, std::abs(data[frame]));
-		}
-	}
-
 	m_session->capture->write(frames, m_session->destinationChannels);
 	m_session->recordedFrames.store(m_session->capture->recordedFrames(), std::memory_order_relaxed);
-	if (m_track)
-	{
-		m_track->updateInputLevel(peak);
-	}
 }
 
 
