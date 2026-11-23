@@ -676,11 +676,7 @@ WatsynView::WatsynView( Instrument * _instrument,
 					QWidget * _parent ) :
 	InstrumentViewFixedSize( _instrument, _parent )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-
-	pal.setBrush( backgroundRole(),	PLUGIN_NAME::getIconPixmap(	"artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap(	"artwork" ));
 
 // knobs... lots of em
 
@@ -820,7 +816,7 @@ WatsynView::WatsynView( Instrument * _instrument,
 
 
 // graph widgets
-	pal = QPalette();
+	QPalette pal;
 	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap("wavegraph") );
 // a1 graph
 	a1_graph = new Graph( this, Graph::Style::Linear, 224, 105 );

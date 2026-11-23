@@ -27,6 +27,7 @@
 #include "OscilloscopeControls.h"
 #include "OscilloscopeControlDialog.h"
 #include "OscilloscopeGraph.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -44,22 +45,12 @@ OscilloscopeControls::OscilloscopeControls(Oscilloscope* effect) :
 }
 
 
-void OscilloscopeControls::loadSettings(const QDomElement& parent)
-{
-	m_ampModel.loadSettings(parent, "amp");
-	m_lengthModel.loadSettings(parent, "length");
-	m_phaseModel.loadSettings(parent, "phase");
-	m_stereoModel.loadSettings(parent, "stereo");
-}
-
-
-void OscilloscopeControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_ampModel.saveSettings(doc, parent, "amp");
-	m_lengthModel.saveSettings(doc, parent, "length");
-	m_phaseModel.saveSettings(doc, parent, "phase");
-	m_stereoModel.saveSettings(doc, parent, "stereo");
-}
+MXM_DEFINE_MODEL_SETTINGS(OscilloscopeControls,
+	visit(m_ampModel, "amp");
+	visit(m_lengthModel, "length");
+	visit(m_phaseModel, "phase");
+	visit(m_stereoModel, "stereo");
+)
 
 
 gui::EffectControlDialog* OscilloscopeControls::createView()

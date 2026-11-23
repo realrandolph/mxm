@@ -5,6 +5,7 @@ set(MXM_SRCS
 	core/AudioChannelLayout.cpp
 	core/AudioBusHandle.cpp
 	core/AudioEngine.cpp
+	core/AudioInputSource.cpp
 	core/AudioEngineProfiler.cpp
 	core/AudioEngineWorkerThread.cpp
 	core/AudioResampler.cpp

@@ -328,10 +328,7 @@ KickerInstrumentView::KickerInstrumentView( Instrument * _instrument,
 	m_endNoteToggle = new LedCheckBox( "", this, "", LedCheckBox::LedColor::Green );
 	m_endNoteToggle->move( END_COL + 8, LED_ROW );
 
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 }
 
 

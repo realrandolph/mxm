@@ -25,6 +25,7 @@
 
 #include "CompressorControls.h"
 #include "Compressor.h"
+#include "ModelSettings.h"
 
 
 
@@ -63,85 +64,42 @@ CompressorControls::CompressorControls(CompressorEffect* effect) :
 	m_stereoLinkModel(1.0f, 0.0f, 4.0f, this, tr("Stereo Link")),
 	m_mixModel(100.0f, 0.f, 100.0f, 0.01f, this, tr("Mix"))
 {
-	m_ratioModel.setScaleLogarithmic(true);
-	m_holdModel.setScaleLogarithmic(true);
-	m_attackModel.setScaleLogarithmic(true);
-	m_releaseModel.setScaleLogarithmic(true);
-	m_thresholdModel.setScaleLogarithmic(true);
-	m_rangeModel.setScaleLogarithmic(true);
-	m_lookaheadLengthModel.setScaleLogarithmic(true);
-	m_rmsModel.setScaleLogarithmic(true);
-	m_kneeModel.setScaleLogarithmic(true);
-	m_tiltFreqModel.setScaleLogarithmic(true);
-	m_rangeModel.setScaleLogarithmic(true);
+	setLogarithmicModels(m_ratioModel, m_holdModel, m_attackModel, m_releaseModel,
+		m_thresholdModel, m_rangeModel, m_lookaheadLengthModel, m_rmsModel,
+		m_kneeModel, m_tiltFreqModel);
 }
 
 
-void CompressorControls::saveSettings(QDomDocument& doc, QDomElement& _this)
-{
-	m_thresholdModel.saveSettings(doc, _this, "threshold"); 
-	m_ratioModel.saveSettings(doc, _this, "ratio");
-	m_attackModel.saveSettings(doc, _this, "attack");
-	m_releaseModel.saveSettings(doc, _this, "release");
-	m_kneeModel.saveSettings(doc, _this, "knee");
-	m_holdModel.saveSettings(doc, _this, "hold");
-	m_rangeModel.saveSettings(doc, _this, "range");
-	m_rmsModel.saveSettings(doc, _this, "rms");
-	m_midsideModel.saveSettings(doc, _this, "midside");
-	m_peakmodeModel.saveSettings(doc, _this, "peakmode");
-	m_lookaheadLengthModel.saveSettings(doc, _this, "lookaheadLength");
-	m_inBalanceModel.saveSettings(doc, _this, "inBalance");
-	m_outBalanceModel.saveSettings(doc, _this, "outBalance");
-	m_limiterModel.saveSettings(doc, _this, "limiter");
-	m_outGainModel.saveSettings(doc, _this, "outGain");
-	m_inGainModel.saveSettings(doc, _this, "inGain");
-	m_blendModel.saveSettings(doc, _this, "blend");
-	m_stereoBalanceModel.saveSettings(doc, _this, "stereoBalance");
-	m_autoMakeupModel.saveSettings(doc, _this, "autoMakeup");
-	m_auditionModel.saveSettings(doc, _this, "audition");
-	m_feedbackModel.saveSettings(doc, _this, "feedback");
-	m_autoAttackModel.saveSettings(doc, _this, "autoAttack");
-	m_autoReleaseModel.saveSettings(doc, _this, "autoRelease");
-	m_lookaheadModel.saveSettings(doc, _this, "lookahead");
-	m_tiltModel.saveSettings(doc, _this, "tilt");
-	m_tiltFreqModel.saveSettings(doc, _this, "tiltFreq");
-	m_stereoLinkModel.saveSettings(doc, _this, "stereoLink");
-	m_mixModel.saveSettings(doc, _this, "mix");
-}
-
-
-
-void CompressorControls::loadSettings(const QDomElement& _this)
-{
-	m_thresholdModel.loadSettings(_this, "threshold");
-	m_ratioModel.loadSettings(_this, "ratio");
-	m_attackModel.loadSettings(_this, "attack");
-	m_releaseModel.loadSettings(_this, "release");
-	m_kneeModel.loadSettings(_this, "knee");
-	m_holdModel.loadSettings(_this, "hold");
-	m_rangeModel.loadSettings(_this, "range");
-	m_rmsModel.loadSettings(_this, "rms");
-	m_midsideModel.loadSettings(_this, "midside");
-	m_peakmodeModel.loadSettings(_this, "peakmode");
-	m_lookaheadLengthModel.loadSettings(_this, "lookaheadLength");
-	m_inBalanceModel.loadSettings(_this, "inBalance");
-	m_outBalanceModel.loadSettings(_this, "outBalance");
-	m_limiterModel.loadSettings(_this, "limiter");
-	m_outGainModel.loadSettings(_this, "outGain");
-	m_inGainModel.loadSettings(_this, "inGain");
-	m_blendModel.loadSettings(_this, "blend");
-	m_stereoBalanceModel.loadSettings(_this, "stereoBalance");
-	m_autoMakeupModel.loadSettings(_this, "autoMakeup");
-	m_auditionModel.loadSettings(_this, "audition");
-	m_feedbackModel.loadSettings(_this, "feedback");
-	m_autoAttackModel.loadSettings(_this, "autoAttack");
-	m_autoReleaseModel.loadSettings(_this, "autoRelease");
-	m_lookaheadModel.loadSettings(_this, "lookahead");
-	m_tiltModel.loadSettings(_this, "tilt");
-	m_tiltFreqModel.loadSettings(_this, "tiltFreq");
-	m_stereoLinkModel.loadSettings(_this, "stereoLink");
-	m_mixModel.loadSettings(_this, "mix");
-}
+MXM_DEFINE_MODEL_SETTINGS(CompressorControls,
+	visit(m_thresholdModel, "threshold");
+	visit(m_ratioModel, "ratio");
+	visit(m_attackModel, "attack");
+	visit(m_releaseModel, "release");
+	visit(m_kneeModel, "knee");
+	visit(m_holdModel, "hold");
+	visit(m_rangeModel, "range");
+	visit(m_rmsModel, "rms");
+	visit(m_midsideModel, "midside");
+	visit(m_peakmodeModel, "peakmode");
+	visit(m_lookaheadLengthModel, "lookaheadLength");
+	visit(m_inBalanceModel, "inBalance");
+	visit(m_outBalanceModel, "outBalance");
+	visit(m_limiterModel, "limiter");
+	visit(m_outGainModel, "outGain");
+	visit(m_inGainModel, "inGain");
+	visit(m_blendModel, "blend");
+	visit(m_stereoBalanceModel, "stereoBalance");
+	visit(m_autoMakeupModel, "autoMakeup");
+	visit(m_auditionModel, "audition");
+	visit(m_feedbackModel, "feedback");
+	visit(m_autoAttackModel, "autoAttack");
+	visit(m_autoReleaseModel, "autoRelease");
+	visit(m_lookaheadModel, "lookahead");
+	visit(m_tiltModel, "tilt");
+	visit(m_tiltFreqModel, "tiltFreq");
+	visit(m_stereoLinkModel, "stereoLink");
+	visit(m_mixModel, "mix");
+)
 
 
 } // namespace mxm

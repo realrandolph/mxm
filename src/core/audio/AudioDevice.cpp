@@ -32,7 +32,6 @@ namespace mxm
 
 AudioDevice::AudioDevice(const ch_cnt_t _channels, AudioEngine* _audioEngine)
 	: m_supportsCapture(false)
-	, m_captureChannels(0)
 	, m_sampleRate(_audioEngine->outputSampleRate())
 	, m_channels(_channels)
 	, m_audioEngine(_audioEngine)

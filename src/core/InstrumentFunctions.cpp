@@ -33,6 +33,7 @@
 
 #include <vector>
 #include <algorithm>
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -522,38 +523,19 @@ void InstrumentFunctionArpeggio::processNote( NotePlayHandle * _n )
 
 
 
-void InstrumentFunctionArpeggio::saveSettings( QDomDocument & _doc, QDomElement & _this )
-{
-	m_arpEnabledModel.saveSettings( _doc, _this, "arp-enabled" );
-	m_arpModel.saveSettings( _doc, _this, "arp" );
-	m_arpRangeModel.saveSettings( _doc, _this, "arprange" );
-	m_arpRepeatsModel.saveSettings( _doc, _this, "arprepeats" );
-	m_arpCycleModel.saveSettings( _doc, _this, "arpcycle" );
-	m_arpSkipModel.saveSettings( _doc, _this, "arpskip" );
-	m_arpMissModel.saveSettings( _doc, _this, "arpmiss" );
-	m_arpTimeModel.saveSettings( _doc, _this, "arptime" );
-	m_arpGateModel.saveSettings( _doc, _this, "arpgate" );
-	m_arpDirectionModel.saveSettings( _doc, _this, "arpdir" );
-	m_arpModeModel.saveSettings( _doc, _this, "arpmode" );
-}
-
-
-
-
-void InstrumentFunctionArpeggio::loadSettings( const QDomElement & _this )
-{
-	m_arpEnabledModel.loadSettings( _this, "arp-enabled" );
-	m_arpModel.loadSettings( _this, "arp" );
-	m_arpRangeModel.loadSettings( _this, "arprange" );
-	m_arpRepeatsModel.loadSettings( _this, "arprepeats" );
-	m_arpCycleModel.loadSettings( _this, "arpcycle" );
-	m_arpSkipModel.loadSettings( _this, "arpskip" );
-	m_arpMissModel.loadSettings( _this, "arpmiss" );
-	m_arpTimeModel.loadSettings( _this, "arptime" );
-	m_arpGateModel.loadSettings( _this, "arpgate" );
-	m_arpDirectionModel.loadSettings( _this, "arpdir" );
-	m_arpModeModel.loadSettings( _this, "arpmode" );
-}
+MXM_DEFINE_MODEL_SETTINGS(InstrumentFunctionArpeggio,
+	visit(m_arpEnabledModel, "arp-enabled");
+	visit(m_arpModel, "arp");
+	visit(m_arpRangeModel, "arprange");
+	visit(m_arpRepeatsModel, "arprepeats");
+	visit(m_arpCycleModel, "arpcycle");
+	visit(m_arpSkipModel, "arpskip");
+	visit(m_arpMissModel, "arpmiss");
+	visit(m_arpTimeModel, "arptime");
+	visit(m_arpGateModel, "arpgate");
+	visit(m_arpDirectionModel, "arpdir");
+	visit(m_arpModeModel, "arpmode");
+)
 
 
 } // namespace mxm

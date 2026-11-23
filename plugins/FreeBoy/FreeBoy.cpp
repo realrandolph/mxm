@@ -451,10 +451,7 @@ FreeBoyInstrumentView::FreeBoyInstrumentView( Instrument * _instrument,
 	InstrumentViewFixedSize( _instrument, _parent )
 {
 
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 
 	m_ch1SweepTimeKnob = new FreeBoyKnob( this );
 	m_ch1SweepTimeKnob->setHintText( tr( "Sweep time:" ), "" );

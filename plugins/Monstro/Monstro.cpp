@@ -33,6 +33,7 @@
 
 #include "embed.h"
 #include "plugin_export.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -1082,240 +1083,120 @@ void MonstroInstrument::deleteNotePluginData( NotePlayHandle * _n )
 }
 
 
-void MonstroInstrument::saveSettings( QDomDocument & _doc,
-							QDomElement & _this )
-{
-	m_osc1Vol.saveSettings( _doc, _this, "o1vol" );
-	m_osc1Pan.saveSettings( _doc, _this, "o1pan" );
-	m_osc1Crs.saveSettings( _doc, _this, "o1crs" );
-	m_osc1Ftl.saveSettings( _doc, _this, "o1ftl" );
-	m_osc1Ftr.saveSettings( _doc, _this, "o1ftr" );
-	m_osc1Spo.saveSettings( _doc, _this, "o1spo" );
-	m_osc1Pw.saveSettings( _doc, _this, "o1pw" );
-	m_osc1SSR.saveSettings( _doc, _this, "o1ssr" );
-	m_osc1SSF.saveSettings( _doc, _this, "o1ssf" );
+MXM_DEFINE_MODEL_SETTINGS(MonstroInstrument,
+	visit(m_osc1Vol, "o1vol");
+	visit(m_osc1Pan, "o1pan");
+	visit(m_osc1Crs, "o1crs");
+	visit(m_osc1Ftl, "o1ftl");
+	visit(m_osc1Ftr, "o1ftr");
+	visit(m_osc1Spo, "o1spo");
+	visit(m_osc1Pw, "o1pw");
+	visit(m_osc1SSR, "o1ssr");
+	visit(m_osc1SSF, "o1ssf");
 
-	m_osc2Vol.saveSettings( _doc, _this, "o2vol" );
-	m_osc2Pan.saveSettings( _doc, _this, "o2pan" );
-	m_osc2Crs.saveSettings( _doc, _this, "o2crs" );
-	m_osc2Ftl.saveSettings( _doc, _this, "o2ftl" );
-	m_osc2Ftr.saveSettings( _doc, _this, "o2ftr" );
-	m_osc2Spo.saveSettings( _doc, _this, "o2spo" );
-	m_osc2Wave.saveSettings( _doc, _this, "o2wav" );
-	m_osc2SyncH.saveSettings( _doc, _this, "o2syn" );
-	m_osc2SyncR.saveSettings( _doc, _this, "o2synr" );
+	visit(m_osc2Vol, "o2vol");
+	visit(m_osc2Pan, "o2pan");
+	visit(m_osc2Crs, "o2crs");
+	visit(m_osc2Ftl, "o2ftl");
+	visit(m_osc2Ftr, "o2ftr");
+	visit(m_osc2Spo, "o2spo");
+	visit(m_osc2Wave, "o2wav");
+	visit(m_osc2SyncH, "o2syn");
+	visit(m_osc2SyncR, "o2synr");
 
-	m_osc3Vol.saveSettings( _doc, _this, "o3vol" );
-	m_osc3Pan.saveSettings( _doc, _this, "o3pan" );
-	m_osc3Crs.saveSettings( _doc, _this, "o3crs" );
-	m_osc3Spo.saveSettings( _doc, _this, "o3spo" );
-	m_osc3Sub.saveSettings( _doc, _this, "o3sub" );
-	m_osc3Wave1.saveSettings( _doc, _this, "o3wav1" );
-	m_osc3Wave2.saveSettings( _doc, _this, "o3wav2" );
-	m_osc3SyncH.saveSettings( _doc, _this, "o3syn" );
-	m_osc3SyncR.saveSettings( _doc, _this, "o3synr" );
+	visit(m_osc3Vol, "o3vol");
+	visit(m_osc3Pan, "o3pan");
+	visit(m_osc3Crs, "o3crs");
+	visit(m_osc3Spo, "o3spo");
+	visit(m_osc3Sub, "o3sub");
+	visit(m_osc3Wave1, "o3wav1");
+	visit(m_osc3Wave2, "o3wav2");
+	visit(m_osc3SyncH, "o3syn");
+	visit(m_osc3SyncR, "o3synr");
 
-	m_lfo1Wave.saveSettings( _doc, _this, "l1wav" );
-	m_lfo1Att.saveSettings( _doc, _this, "l1att" );
-	m_lfo1Rate.saveSettings( _doc, _this, "l1rat" );
-	m_lfo1Phs.saveSettings( _doc, _this, "l1phs" );
+	visit(m_lfo1Wave, "l1wav");
+	visit(m_lfo1Att, "l1att");
+	visit(m_lfo1Rate, "l1rat");
+	visit(m_lfo1Phs, "l1phs");
 
-	m_lfo2Wave.saveSettings( _doc, _this, "l2wav" );
-	m_lfo2Att.saveSettings( _doc, _this, "l2att" );
-	m_lfo2Rate.saveSettings( _doc, _this, "l2rat" );
-	m_lfo2Phs.saveSettings( _doc, _this, "l2phs" );
+	visit(m_lfo2Wave, "l2wav");
+	visit(m_lfo2Att, "l2att");
+	visit(m_lfo2Rate, "l2rat");
+	visit(m_lfo2Phs, "l2phs");
 
-	m_env1Pre.saveSettings( _doc, _this, "e1pre" );
-	m_env1Att.saveSettings( _doc, _this, "e1att" );
-	m_env1Hold.saveSettings( _doc, _this, "e1hol" );
-	m_env1Dec.saveSettings( _doc, _this, "e1dec" );
-	m_env1Sus.saveSettings( _doc, _this, "e1sus" );
-	m_env1Rel.saveSettings( _doc, _this, "e1rel" );
-	m_env1Slope.saveSettings( _doc, _this, "e1slo" );
+	visit(m_env1Pre, "e1pre");
+	visit(m_env1Att, "e1att");
+	visit(m_env1Hold, "e1hol");
+	visit(m_env1Dec, "e1dec");
+	visit(m_env1Sus, "e1sus");
+	visit(m_env1Rel, "e1rel");
+	visit(m_env1Slope, "e1slo");
 
-	m_env2Pre.saveSettings( _doc, _this, "e2pre" );
-	m_env2Att.saveSettings( _doc, _this, "e2att" );
-	m_env2Hold.saveSettings( _doc, _this, "e2hol" );
-	m_env2Dec.saveSettings( _doc, _this, "e2dec" );
-	m_env2Sus.saveSettings( _doc, _this, "e2sus" );
-	m_env2Rel.saveSettings( _doc, _this, "e2rel" );
-	m_env2Slope.saveSettings( _doc, _this, "e2slo" );
+	visit(m_env2Pre, "e2pre");
+	visit(m_env2Att, "e2att");
+	visit(m_env2Hold, "e2hol");
+	visit(m_env2Dec, "e2dec");
+	visit(m_env2Sus, "e2sus");
+	visit(m_env2Rel, "e2rel");
+	visit(m_env2Slope, "e2slo");
 
-	m_o23Mod.saveSettings( _doc, _this, "o23mo" );
+	visit(m_o23Mod, "o23mo");
 
-	m_vol1env1.saveSettings( _doc, _this, "v1e1" );
-	m_vol1env2.saveSettings( _doc, _this, "v1e2" );
-	m_vol1lfo1.saveSettings( _doc, _this, "v1l1" );
-	m_vol1lfo2.saveSettings( _doc, _this, "v1l2" );
+	visit(m_vol1env1, "v1e1");
+	visit(m_vol1env2, "v1e2");
+	visit(m_vol1lfo1, "v1l1");
+	visit(m_vol1lfo2, "v1l2");
 
-	m_vol2env1.saveSettings( _doc, _this, "v2e1" );
-	m_vol2env2.saveSettings( _doc, _this, "v2e2" );
-	m_vol2lfo1.saveSettings( _doc, _this, "v2l1" );
-	m_vol2lfo2.saveSettings( _doc, _this, "v2l2" );
+	visit(m_vol2env1, "v2e1");
+	visit(m_vol2env2, "v2e2");
+	visit(m_vol2lfo1, "v2l1");
+	visit(m_vol2lfo2, "v2l2");
 
-	m_vol3env1.saveSettings( _doc, _this, "v3e1" );
-	m_vol3env2.saveSettings( _doc, _this, "v3e2" );
-	m_vol3lfo1.saveSettings( _doc, _this, "v3l1" );
-	m_vol3lfo2.saveSettings( _doc, _this, "v3l2" );
+	visit(m_vol3env1, "v3e1");
+	visit(m_vol3env2, "v3e2");
+	visit(m_vol3lfo1, "v3l1");
+	visit(m_vol3lfo2, "v3l2");
 
-	m_phs1env1.saveSettings( _doc, _this, "p1e1" );
-	m_phs1env2.saveSettings( _doc, _this, "p1e2" );
-	m_phs1lfo1.saveSettings( _doc, _this, "p1l1" );
-	m_phs1lfo2.saveSettings( _doc, _this, "p1l2" );
+	visit(m_phs1env1, "p1e1");
+	visit(m_phs1env2, "p1e2");
+	visit(m_phs1lfo1, "p1l1");
+	visit(m_phs1lfo2, "p1l2");
 
-	m_phs2env1.saveSettings( _doc, _this, "p2e1" );
-	m_phs2env2.saveSettings( _doc, _this, "p2e2" );
-	m_phs2lfo1.saveSettings( _doc, _this, "p2l1" );
-	m_phs2lfo2.saveSettings( _doc, _this, "p2l2" );
+	visit(m_phs2env1, "p2e1");
+	visit(m_phs2env2, "p2e2");
+	visit(m_phs2lfo1, "p2l1");
+	visit(m_phs2lfo2, "p2l2");
 
-	m_phs3env1.saveSettings( _doc, _this, "p3e1" );
-	m_phs3env2.saveSettings( _doc, _this, "p3e2" );
-	m_phs3lfo1.saveSettings( _doc, _this, "p3l1" );
-	m_phs3lfo2.saveSettings( _doc, _this, "p3l2" );
+	visit(m_phs3env1, "p3e1");
+	visit(m_phs3env2, "p3e2");
+	visit(m_phs3lfo1, "p3l1");
+	visit(m_phs3lfo2, "p3l2");
 
-	m_pit1env1.saveSettings( _doc, _this, "f1e1" );
-	m_pit1env2.saveSettings( _doc, _this, "f1e2" );
-	m_pit1lfo1.saveSettings( _doc, _this, "f1l1" );
-	m_pit1lfo2.saveSettings( _doc, _this, "f1l2" );
+	visit(m_pit1env1, "f1e1");
+	visit(m_pit1env2, "f1e2");
+	visit(m_pit1lfo1, "f1l1");
+	visit(m_pit1lfo2, "f1l2");
 
-	m_pit2env1.saveSettings( _doc, _this, "f2e1" );
-	m_pit2env2.saveSettings( _doc, _this, "f2e2" );
-	m_pit2lfo1.saveSettings( _doc, _this, "f2l1" );
-	m_pit2lfo2.saveSettings( _doc, _this, "f2l2" );
+	visit(m_pit2env1, "f2e1");
+	visit(m_pit2env2, "f2e2");
+	visit(m_pit2lfo1, "f2l1");
+	visit(m_pit2lfo2, "f2l2");
 
-	m_pit3env1.saveSettings( _doc, _this, "f3e1" );
-	m_pit3env2.saveSettings( _doc, _this, "f3e2" );
-	m_pit3lfo1.saveSettings( _doc, _this, "f3l1" );
-	m_pit3lfo2.saveSettings( _doc, _this, "f3l2" );
+	visit(m_pit3env1, "f3e1");
+	visit(m_pit3env2, "f3e2");
+	visit(m_pit3lfo1, "f3l1");
+	visit(m_pit3lfo2, "f3l2");
 
-	m_pw1env1.saveSettings( _doc, _this, "w1e1" );
-	m_pw1env2.saveSettings( _doc, _this, "w1e2" );
-	m_pw1lfo1.saveSettings( _doc, _this, "w1l1" );
-	m_pw1lfo2.saveSettings( _doc, _this, "w1l2" );
+	visit(m_pw1env1, "w1e1");
+	visit(m_pw1env2, "w1e2");
+	visit(m_pw1lfo1, "w1l1");
+	visit(m_pw1lfo2, "w1l2");
 
-	m_sub3env1.saveSettings( _doc, _this, "s3e1" );
-	m_sub3env2.saveSettings( _doc, _this, "s3e2" );
-	m_sub3lfo1.saveSettings( _doc, _this, "s3l1" );
-	m_sub3lfo2.saveSettings( _doc, _this, "s3l2" );
-
-}
-
-void MonstroInstrument::loadSettings( const QDomElement & _this )
-{
-	m_osc1Vol.loadSettings( _this, "o1vol" );
-	m_osc1Pan.loadSettings( _this, "o1pan" );
-	m_osc1Crs.loadSettings( _this, "o1crs" );
-	m_osc1Ftl.loadSettings( _this, "o1ftl" );
-	m_osc1Ftr.loadSettings( _this, "o1ftr" );
-	m_osc1Spo.loadSettings( _this, "o1spo" );
-	m_osc1Pw.loadSettings( _this, "o1pw" );
-	m_osc1SSR.loadSettings( _this, "o1ssr" );
-	m_osc1SSF.loadSettings( _this, "o1ssf" );
-
-	m_osc2Vol.loadSettings( _this, "o2vol" );
-	m_osc2Pan.loadSettings( _this, "o2pan" );
-	m_osc2Crs.loadSettings( _this, "o2crs" );
-	m_osc2Ftl.loadSettings( _this, "o2ftl" );
-	m_osc2Ftr.loadSettings( _this, "o2ftr" );
-	m_osc2Spo.loadSettings( _this, "o2spo" );
-	m_osc2Wave.loadSettings( _this, "o2wav" );
-	m_osc2SyncH.loadSettings( _this, "o2syn" );
-	m_osc2SyncR.loadSettings( _this, "o2synr" );
-
-	m_osc3Vol.loadSettings( _this, "o3vol" );
-	m_osc3Pan.loadSettings( _this, "o3pan" );
-	m_osc3Crs.loadSettings( _this, "o3crs" );
-	m_osc3Spo.loadSettings( _this, "o3spo" );
-	m_osc3Sub.loadSettings( _this, "o3sub" );
-	m_osc3Wave1.loadSettings( _this, "o3wav1" );
-	m_osc3Wave2.loadSettings( _this, "o3wav2" );
-	m_osc3SyncH.loadSettings( _this, "o3syn" );
-	m_osc3SyncR.loadSettings( _this, "o3synr" );
-
-	m_lfo1Wave.loadSettings( _this, "l1wav" );
-	m_lfo1Att.loadSettings( _this, "l1att" );
-	m_lfo1Rate.loadSettings( _this, "l1rat" );
-	m_lfo1Phs.loadSettings( _this, "l1phs" );
-
-	m_lfo2Wave.loadSettings( _this, "l2wav" );
-	m_lfo2Att.loadSettings( _this, "l2att" );
-	m_lfo2Rate.loadSettings( _this, "l2rat" );
-	m_lfo2Phs.loadSettings( _this, "l2phs" );
-
-	m_env1Pre.loadSettings( _this, "e1pre" );
-	m_env1Att.loadSettings( _this, "e1att" );
-	m_env1Hold.loadSettings( _this, "e1hol" );
-	m_env1Dec.loadSettings( _this, "e1dec" );
-	m_env1Sus.loadSettings( _this, "e1sus" );
-	m_env1Rel.loadSettings( _this, "e1rel" );
-	m_env1Slope.loadSettings( _this, "e1slo" );
-
-	m_env2Pre.loadSettings( _this, "e2pre" );
-	m_env2Att.loadSettings( _this, "e2att" );
-	m_env2Hold.loadSettings( _this, "e2hol" );
-	m_env2Dec.loadSettings( _this, "e2dec" );
-	m_env2Sus.loadSettings( _this, "e2sus" );
-	m_env2Rel.loadSettings( _this, "e2rel" );
-	m_env2Slope.loadSettings( _this, "e2slo" );
-
-	m_o23Mod.loadSettings( _this, "o23mo" );
-
-	m_vol1env1.loadSettings( _this, "v1e1" );
-	m_vol1env2.loadSettings( _this, "v1e2" );
-	m_vol1lfo1.loadSettings( _this, "v1l1" );
-	m_vol1lfo2.loadSettings( _this, "v1l2" );
-
-	m_vol2env1.loadSettings( _this, "v2e1" );
-	m_vol2env2.loadSettings( _this, "v2e2" );
-	m_vol2lfo1.loadSettings( _this, "v2l1" );
-	m_vol2lfo2.loadSettings( _this, "v2l2" );
-
-	m_vol3env1.loadSettings( _this, "v3e1" );
-	m_vol3env2.loadSettings( _this, "v3e2" );
-	m_vol3lfo1.loadSettings( _this, "v3l1" );
-	m_vol3lfo2.loadSettings( _this, "v3l2" );
-
-	m_phs1env1.loadSettings( _this, "p1e1" );
-	m_phs1env2.loadSettings( _this, "p1e2" );
-	m_phs1lfo1.loadSettings( _this, "p1l1" );
-	m_phs1lfo2.loadSettings( _this, "p1l2" );
-
-	m_phs2env1.loadSettings( _this, "p2e1" );
-	m_phs2env2.loadSettings( _this, "p2e2" );
-	m_phs2lfo1.loadSettings( _this, "p2l1" );
-	m_phs2lfo2.loadSettings( _this, "p2l2" );
-
-	m_phs3env1.loadSettings( _this, "p3e1" );
-	m_phs3env2.loadSettings( _this, "p3e2" );
-	m_phs3lfo1.loadSettings( _this, "p3l1" );
-	m_phs3lfo2.loadSettings( _this, "p3l2" );
-
-	m_pit1env1.loadSettings( _this, "f1e1" );
-	m_pit1env2.loadSettings( _this, "f1e2" );
-	m_pit1lfo1.loadSettings( _this, "f1l1" );
-	m_pit1lfo2.loadSettings( _this, "f1l2" );
-
-	m_pit2env1.loadSettings( _this, "f2e1" );
-	m_pit2env2.loadSettings( _this, "f2e2" );
-	m_pit2lfo1.loadSettings( _this, "f2l1" );
-	m_pit2lfo2.loadSettings( _this, "f2l2" );
-
-	m_pit3env1.loadSettings( _this, "f3e1" );
-	m_pit3env2.loadSettings( _this, "f3e2" );
-	m_pit3lfo1.loadSettings( _this, "f3l1" );
-	m_pit3lfo2.loadSettings( _this, "f3l2" );
-
-	m_pw1env1.loadSettings( _this, "w1e1" );
-	m_pw1env2.loadSettings( _this, "w1e2" );
-	m_pw1lfo1.loadSettings( _this, "w1l1" );
-	m_pw1lfo2.loadSettings( _this, "w1l2" );
-
-	m_sub3env1.loadSettings( _this, "s3e1" );
-	m_sub3env2.loadSettings( _this, "s3e2" );
-	m_sub3lfo1.loadSettings( _this, "s3l1" );
-	m_sub3lfo2.loadSettings( _this, "s3l2" );
-
-}
+	visit(m_sub3env1, "s3e1");
+	visit(m_sub3env2, "s3e2");
+	visit(m_sub3lfo1, "s3l1");
+	visit(m_sub3lfo2, "s3l2");
+)
 
 
 QString MonstroInstrument::nodeName() const

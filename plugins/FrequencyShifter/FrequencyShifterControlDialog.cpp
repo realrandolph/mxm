@@ -62,10 +62,7 @@ static inline void setupKnobGeometry(Knob* k, int w, int h)
 FrequencyShifterControlDialog::FrequencyShifterControlDialog(FrequencyShifterControls* c) :
 	EffectControlDialog(c)
 {
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 	setFixedSize(288, 360);
 
 	auto mk = [this](int x, int y,

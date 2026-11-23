@@ -43,10 +43,7 @@ PeakControllerEffectControlDialog::PeakControllerEffectControlDialog(
 	EffectControlDialog( _controls )
 {
 	setWindowIcon( embed::getIconPixmap( "controller" ) );
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 
 	m_baseKnob = new Knob(KnobType::Bright26, tr("BASE"), this);
 	m_baseKnob->setModel( &_controls->m_baseModel );

@@ -27,6 +27,7 @@
 #ifdef MXM_HAVE_JACK
 
 #include <algorithm>
+#include <cerrno>
 
 #include <QFormLayout>
 #include <QLabel>
@@ -35,6 +36,7 @@
 #include <QMessageBox>
 #include <QToolButton>
 #include <QStringList>
+#include <QVector>
 
 #include "AudioBufferView.h"
 #include "AudioChannelBuffer.h"
@@ -52,17 +54,11 @@ namespace {
 
 const auto audioJackClass = QString{"audiojack"};
 const auto clientNameKey = QString{"clientname"};
-const auto inputChannelsKey = QString{"inputchannels"};
 const auto disconnectedRepresentation = QString{"-"};
 
 QString getOutputKeyByChannel(size_t channel)
 {
 	return "output" + QString::number(channel + 1);
-}
-
-QString getInputKeyByChannel(size_t channel)
-{
-	return "input" + QString::number(channel + 1);
 }
 
 void printJackStatus(jack_status_t status)
@@ -90,10 +86,8 @@ QString buildOutputName(ch_cnt_t ch)
 	return QString("master out ") + buildChannelSuffix(ch);
 }
 
-QString buildInputName(ch_cnt_t ch)
-{
-	return QString("master in ") + buildChannelSuffix(ch);
-}
+auto trackPortName(const QString& trackName, quint64 id, ch_cnt_t channels,
+	ch_cnt_t channel) -> QString;
 
 } // namespace
 
@@ -111,19 +105,7 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 		connect(this, SIGNAL(zombified()), this, SLOT(restartAfterZombified()), Qt::QueuedConnection);
 	}
 
-	const auto inputChannels = std::count_if(m_inputPorts.begin(), m_inputPorts.end(),
-		[](jack_port_t* port) { return port != nullptr; });
-	m_supportsCapture = successful && inputChannels > 0;
-	if (m_supportsCapture)
-	{
-		setCaptureChannels(m_inputChannels);
-		if (m_inputChannels > DEFAULT_CHANNELS)
-		{
-			// JACK ports carry no speaker roles, so expose the channels as discrete.
-			setCaptureLayout(AudioChannelLayout::discrete(m_inputChannels));
-		}
-	}
-	else { setCaptureChannels(0); }
+	m_supportsCapture = successful;
 }
 
 
@@ -131,6 +113,16 @@ AudioJack::AudioJack(bool& successful, AudioEngine* audioEngineParam)
 
 AudioJack::~AudioJack()
 {
+	if (m_client != nullptr && m_active)
+	{
+		jack_deactivate(m_client);
+		m_active = false;
+	}
+	while (!m_trackInputPorts.isEmpty())
+	{
+		unregisterTrackInputPort(m_trackInputPorts.begin().key());
+	}
+
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	while (m_portMap.size())
 	{
@@ -140,7 +132,6 @@ AudioJack::~AudioJack()
 
 	if (m_client != nullptr)
 	{
-		if (m_active) { jack_deactivate(m_client); }
 		jack_client_close(m_client);
 	}
 
@@ -154,6 +145,24 @@ void AudioJack::restartAfterZombified()
 {
 	if (initJackClient())
 	{
+		for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
+		{
+			auto& trackInput = it.value();
+			trackInput.ports.clear();
+			for (ch_cnt_t channel = 0; channel < trackInput.channels; ++channel)
+			{
+				const auto portName = trackPortName(trackInput.name, it.key(),
+					trackInput.channels, channel);
+				auto* port = jack_port_register(m_client, portName.toLatin1().constData(),
+					JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+				if (port) { trackInput.ports.push_back(port); }
+			}
+		}
+		for (auto it = m_trackInputPorts.cbegin(); it != m_trackInputPorts.cend(); ++it)
+		{
+			const auto endpoints = it->endpointPorts;
+			if (!endpoints.isEmpty()) { setTrackInputSource(it.key(), endpoints); }
+		}
 		m_active = false;
 		m_zombieReported.store(false, std::memory_order_release);
 		startProcessing();
@@ -199,15 +208,7 @@ AudioJack* AudioJack::addMidiClient(MidiJack* midiClient)
 
 bool AudioJack::initJackClient()
 {
-	// "audiojack/inputchannels" selects the number of capture ports (default 2).
-	const auto configuredInputChannels = ConfigManager::inst()->value(audioJackClass, inputChannelsKey).toInt();
-	m_inputChannels = static_cast<ch_cnt_t>(std::clamp(
-		configuredInputChannels > 0 ? configuredInputChannels : static_cast<int>(DEFAULT_CHANNELS),
-		1, static_cast<int>(MaxChannelsPerAudioBuffer)));
-
 	m_outputPorts.clear();
-	m_inputPorts.clear();
-	m_monoInputPort.store(-1, std::memory_order_relaxed);
 
 	QString clientName = ConfigManager::inst()->value(audioJackClass, clientNameKey);
 	if (clientName.isEmpty()) { clientName = "mxm"; }
@@ -229,12 +230,12 @@ bool AudioJack::initJackClient()
 					clientName.toLatin1().constData(), jack_get_client_name(m_client));
 	}
 
-	resizeInputBuffer(jack_get_buffer_size(m_client));
+	resizeTrackInputBuffers(jack_get_buffer_size(m_client));
 
 	// set buffer-size callback
 	jack_set_buffer_size_callback(m_client,
 		[](jack_nframes_t nframes, void* udata) -> int {
-			static_cast<AudioJack*>(udata)->resizeInputBuffer(nframes);
+			static_cast<AudioJack*>(udata)->resizeTrackInputBuffers(nframes);
 			return 0;
 		},
 		this);
@@ -242,6 +243,7 @@ bool AudioJack::initJackClient()
 	// set process-callback
 	jack_set_process_callback(m_client, staticProcessCallback, this);
 	jack_set_port_connect_callback(m_client, portConnectCallback, this);
+	jack_set_port_registration_callback(m_client, portRegistrationCallback, this);
 
 	// set shutdown-callback
 	jack_on_shutdown(m_client, shutdownCallback, this);
@@ -261,30 +263,28 @@ bool AudioJack::initJackClient()
 		}
 	}
 
-	for (ch_cnt_t ch = 0; ch < m_inputChannels; ++ch)
-	{
-		const QString inputName = buildInputName(ch);
-		m_inputPorts.push_back(jack_port_register(m_client, inputName.toLatin1().constData(),
-			JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
-	}
-
 	return true;
 }
 
 
 
 
-void AudioJack::resizeInputBuffer(jack_nframes_t nframes)
+void AudioJack::resizeTrackInputBuffers(jack_nframes_t nframes)
 {
-	// Keep enough planar storage for the largest block the engine or JACK may deliver.
-	m_inputBufferFrames = std::max<jack_nframes_t>(nframes,
+	const auto guard = audioEngine()->requestChangesGuard();
+	m_bufferFrames = std::max<jack_nframes_t>(nframes,
 		static_cast<jack_nframes_t>(audioEngine()->framesPerAudioBuffer()));
-	m_inputFrameBuffer.assign(static_cast<std::size_t>(m_inputBufferFrames) * m_inputChannels, 0.f);
-	m_inputChannelPtrs.resize(m_inputChannels);
-	for (ch_cnt_t ch = 0; ch < m_inputChannels; ++ch)
+
+	for (auto& trackInput : m_trackInputPorts)
 	{
-		m_inputChannelPtrs[ch]
-			= m_inputFrameBuffer.data() + static_cast<std::size_t>(ch) * m_inputBufferFrames;
+		trackInput.scratch.assign(
+			static_cast<std::size_t>(m_bufferFrames) * trackInput.channels, 0.f);
+		trackInput.pointers.resize(trackInput.channels);
+		for (ch_cnt_t channel = 0; channel < trackInput.channels; ++channel)
+		{
+			trackInput.pointers[channel] = trackInput.scratch.data()
+				+ static_cast<std::size_t>(channel) * m_bufferFrames;
+		}
 	}
 }
 
@@ -317,23 +317,6 @@ void AudioJack::attemptToReconnectOutput(size_t outputIndex, const QString& targ
 	attemptToConnect(outputIndex, "output", outputName, targetName.constData());
 }
 
-void AudioJack::attemptToReconnectInput(size_t inputIndex, const QString& sourcePort)
-{
-	if (inputIndex >= m_inputPorts.size() || m_inputPorts[inputIndex] == nullptr) { return; }
-
-	if (sourcePort == disconnectedRepresentation)
-	{
-		std::fprintf(stderr, "Input port %u is not connected.\n", static_cast<unsigned int>(inputIndex));
-		return;
-	}
-
-	auto inputName = jack_port_name(m_inputPorts[inputIndex]);
-	auto sourceName = sourcePort.toLatin1();
-
-	attemptToConnect(inputIndex, "input", sourceName.constData(), inputName);
-}
-
-
 void AudioJack::startProcessingImpl()
 {
 	if (m_active || m_client == nullptr) { return; }
@@ -357,10 +340,6 @@ void AudioJack::startProcessingImpl()
 		attemptToReconnectOutput(i, cm->value(audioJackClass, getOutputKeyByChannel(i)));
 	}
 
-	for (size_t i = 0; i < m_inputChannels; ++i)
-	{
-		attemptToReconnectInput(i, cm->value(audioJackClass, getInputKeyByChannel(i)));
-	}
 }
 
 
@@ -449,8 +428,242 @@ void AudioJack::renamePort(AudioBusHandle* port)
 
 
 
+namespace
+{
+
+auto trackPortName(const QString& trackName, quint64 id, ch_cnt_t channels, ch_cnt_t channel) -> QString
+{
+	QString safeName = trackName.simplified();
+	safeName.replace(':', '-');
+	safeName.replace('\n', ' ');
+	if (safeName.isEmpty()) { safeName = QStringLiteral("Track"); }
+
+	QString suffix;
+	if (channels == 1) { suffix = QStringLiteral(" In"); }
+	else if (channels == 2)
+	{
+		suffix = channel == 0 ? QStringLiteral(" In L") : QStringLiteral(" In R");
+	}
+	else { suffix = QStringLiteral(" In %1").arg(channel + 1); }
+	return safeName + QStringLiteral(" [%1]").arg(id, 0, 16) + suffix;
+}
+
+} // namespace
+
+auto AudioJack::supportsTrackInputPorts() const -> bool
+{
+	return m_supportsCapture && m_client != nullptr;
+}
+
+auto AudioJack::supportsExternalPatchbayInput() const -> bool
+{
+	return supportsTrackInputPorts();
+}
+
+auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
+{
+	auto sources = std::vector<AudioInputSource>{};
+	if (!m_client) { return sources; }
+
+	const char** ports = jack_get_ports(m_client, nullptr, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+	if (!ports) { return sources; }
+
+	auto portsByClient = QMap<QString, QStringList>{};
+	const auto ownClient = QString::fromUtf8(jack_get_client_name(m_client));
+	for (auto index = 0; ports[index] != nullptr; ++index)
+	{
+		const auto name = QString::fromUtf8(ports[index]);
+		const auto separator = name.indexOf(':');
+		if (separator <= 0 || name.left(separator) == ownClient) { continue; }
+		portsByClient[name.left(separator)].append(name);
+	}
+	jack_free(ports);
+
+	const auto systemPorts = portsByClient.value(QStringLiteral("system"));
+	QStringList defaultPorts;
+	for (auto channel = 1; channel <= 8; ++channel)
+	{
+		const auto port = QStringLiteral("system:capture_%1").arg(channel);
+		if (systemPorts.contains(port)) { defaultPorts.append(port); }
+	}
+	if (!defaultPorts.isEmpty())
+	{
+		const auto channels = static_cast<ch_cnt_t>(defaultPorts.size());
+		sources.push_back(makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
+			channels, defaultPorts, true));
+	}
+
+	for (auto it = portsByClient.cbegin(); it != portsByClient.cend(); ++it)
+	{
+		const auto& clientPorts = it.value();
+		for (qsizetype channel = 0; channel < clientPorts.size(); ++channel)
+		{
+			const auto endpoint = clientPorts[channel];
+			sources.push_back(makeAudioInputSource(
+				QStringLiteral("jack-port:") + endpoint,
+				QStringLiteral("%1 — %2").arg(it.key(), endpoint.section(':', 1)),
+				1, {endpoint}));
+			for (auto secondChannel = channel + 1; secondChannel < clientPorts.size(); ++secondChannel)
+			{
+				const auto nextEndpoint = clientPorts[secondChannel];
+				sources.push_back(makeAudioInputSource(
+					QStringLiteral("jack-pair:") + endpoint + QLatin1Char('|') + nextEndpoint,
+					QStringLiteral("%1 — %2 / %3").arg(it.key(), endpoint.section(':', 1),
+						nextEndpoint.section(':', 1)),
+					2, {endpoint, nextEndpoint}));
+			}
+		}
+	}
+
+	return sources;
+}
+
+void AudioJack::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+{
+	if (!m_client) { return; }
+	const auto guard = audioEngine()->requestChangesGuard();
+	auto found = m_trackInputPorts.find(id);
+	if (found == m_trackInputPorts.end()) { return; }
+
+	for (const auto& previous : found->endpointPorts)
+	{
+		for (auto* port : found->ports)
+		{
+			if (port) { jack_disconnect(m_client, previous.toUtf8().constData(), jack_port_name(port)); }
+		}
+	}
+	found->endpointPorts.clear();
+	if (endpointPorts.isEmpty())
+	{
+		const auto connected = std::ranges::any_of(found->ports, [](auto* port) {
+			return port && jack_port_connected(port) > 0;
+		});
+		audioEngine()->setTrackInputCaptureFailed(id, !connected);
+		return;
+	}
+
+	const auto channelCount = std::min(static_cast<std::size_t>(endpointPorts.size()), found->ports.size());
+	auto failed = endpointPorts.size() > static_cast<qsizetype>(found->ports.size());
+	auto newConnections = QVector<QPair<QString, QString>>{};
+	for (std::size_t channel = 0; channel < channelCount; ++channel)
+	{
+		const auto source = endpointPorts[channel].toUtf8();
+		if (jack_port_by_name(m_client, source.constData()) == nullptr)
+		{
+			failed = true;
+			break;
+		}
+		const auto result = jack_connect(m_client, source.constData(), jack_port_name(found->ports[channel]));
+		if (result == 0 || result == EEXIST)
+		{
+			found->endpointPorts.append(endpointPorts[channel]);
+			newConnections.append({endpointPorts[channel],
+				QString::fromUtf8(jack_port_name(found->ports[channel]))});
+		}
+		else
+		{
+			failed = true;
+			break;
+		}
+	}
+	if (failed)
+	{
+		for (const auto& [source, destination] : newConnections)
+		{
+			jack_disconnect(m_client, source.toUtf8().constData(), destination.toUtf8().constData());
+		}
+		found->endpointPorts.clear();
+	}
+	audioEngine()->setTrackInputCaptureFailed(id, failed);
+}
+
+
+
+
+auto AudioJack::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool
+{
+	if (!supportsTrackInputPorts() || id == 0 || channels == 0) { return false; }
+	const auto guard = audioEngine()->requestChangesGuard();
+	unregisterTrackInputPort(id);
+
+	TrackInputPort port;
+	port.name = name;
+	port.channels = channels;
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
+	{
+		const auto portName = trackPortName(name, id, channels, channel);
+		auto* jackPort = jack_port_register(m_client, portName.toLatin1().constData(),
+			JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+		if (jackPort == nullptr)
+		{
+			for (auto* registered : port.ports)
+			{
+				jack_port_unregister(m_client, registered);
+			}
+			return false;
+		}
+		port.ports.push_back(jackPort);
+	}
+
+	const auto bufferFrames = std::max<jack_nframes_t>(m_bufferFrames,
+		static_cast<jack_nframes_t>(audioEngine()->framesPerAudioBuffer()));
+	port.scratch.assign(static_cast<std::size_t>(bufferFrames) * channels, 0.f);
+	port.pointers.resize(channels);
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
+	{
+		port.pointers[channel] = port.scratch.data()
+			+ static_cast<std::size_t>(channel) * bufferFrames;
+	}
+	m_trackInputPorts.insert(id, std::move(port));
+	return true;
+}
+
+
+
+
+void AudioJack::unregisterTrackInputPort(quint64 id)
+{
+	const auto guard = audioEngine()->requestChangesGuard();
+	auto found = m_trackInputPorts.find(id);
+	if (found == m_trackInputPorts.end()) { return; }
+	for (auto* port : found->ports)
+	{
+		if (m_client != nullptr && port != nullptr) { jack_port_unregister(m_client, port); }
+	}
+	m_trackInputPorts.erase(found);
+}
+
+
+
+
+void AudioJack::renameTrackInputPort(quint64 id, const QString& name)
+{
+	const auto guard = audioEngine()->requestChangesGuard();
+	auto found = m_trackInputPorts.find(id);
+	if (found == m_trackInputPorts.end()) { return; }
+	for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
+	{
+		auto* port = found->ports[channel];
+		if (port == nullptr) { continue; }
+		const auto portName = trackPortName(name, id, found->channels, channel);
+#ifdef MXM_HAVE_JACK_PRENAME
+		jack_port_rename(m_client, port, portName.toLatin1().constData());
+#else
+		jack_port_set_name(port, portName.toLatin1().constData());
+#endif
+	}
+}
+
+
+
+
 int AudioJack::processCallback(jack_nframes_t nframes)
 {
+	// Hold model-owned JACK port structures stable through render and capture
+	// publication. renderNextBuffer takes this recursive guard as well.
+	const auto guard = audioEngine()->requestChangesGuard();
+
 	// do midi processing first so that midi input can
 	// add to the following sound processing
 	if (m_midiClient && nframes > 0)
@@ -496,32 +709,21 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 		audioEngine()->renderNextBuffer({m_tempOutBufs, channels(), nframes});
 	}
 
-	if (m_supportsCapture && m_inputChannels > 0 && nframes <= m_inputBufferFrames)
+	for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
 	{
-		for (ch_cnt_t c = 0; c < m_inputChannels; ++c)
+		const auto frames = std::min<jack_nframes_t>(nframes, m_bufferFrames);
+		for (ch_cnt_t channel = 0; channel < it->channels; ++channel)
 		{
-			auto* destination = m_inputChannelPtrs[c];
-			const auto* source = c < m_inputPorts.size() && m_inputPorts[c] != nullptr
+			auto* destination = const_cast<float*>(it->pointers[channel]);
+			const auto* source = it->ports[channel] != nullptr
 				? static_cast<const jack_default_audio_sample_t*>(
-					jack_port_get_buffer(m_inputPorts[c], nframes))
+					jack_port_get_buffer(it->ports[channel], nframes))
 				: nullptr;
-			if (source != nullptr) { std::copy_n(source, nframes, destination); }
-			else { std::fill_n(destination, nframes, 0.f); }
+			if (source != nullptr) { std::copy_n(source, frames, destination); }
+			else { std::fill_n(destination, frames, 0.f); }
 		}
-
-		// Legacy behaviour: one connected source feeding a stereo capture is
-		// duplicated into both channels. Never applied to more than 2 channels.
-		const auto monoInputPort = m_monoInputPort.load(std::memory_order_relaxed);
-		if (m_inputChannels == DEFAULT_CHANNELS
-			&& monoInputPort >= 0 && monoInputPort < static_cast<int>(m_inputChannels))
-		{
-			const auto* mono = m_inputChannelPtrs[monoInputPort];
-			auto* other = m_inputChannelPtrs[monoInputPort == 0 ? 1 : 0];
-			std::copy_n(mono, nframes, other);
-		}
-
-		audioEngine()->pushInputFrames(PlanarBufferView<const float>{
-			m_inputChannelPtrs.data(), m_inputChannels, nframes});
+		audioEngine()->pushTrackInputFrames(it.key(),
+			PlanarBufferView<const float>{it->pointers.data(), it->channels, frames});
 	}
 	return 0;
 }
@@ -538,19 +740,18 @@ int AudioJack::staticProcessCallback(jack_nframes_t nframes, void* udata)
 void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* udata)
 {
 	auto* audioJack = static_cast<AudioJack*>(udata);
-	int connectedPort = -1;
-	for (int index = 0; index < static_cast<int>(audioJack->m_inputPorts.size()); ++index)
-	{
-		auto* port = audioJack->m_inputPorts[index];
-		if (!port || jack_port_connected(port) <= 0) { continue; }
-		if (connectedPort >= 0)
+	QMetaObject::invokeMethod(audioJack, [audioJack] {
+		if (!audioJack->m_client) { return; }
+		const auto guard = audioJack->audioEngine()->requestChangesGuard();
+		for (auto it = audioJack->m_trackInputPorts.cbegin(); it != audioJack->m_trackInputPorts.cend(); ++it)
 		{
-			connectedPort = -1;
-			break;
+			if (!it->endpointPorts.isEmpty()) { continue; }
+			const auto connected = std::ranges::any_of(it->ports, [](auto* port) {
+				return port && jack_port_connected(port) > 0;
+			});
+			audioJack->audioEngine()->setTrackInputCaptureFailed(it.key(), !connected);
 		}
-		connectedPort = index;
-	}
-	audioJack->m_monoInputPort.store(connectedPort, std::memory_order_relaxed);
+	}, Qt::QueuedConnection);
 
 	bool anyOutputConnected = false;
 	for (auto* port : audioJack->m_outputPorts)
@@ -578,6 +779,14 @@ void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* u
 			}
 		}
 	}
+}
+
+void AudioJack::portRegistrationCallback(jack_port_id_t, int, void* udata)
+{
+	auto* audioJack = static_cast<AudioJack*>(udata);
+	QMetaObject::invokeMethod(audioJack, [audioJack] {
+		if (auto* engine = audioJack->audioEngine()) { engine->notifyInputSourcesChanged(); }
+	}, Qt::QueuedConnection);
 }
 
 
@@ -652,19 +861,6 @@ AudioJack::setupWidget::setupWidget(QWidget* parent)
 		m_outputDevices.push_back(outputDevice);
 	}
 
-	// Inputs
-	const auto audioInputNames = getAudioInputNames();
-
-	constexpr size_t numberOfInputChannels = 2;
-	for (size_t i = 0; i < numberOfInputChannels; ++i)
-	{
-		const auto inputKey = getInputKeyByChannel(i);
-		const auto inputValue = cm->value(audioJackClass, inputKey);
-		auto inputDevice = buildToolButton(this, inputValue, audioInputNames, cn);
-		form->addRow(buildInputName(i) + ":", inputDevice);
-		m_inputDevices.push_back(inputDevice);
-	}
-
 	if (m_client != nullptr)
 	{
 		jack_deactivate(m_client);
@@ -682,10 +878,6 @@ void AudioJack::setupWidget::saveSettings()
 		ConfigManager::inst()->setValue(audioJackClass, getOutputKeyByChannel(i), m_outputDevices[i]->text());	
 	}
 
-	for (size_t i = 0; i < m_inputDevices.size(); ++i)
-	{
-		ConfigManager::inst()->setValue(audioJackClass, getInputKeyByChannel(i), m_inputDevices[i]->text());	
-	}
 }
 
 std::vector<std::string> AudioJack::setupWidget::getAudioPortNames(JackPortFlags portFlags) const
@@ -718,11 +910,6 @@ std::vector<std::string> AudioJack::setupWidget::getAudioPortNames(JackPortFlags
 std::vector<std::string> AudioJack::setupWidget::getAudioOutputNames() const
 {
 	return getAudioPortNames(JackPortIsInput);
-}
-
-std::vector<std::string> AudioJack::setupWidget::getAudioInputNames() const
-{
-	return getAudioPortNames(JackPortIsOutput);
 }
 
 QMenu* AudioJack::setupWidget::buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredMXMClientName)

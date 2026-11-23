@@ -39,10 +39,7 @@ namespace mxm::gui
 GranularPitchShifterControlDialog::GranularPitchShifterControlDialog(GranularPitchShifterControls* controls) :
 	EffectControlDialog(controls)
 {
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 	setFixedSize(305, 180);
 	
 	auto makeKnob = [this](KnobType style, int x, int y, const QString& hintText, const QString& unit, FloatModel* model)

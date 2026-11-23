@@ -27,12 +27,147 @@
 
 #ifdef MXM_HAVE_ALSA
 
+#include <poll.h>
+
+#include <algorithm>
+#include <array>
+#include <cerrno>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+#include <thread>
+#include <utility>
+#include <vector>
+
 #include "endian_handling.h"
+#include "AudioBufferView.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 
 namespace mxm
 {
+
+struct AudioAlsa::TrackCapture
+{
+	quint64 trackId = 0;
+	QString device;
+	DeviceCapture* capture = nullptr;
+};
+
+struct AudioAlsa::DeviceCapture
+{
+	AudioEngine* engine = nullptr;
+	QString device;
+	std::atomic_bool stop{false};
+	std::atomic_bool running{false};
+	std::thread reader;
+	std::mutex subscribersMutex;
+	std::vector<TrackCapture*> subscribers;
+	ch_cnt_t channels = 0;
+};
+
+namespace
+{
+
+constexpr auto CaptureChannels = ch_cnt_t{2};
+
+auto isInputHint(const char* name, const char* ioid) -> bool
+{
+	if (name == nullptr || *name == '\0') { return false; }
+	// Pure discard and USB playback stream hints are never capture endpoints.
+	if (std::strcmp(name, "null") == 0 || std::strncmp(name, "usbstream:", 10) == 0)
+	{
+		return false;
+	}
+	if (ioid == nullptr || *ioid == '\0') { return true; }
+	return std::strstr(ioid, "Input") != nullptr || std::strstr(ioid, "Both") != nullptr;
+}
+
+auto hintLabel(const char* name, const char* description) -> QString
+{
+	auto label = description != nullptr
+		? QString::fromUtf8(description).simplified() : QString{};
+	if (label.isEmpty()) { return QString::fromUtf8(name); }
+	return label + QStringLiteral(" (") + QString::fromUtf8(name) + QLatin1Char(')');
+}
+
+struct CaptureStream
+{
+	snd_pcm_t* handle = nullptr;
+	ch_cnt_t channels = 0;
+	bool integer = false;
+};
+
+auto configureCapture(snd_pcm_t* handle, snd_pcm_format_t format, ch_cnt_t channels,
+	sample_rate_t rate, f_cnt_t periodFrames) -> bool
+{
+	snd_pcm_hw_params_t* hwParams = nullptr;
+	snd_pcm_hw_params_alloca(&hwParams);
+	if (snd_pcm_hw_params_any(handle, hwParams) < 0) { return false; }
+	if (snd_pcm_hw_params_set_access(handle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
+	{
+		return false;
+	}
+	if (snd_pcm_hw_params_set_format(handle, hwParams, format) < 0) { return false; }
+	if (snd_pcm_hw_params_set_channels(handle, hwParams, channels) < 0) { return false; }
+
+	if (snd_pcm_hw_params_set_rate(handle, hwParams, rate, 0) < 0)
+	{
+		auto nearRate = static_cast<unsigned int>(rate);
+		int direction = 0;
+		if (snd_pcm_hw_params_set_rate_near(handle, hwParams, &nearRate, &direction) < 0
+			|| nearRate != static_cast<unsigned int>(rate))
+		{
+			return false;
+		}
+	}
+
+	auto periodSize = static_cast<snd_pcm_uframes_t>(std::max<f_cnt_t>(periodFrames, 1));
+	int direction = 0;
+	snd_pcm_hw_params_set_period_size_near(handle, hwParams, &periodSize, &direction);
+	auto bufferSize = periodSize * 4;
+	snd_pcm_hw_params_set_buffer_size_near(handle, hwParams, &bufferSize);
+
+	return snd_pcm_hw_params(handle, hwParams) >= 0;
+}
+
+auto openCaptureStream(const QString& device, sample_rate_t rate, f_cnt_t periodFrames) -> CaptureStream
+{
+	CaptureStream stream;
+	const auto name = device.toLatin1();
+	if (snd_pcm_open(&stream.handle, name.constData(), SND_PCM_STREAM_CAPTURE,
+		SND_PCM_NONBLOCK) < 0)
+	{
+		stream.handle = nullptr;
+		return stream;
+	}
+
+	const auto formats = std::array<std::pair<snd_pcm_format_t, bool>, 2>{{
+		{SND_PCM_FORMAT_FLOAT, false},
+		{SND_PCM_FORMAT_S16, true},
+	}};
+	for (const auto& [format, integer] : formats)
+	{
+		for (auto channels = ch_cnt_t{8}; channels > 0; --channels)
+		{
+			if (!configureCapture(stream.handle, format, channels, rate, periodFrames))
+			{
+				continue;
+			}
+			stream.channels = channels;
+			stream.integer = integer;
+			snd_pcm_nonblock(stream.handle, 1);
+			return stream;
+		}
+	}
+
+	snd_pcm_close(stream.handle);
+	stream.handle = nullptr;
+	return stream;
+}
+
+} // namespace
 
 AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 	AudioDevice(std::clamp<ch_cnt_t>(
@@ -89,6 +224,11 @@ AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 	}
 	delete[] ufds;
 	m_monitoredDevice = probeDevice();
+	auto defaultCapture = openCaptureStream(QStringLiteral("default"), sampleRate(),
+		_audioEngine->framesPerAudioBuffer());
+	m_supportsCapture = defaultCapture.handle != nullptr;
+	if (defaultCapture.handle) { snd_pcm_close(defaultCapture.handle); }
+	if (!m_supportsCapture) { m_supportsCapture = !inputSources().empty(); }
 	_success_ful = true;
 }
 
@@ -97,6 +237,9 @@ AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 
 AudioAlsa::~AudioAlsa()
 {
+	stopTrackCaptures();
+	m_deviceCaptures.clear();
+
 	if( m_handle != nullptr )
 	{
 		snd_pcm_close( m_handle );
@@ -172,6 +315,329 @@ AudioAlsa::DeviceInfoCollection AudioAlsa::getAvailableDevices()
 
 
 
+auto AudioAlsa::supportsTrackInputPorts() const -> bool
+{
+	return m_supportsCapture;
+}
+
+
+
+
+auto AudioAlsa::inputSources() const -> std::vector<AudioInputSource>
+{
+	auto sources = std::vector<AudioInputSource>{};
+	if (m_supportsCapture)
+	{
+		sources.push_back(makeAudioInputSource(
+			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
+			CaptureChannels, {QString::fromLatin1(SystemDefaultInputSourceId)}, true));
+	}
+
+	char** hints = nullptr;
+	if (snd_device_name_hint(-1, "pcm", reinterpret_cast<void***>(&hints)) != 0)
+	{
+		return sources;
+	}
+
+	for (auto** hint = hints; hint != nullptr && *hint != nullptr; ++hint)
+	{
+		auto* name = snd_device_name_get_hint(*hint, "NAME");
+		auto* description = snd_device_name_get_hint(*hint, "DESC");
+		auto* ioid = snd_device_name_get_hint(*hint, "IOID");
+
+		if (isInputHint(name, ioid))
+		{
+			const auto deviceName = QString::fromUtf8(name);
+			sources.push_back(makeAudioInputSource(
+				QStringLiteral("alsa-pcm:") + deviceName,
+				hintLabel(name, description),
+				CaptureChannels,
+				{deviceName}, true));
+		}
+
+		free(name);
+		free(description);
+		free(ioid);
+	}
+
+	snd_device_name_free_hint(reinterpret_cast<void**>(hints));
+	return sources;
+}
+
+
+
+
+auto AudioAlsa::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool
+{
+	Q_UNUSED(name);
+	if (!supportsTrackInputPorts() || id == 0 || channels != CaptureChannels)
+	{
+		return false;
+	}
+
+	unregisterTrackInputPort(id);
+	auto capture = std::make_unique<TrackCapture>();
+	capture->trackId = id;
+	return m_trackCaptures.emplace(id, std::move(capture)).second;
+}
+
+
+
+
+void AudioAlsa::unregisterTrackInputPort(quint64 id)
+{
+	const auto found = m_trackCaptures.find(id);
+	if (found == m_trackCaptures.end()) { return; }
+	detachTrackCapture(*found->second);
+	m_trackCaptures.erase(found);
+}
+
+
+
+
+void AudioAlsa::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+{
+	const auto found = m_trackCaptures.find(id);
+	if (found == m_trackCaptures.end()) { return; }
+
+	auto& capture = *found->second;
+	detachTrackCapture(capture);
+	const auto device = endpointPorts.isEmpty() ? QString{}
+		: endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId)
+			? QStringLiteral("default") : endpointPorts.front();
+	if (device.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
+	capture.device = device;
+	auto deviceIt = m_deviceCaptures.find(device);
+	if (deviceIt == m_deviceCaptures.end())
+	{
+		auto deviceCapture = std::make_unique<DeviceCapture>();
+		deviceCapture->engine = audioEngine();
+		deviceCapture->device = device;
+		deviceCapture->subscribers.push_back(&capture);
+		capture.capture = deviceCapture.get();
+		deviceIt = m_deviceCaptures.emplace(device, std::move(deviceCapture)).first;
+	}
+	else
+	{
+		auto& shared = *deviceIt->second;
+		const auto lock = std::lock_guard{shared.subscribersMutex};
+		shared.subscribers.push_back(&capture);
+		capture.capture = &shared;
+		if (shared.channels > 0)
+		{
+			audioEngine()->setTrackInputChannels(id, shared.channels);
+			audioEngine()->setTrackInputCaptureFailed(id, false);
+		}
+	}
+	if (AudioDevice::isRunning()) { startDeviceCapture(*deviceIt->second); }
+}
+
+
+
+
+void AudioAlsa::detachTrackCapture(TrackCapture& capture)
+{
+	if (!capture.capture) { capture.device.clear(); return; }
+	auto* deviceCapture = capture.capture;
+	{
+		const auto lock = std::lock_guard{deviceCapture->subscribersMutex};
+		std::erase(deviceCapture->subscribers, &capture);
+	}
+	capture.capture = nullptr;
+	capture.device.clear();
+	if (!deviceCapture->subscribers.empty()) { return; }
+	stopDeviceCapture(*deviceCapture);
+	m_deviceCaptures.erase(deviceCapture->device);
+}
+
+
+
+
+void AudioAlsa::startDeviceCapture(DeviceCapture& capture)
+{
+	if (capture.reader.joinable())
+	{
+		if (capture.running.load(std::memory_order_acquire)) { return; }
+		capture.reader.join();
+	}
+	capture.stop.store(false, std::memory_order_release);
+	capture.running.store(true, std::memory_order_release);
+	capture.reader = std::thread(&AudioAlsa::captureThread, this, std::ref(capture));
+}
+
+
+
+
+void AudioAlsa::stopTrackCaptures()
+{
+	for (auto& [device, capture] : m_deviceCaptures)
+	{
+		Q_UNUSED(device);
+		capture->stop.store(true, std::memory_order_release);
+	}
+	for (auto& [device, capture] : m_deviceCaptures)
+	{
+		Q_UNUSED(device);
+		if (capture->reader.joinable()) { capture->reader.join(); }
+	}
+}
+
+
+
+
+void AudioAlsa::stopDeviceCapture(DeviceCapture& capture)
+{
+	capture.stop.store(true, std::memory_order_release);
+	if (capture.reader.joinable()) { capture.reader.join(); }
+}
+
+
+
+
+void AudioAlsa::captureThread(DeviceCapture& capture)
+{
+	const auto framesPerRead = std::max<f_cnt_t>(audioEngine()->framesPerAudioBuffer(), 1);
+	auto stream = openCaptureStream(capture.device, sampleRate(), framesPerRead);
+	auto* pcm = stream.handle;
+	if (pcm == nullptr)
+	{
+		qWarning("ALSA: cannot open capture device '%s'", qUtf8Printable(capture.device));
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputCaptureFailed(track->trackId, true);
+		}
+		capture.running.store(false, std::memory_order_release);
+		return;
+	}
+	{
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = stream.channels;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputChannels(track->trackId, stream.channels);
+			capture.engine->setTrackInputCaptureFailed(track->trackId, false);
+		}
+	}
+	snd_pcm_start(pcm);
+
+	std::vector<float> interleaved(static_cast<std::size_t>(framesPerRead) * stream.channels);
+	std::vector<int16_t> integerFrames;
+	if (stream.integer)
+	{
+		integerFrames.resize(interleaved.size());
+	}
+
+	auto descriptorCount = snd_pcm_poll_descriptors_count(pcm);
+	if (descriptorCount <= 0) { descriptorCount = 1; }
+	std::vector<pollfd> descriptors(static_cast<std::size_t>(descriptorCount));
+
+	auto restart = [pcm]() -> bool
+	{
+		if (snd_pcm_prepare(pcm) < 0) { return false; }
+		snd_pcm_start(pcm);
+		return true;
+	};
+
+	while (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
+	{
+		const auto count = snd_pcm_poll_descriptors(pcm, descriptors.data(),
+			static_cast<unsigned int>(descriptors.size()));
+		if (count <= 0) { break; }
+
+		const auto ready = poll(descriptors.data(), static_cast<nfds_t>(count), 50);
+		if (ready < 0)
+		{
+			if (errno == EINTR) { continue; }
+			break;
+		}
+		if (ready == 0) { continue; }
+
+		void* destination = stream.integer
+			? static_cast<void*>(integerFrames.data()) : static_cast<void*>(interleaved.data());
+		const auto framesRead = snd_pcm_readi(pcm, destination, framesPerRead);
+		if (framesRead == -EAGAIN) { continue; }
+
+		if (framesRead < 0)
+		{
+			const auto error = static_cast<int>(framesRead);
+			if (error == -ENODEV || error == -EBADFD
+				|| snd_pcm_state(pcm) == SND_PCM_STATE_DISCONNECTED)
+			{
+				break;
+			}
+			if (error == -EINTR) { continue; }
+			if (error == -EPIPE)
+			{
+				if (!restart()) { break; }
+				continue;
+			}
+#ifdef ESTRPIPE
+			if (error == -ESTRPIPE)
+			{
+				auto resumed = 0;
+				while ((resumed = snd_pcm_resume(pcm)) == -EAGAIN)
+				{
+					if (capture.stop.load(std::memory_order_acquire)
+						|| !AudioDevice::isRunning())
+					{
+						break;
+					}
+					std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				}
+				if (resumed < 0 && !restart()) { break; }
+				continue;
+			}
+#endif
+			break;
+		}
+
+		if (framesRead == 0) { continue; }
+
+		if (stream.integer)
+		{
+			const auto samples = static_cast<std::size_t>(framesRead) * stream.channels;
+			for (std::size_t sample = 0; sample < samples; ++sample)
+			{
+				interleaved[sample] = static_cast<float>(integerFrames[sample]) / 32767.0f;
+			}
+		}
+
+		const auto frames = static_cast<f_cnt_t>(framesRead);
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->pushTrackInputFrames(track->trackId,
+				InterleavedBufferView<const float>{interleaved.data(), stream.channels, frames});
+		}
+	}
+
+	snd_pcm_close(pcm);
+	if (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
+	{
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputCaptureFailed(track->trackId, true);
+		}
+	}
+	else
+	{
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+	}
+	capture.running.store(false, std::memory_order_release);
+}
+
+
+
+
 int AudioAlsa::handleError( int _err )
 {
 	if (_err == -ENODEV || _err == -EBADFD)
@@ -215,6 +681,11 @@ int AudioAlsa::handleError( int _err )
 void AudioAlsa::startProcessingImpl()
 {
 	start(QThread::HighPriority);
+	for (auto& [device, capture] : m_deviceCaptures)
+	{
+		Q_UNUSED(device);
+		startDeviceCapture(*capture);
+	}
 }
 
 
@@ -222,6 +693,7 @@ void AudioAlsa::startProcessingImpl()
 
 void AudioAlsa::stopProcessingImpl()
 {
+	stopTrackCaptures();
 	stopProcessingThread( this );
 }
 

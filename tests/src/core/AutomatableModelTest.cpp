@@ -24,9 +24,12 @@
 
 
 #include <QtTest>
+#include <QDomDocument>
+
 #include "AutomatableModel.h"
 #include "ComboBoxModel.h"
 #include "Engine.h"
+#include "ModelSettings.h"
 
 class AutomatableModelTest : public QObject
 {
@@ -115,6 +118,40 @@ private slots: // tests
 		QVERIFY(m2.value() == m3.value());
 		QVERIFY(!m3.value());
 		QVERIFY(m1.countLinks() == 2);
+	}
+
+	void ModelSettingsRoundTrip()
+	{
+		using namespace mxm;
+
+		FloatModel gain(1.5f, 0.f, 10.f, 0.1f);
+		IntModel count(3, 0, 8);
+		BoolModel enabled(true);
+		gain.setScaleLogarithmic(true);
+
+		QDomDocument document;
+		auto root = document.createElement("settings");
+		document.appendChild(root);
+		saveModelSettings(document, root, [&](auto&& visit) {
+			visit(gain, "gain");
+			visit(count, "count");
+			visit(enabled, "enabled");
+		});
+
+		FloatModel loadedGain(0.f, 0.f, 10.f, 0.1f);
+		IntModel loadedCount(0, 0, 8);
+		BoolModel loadedEnabled(false);
+		loadModelSettings(root, [&](auto&& visit) {
+			visit(loadedGain, "gain");
+			visit(loadedCount, "count");
+			visit(loadedEnabled, "enabled");
+		});
+
+		QCOMPARE(loadedGain.value(), gain.value());
+		QCOMPARE(loadedCount.value(), count.value());
+		QCOMPARE(loadedEnabled.value(), enabled.value());
+		QVERIFY(loadedGain.isScaleLogarithmic());
+		QVERIFY(!loadedCount.isScaleLogarithmic());
 	}
 };
 

@@ -37,10 +37,7 @@ namespace mxm::gui
 AmplifierControlDialog::AmplifierControlDialog(AmplifierControls* controls) :
 	EffectControlDialog(controls)
 {
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 
 	QGridLayout* gridLayout = new QGridLayout(this);
 	

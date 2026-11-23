@@ -42,18 +42,14 @@ WaveShaperControlDialog::WaveShaperControlDialog(
 					WaveShaperControls * _controls ) :
 	EffectControlDialog( _controls )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(),
-				PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 	setFixedSize( 224, 274 );
 
 	auto waveGraph = new Graph(this, Graph::Style::LinearNonCyclic, 204, 205);
 	waveGraph -> move( 10, 6 );
 	waveGraph -> setModel( &_controls -> m_wavegraphModel );
 	waveGraph -> setAutoFillBackground( true );
-	pal = QPalette();
+	QPalette pal;
 	pal.setBrush( backgroundRole(),
 			PLUGIN_NAME::getIconPixmap("wavegraph") );
 	waveGraph->setPalette( pal );

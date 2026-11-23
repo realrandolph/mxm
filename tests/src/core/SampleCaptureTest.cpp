@@ -141,49 +141,67 @@ private slots:
 		}
 	}
 
-	//! Interleaved writes preserve channel order as well
-	void Capture_Interleaved()
+	//! A mapped mono source lands in the requested capture channel only
+	void Capture_MappedMonoDestination()
 	{
-		constexpr auto blockFrames = f_cnt_t{32};
-		constexpr auto blockTotal = size_t{2};
-		const auto layout = AudioChannelLayout::surround51();
-		const auto channels = layout.channels();
+		constexpr auto blockFrames = f_cnt_t{16};
+		constexpr auto frames = f_cnt_t{32};
+		const auto layout = AudioChannelLayout::stereo();
 
-		auto capture = SampleCapture{44100, layout, blockFrames, size_t{8}};
+		auto capture = SampleCapture{TestSampleRate, layout, blockFrames, size_t{8}};
 
-		for (size_t blockIndex = 0; blockIndex < blockTotal; ++blockIndex)
+		const auto block = makePlanarBlock(1, frames, 0);
+		const auto pointers = blockPointers(block);
+		capture.write(
+			PlanarBufferView<const float>{pointers.data(), ch_cnt_t{1}, frames},
+			std::vector<ch_cnt_t>{1});
+
+		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(frames));
+		QCOMPARE(capture.droppedFrames(), std::uint64_t{0});
+		QVERIFY(!capture.diskError());
+
+		const auto result = capture.finish();
+		QVERIFY(result != nullptr);
+		QVERIFY(!result->empty());
+		QCOMPARE(result->channels(), ch_cnt_t{2});
+		QCOMPARE(result->layout(), layout);
+		QCOMPARE(result->frames(), frames);
+
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
 		{
-			auto interleaved = std::vector<float>(blockFrames * channels);
-			for (f_cnt_t frame = 0; frame < blockFrames; ++frame)
-			{
-				for (ch_cnt_t channel = 0; channel < channels; ++channel)
-				{
-					interleaved[frame * channels + channel]
-						= expectedSample(blockIndex, channel, frame);
-				}
-			}
-			capture.write(InterleavedBufferView<const float>{interleaved.data(), channels, blockFrames});
+			QCOMPARE(result->sample(frame, 0), 0.f);
+			QCOMPARE(result->sample(frame, 1), expectedSample(0, 0, frame));
 		}
+	}
 
-		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(blockTotal * blockFrames));
+	//! Destination maps reorder source channels and silence unmapped ones
+	void Capture_MappedDestinationsReorder()
+	{
+		constexpr auto blockFrames = f_cnt_t{16};
+		constexpr auto frames = f_cnt_t{32};
+		const auto layout = AudioChannelLayout::stereo();
+
+		auto capture = SampleCapture{TestSampleRate, layout, blockFrames, size_t{8}};
+
+		const auto block = makePlanarBlock(2, frames, 0);
+		const auto pointers = blockPointers(block);
+		capture.write(
+			PlanarBufferView<const float>{pointers.data(), ch_cnt_t{2}, frames},
+			std::vector<ch_cnt_t>{1, 0});
+
+		QCOMPARE(capture.recordedFrames(), static_cast<std::uint64_t>(frames));
 		QCOMPARE(capture.droppedFrames(), std::uint64_t{0});
 
 		const auto result = capture.finish();
 		QVERIFY(result != nullptr);
 		QVERIFY(!result->empty());
-		QCOMPARE(result->channels(), channels);
-		QVERIFY(result->layout() == layout);
-		QCOMPARE(result->frames(), static_cast<f_cnt_t>(blockTotal * blockFrames));
+		QCOMPARE(result->channels(), ch_cnt_t{2});
+		QCOMPARE(result->frames(), frames);
 
-		for (f_cnt_t frame = 0; frame < result->frames(); ++frame)
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
 		{
-			const auto blockIndex = static_cast<size_t>(frame / blockFrames);
-			const auto frameInBlock = static_cast<f_cnt_t>(frame % blockFrames);
-			for (ch_cnt_t channel = 0; channel < channels; ++channel)
-			{
-				QVERIFY(result->sample(frame, channel)
-					== expectedSample(blockIndex, channel, frameInBlock));
-			}
+			QCOMPARE(result->sample(frame, 0), expectedSample(0, 1, frame));
+			QCOMPARE(result->sample(frame, 1), expectedSample(0, 0, frame));
 		}
 	}
 

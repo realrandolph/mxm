@@ -26,14 +26,17 @@
 #include "SampleTrack.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include <QColor>
 #include <QDomElement>
+#include <QStringList>
 
 #include "AudioDevice.h"
 #include "ChannelLayoutModel.h"
 #include "AudioEngine.h"
+#include "AudioInputSource.h"
 #include "EffectChain.h"
 #include "Engine.h"
 #include "Mixer.h"
@@ -70,6 +73,16 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 
 	connect(&m_mixerChannelModel, SIGNAL(dataChanged()), this, SLOT(updateMixerChannel()));
 	connect(&m_channelLayoutModel, SIGNAL(dataChanged()), this, SLOT(updateChannelLayout()));
+
+	auto* engine = Engine::audioEngine();
+	if (engine && engine->audioDev() && engine->audioDev()->supportsTrackInputPorts())
+	{
+		m_trackInputId = static_cast<quint64>(reinterpret_cast<std::uintptr_t>(this));
+		const auto inputChannels = engine->audioDev()->supportsExternalPatchbayInput()
+			? ch_cnt_t{8} : ch_cnt_t{2};
+		engine->registerTrackInput(m_trackInputId, name(), inputChannels);
+		engine->setTrackInputSource(m_trackInputId, m_inputSourceId);
+	}
 }
 
 
@@ -78,6 +91,10 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 SampleTrack::~SampleTrack()
 {
 	stopRecording(false);
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		Engine::audioEngine()->unregisterTrackInput(m_trackInputId);
+	}
 	Engine::audioEngine()->removePlayHandlesOfTypes(this,
 		PlayHandle::Type::SamplePlayHandle | PlayHandle::Type::SampleRecordPlayHandle);
 }
@@ -201,6 +218,7 @@ void SampleTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& this
 	m_volumeModel.saveSettings(doc, thisElem, "vol");
 	m_panningModel.saveSettings(doc, thisElem, "pan");
 	m_mixerChannelModel.saveSettings(doc, thisElem, "mixch");
+	thisElem.setAttribute("input_source", m_inputSourceId);
 	thisElem.setAttribute("recordchannel", recordChannel());
 	thisElem.setAttribute("inputmonitor", isInputMonitoring());
 }
@@ -231,6 +249,12 @@ void SampleTrack::loadTrackSpecificSettings(const QDomElement & thisElem)
 	m_audioBusHandle.setChannelLayout(layout);
 	m_mixerChannelModel.setRange(0, Engine::mixer()->numChannels() - 1);
 	m_mixerChannelModel.loadSettings(thisElem, "mixch");
+	auto inputSource = thisElem.attribute("input_source", "system-default");
+	if (inputSource == QStringLiteral("auto") || inputSource.startsWith(QStringLiteral("device:")))
+	{
+		inputSource = QString::fromLatin1(SystemDefaultInputSourceId);
+	}
+	setInputAssignment(inputSource);
 	setRecordChannel(thisElem.attribute("recordchannel", "0").toInt());
 	setInputMonitoring(thisElem.attribute("inputmonitor", "0").toInt() != 0);
 }
@@ -242,11 +266,175 @@ void SampleTrack::setRecordChannel(int channel)
 }
 
 
+
+
+void SampleTrack::setInputAssignment(const QString& sourceId)
+{
+	const auto normalized = sourceId.trimmed().isEmpty()
+		? QString::fromLatin1(SystemDefaultInputSourceId) : sourceId.trimmed();
+	if (m_inputSourceId == normalized) { return; }
+	if (isRecording())
+	{
+		if (Engine::getSong())
+		{
+			Engine::getSong()->collectError(tr("Cannot change the input for \"%1\" during a take.").arg(name()));
+		}
+		emit inputAssignmentChanged();
+		return;
+	}
+
+	m_inputSourceId = normalized;
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		Engine::audioEngine()->setTrackInputSource(m_trackInputId, m_inputSourceId);
+	}
+	emit inputAssignmentChanged();
+	if (Engine::getSong()) { Engine::getSong()->setModified(); }
+}
+
+
+
+
+auto SampleTrack::availableInputSources() const -> std::vector<AudioInputSource>
+{
+	auto sources = Engine::audioEngine() ? Engine::audioEngine()->inputSources()
+		: std::vector<AudioInputSource>{};
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		if (const auto trackInput = Engine::audioEngine()->trackInputSource(
+			m_trackInputId, tr("External patchbay input")))
+		{
+			sources.push_back(*trackInput);
+		}
+	}
+	return sources;
+}
+
+
+
+
+auto SampleTrack::lookupAssignedInput(QString& id) const -> std::optional<AudioInputSource>
+{
+	auto* engine = Engine::audioEngine();
+	id = m_inputSourceId.trimmed().isEmpty()
+		? QString::fromLatin1(SystemDefaultInputSourceId) : m_inputSourceId;
+	if (!engine || id == QStringLiteral("none")) { return std::nullopt; }
+
+	auto source = id == QLatin1String(TrackInputSourceId)
+		? (m_trackInputId != 0 ? engine->trackInputSource(
+			m_trackInputId, tr("Track input port: %1").arg(name())) : std::nullopt)
+		: engine->inputSource(id);
+	return source && source->valid() ? source : std::nullopt;
+}
+
+
+auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
+{
+	if (!Engine::audioEngine()) { return std::nullopt; }
+	QString id;
+	return lookupAssignedInput(id);
+}
+
+
+
+
+auto SampleTrack::inputAssignmentStatus() const -> QString
+{
+	auto* engine = Engine::audioEngine();
+	if (!engine)
+	{
+		return tr("No audio capture inputs are available.");
+	}
+
+	QString id;
+	const auto source = lookupAssignedInput(id);
+	if (id == QStringLiteral("none")) { return tr("Select an input source before recording."); }
+	if (!source)
+	{
+		if (engine->inputSources().empty())
+		{
+			return tr("No audio capture inputs are available.");
+		}
+		return tr("Saved input \"%1\" is unavailable. Select another input before recording.").arg(id);
+	}
+	if (engine->trackInputCaptureFailed(m_trackInputId))
+	{
+		return tr("The assigned input could not be opened.");
+	}
+	return {};
+}
+
+
 bool SampleTrack::startRecording()
 {
 	if (isRecording()) { return true; }
-	auto audioDevice = Engine::audioEngine()->audioDev();
-	if (!audioDevice || !audioDevice->supportsCapture()) { return false; }
+	auto* engine = Engine::audioEngine();
+	auto* audioDevice = engine ? engine->audioDev() : nullptr;
+	if (!audioDevice || !audioDevice->supportsCapture())
+	{
+		if (Engine::getSong())
+		{
+			Engine::getSong()->collectError(tr("Cannot record: the active audio backend has no capture inputs."));
+		}
+		return false;
+	}
+
+	const auto source = resolvedInputSource();
+	if (!source || engine->trackInputCaptureFailed(m_trackInputId))
+	{
+		if (Engine::getSong())
+		{
+			Engine::getSong()->collectError(
+				tr("Cannot record on \"%1\": %2").arg(name(), inputAssignmentStatus()));
+		}
+		return false;
+	}
+	// Snapshot the physical assignment at take start. Device or assignment
+	// changes mid-take must never silently remap the recording to another source.
+	auto takeSource = *source;
+	if (takeSource.channelsFollowCapture)
+	{
+		const auto channels = engine->trackInputChannels(m_trackInputId);
+		if (channels == 0)
+		{
+			if (Engine::getSong())
+			{
+				Engine::getSong()->collectError(tr("Cannot record on \"%1\": the input channel layout is unavailable.")
+					.arg(name()));
+			}
+			return false;
+		}
+		takeSource.channels = channels;
+		takeSource.layout = channels == 1 ? AudioChannelLayout::mono()
+			: channels == 2 ? AudioChannelLayout::stereo() : AudioChannelLayout::discrete(channels);
+	}
+	auto firstInputChannel = ch_cnt_t{0};
+	auto destinationChannels = std::vector<ch_cnt_t>{};
+	auto captureLayout = AudioChannelLayout{};
+
+	if (recordChannel() == 1 || recordChannel() == 2)
+	{
+		firstInputChannel = std::min<ch_cnt_t>(
+			static_cast<ch_cnt_t>(recordChannel() - 1), source->channels - 1);
+		takeSource.channels = 1;
+		takeSource.layout = AudioChannelLayout::mono();
+		captureLayout = AudioChannelLayout::stereo();
+		destinationChannels = {static_cast<ch_cnt_t>(recordChannel() - 1)};
+	}
+	else
+	{
+		captureLayout = takeSource.layout;
+		if (captureLayout.channels() != takeSource.channels)
+		{
+			captureLayout = AudioChannelLayout::discrete(takeSource.channels);
+			takeSource.layout = captureLayout;
+		}
+		destinationChannels.resize(takeSource.channels);
+		for (ch_cnt_t channel = 0; channel < takeSource.channels; ++channel)
+		{
+			destinationChannels[channel] = channel;
+		}
+	}
 
 	auto song = Engine::getSong();
 	const auto playMode = song->playMode();
@@ -255,37 +443,23 @@ bool SampleTrack::startRecording()
 	auto clip = static_cast<SampleClip*>(createClip(position));
 	if (m_recording.exchange(true, std::memory_order_relaxed)) { delete clip; return true; }
 
-	auto layout = audioDevice->captureLayout();
-	auto channels = audioDevice->captureChannels();
-	if (recordChannel() == 1 || recordChannel() == 2)
-	{
-		// Left/Right takes preserve the existing stereo destination contract.
-		channels = DEFAULT_CHANNELS;
-		layout = AudioChannelLayout::stereo();
-	}
-	if (channels == 0)
-	{
-		m_recording.store(false, std::memory_order_relaxed);
-		delete clip;
-		return false;
-	}
-	if (layout.channels() != channels)
-	{
-		layout = AudioChannelLayout::discrete(channels);
-	}
-
 	m_recordingSession = std::make_shared<SampleRecordSession>();
-	m_recordingSession->engineDroppedAtStart = Engine::audioEngine()->inputDroppedFrames();
+	m_recordingSession->engineDroppedAtStart = engine->trackInputDroppedFrames(m_trackInputId);
+	m_recordingSession->source = std::move(takeSource);
+	m_recordingSession->destinationChannels = std::move(destinationChannels);
+	m_recordingSession->trackInputId = m_trackInputId;
+	m_recordingSession->firstInputChannel = firstInputChannel;
 	m_recordingSession->capture = std::make_shared<SampleCapture>(
-		Engine::audioEngine()->inputSampleRate(), layout,
-		Engine::audioEngine()->framesPerPeriod(), 64);
+		engine->outputSampleRate(), captureLayout, engine->framesPerPeriod(), 64);
 	m_recordingClip = clip;
 	clip->changeLength(TimePos(1));
 	song->trackRecordingStarted();
-	Engine::audioEngine()->addPlayHandle(new SampleRecordHandle(clip, m_recordingSession));
+	engine->addPlayHandle(new SampleRecordHandle(clip, m_recordingSession));
 	song->startTrackRecordingTransport(position);
 	return true;
 }
+
+
 
 
 void SampleTrack::updateRecordingClipLength()
@@ -293,7 +467,7 @@ void SampleTrack::updateRecordingClipLength()
 	if (!isRecording() || !m_recordingClip) { return; }
 	if (!m_recordingSession) { return; }
 	const auto frames = m_recordingSession->recordedFrames.load(std::memory_order_relaxed);
-	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->inputSampleRate());
+	const auto framesPerTick = Engine::framesPerTick(Engine::audioEngine()->outputSampleRate());
 	const auto ticks = std::min<double>(static_cast<double>(frames) / framesPerTick,
 		std::numeric_limits<tick_t>::max());
 	m_recordingClip->changeLength(TimePos(static_cast<tick_t>(ticks)));
@@ -312,10 +486,13 @@ void SampleTrack::stopRecording(bool stopTransport)
 			{
 				// Wait for an in-flight audio period to finish before the writer
 				// is stopped, so no accepted block can be published afterwards.
-				const auto guard = Engine::audioEngine()->requestChangesGuard();
+				// Keep the audio-thread guard out of the disk flush and WAV decode.
+				{
+					const auto guard = Engine::audioEngine()->requestChangesGuard();
+				}
 				recorded = m_recordingSession->capture->finish();
-				const auto engineDropped = Engine::audioEngine()->inputDroppedFrames()
-					- m_recordingSession->engineDroppedAtStart;
+				const auto engineDropped = Engine::audioEngine()->trackInputDroppedFrames(
+					m_recordingSession->trackInputId) - m_recordingSession->engineDroppedAtStart;
 				const auto dropped = m_recordingSession->capture->droppedFrames() + engineDropped;
 				if (dropped > 0 && Engine::getSong())
 				{
@@ -326,6 +503,13 @@ void SampleTrack::stopRecording(bool stopTransport)
 				{
 					Engine::getSong()->collectError(tr("Recording could not be written to disk: %1")
 						.arg(m_recordingSession->capture->errorString()));
+				}
+				const auto captureFailed = m_recordingSession->inputUnavailable.load(std::memory_order_relaxed)
+					|| Engine::audioEngine()->trackInputCaptureFailed(m_recordingSession->trackInputId);
+				if (captureFailed && Engine::getSong())
+				{
+					Engine::getSong()->collectError(tr("Recording on \"%1\": the assigned input became unavailable; no other input was substituted.")
+						.arg(name()));
 				}
 			}
 		}
@@ -342,13 +526,28 @@ void SampleTrack::stopRecording(bool stopTransport)
 }
 
 
-void SampleTrack::updateInputLevel(float level)
+float SampleTrack::inputPeak() const
 {
-	float current = m_inputLevel.load(std::memory_order_relaxed);
-	while (current < level &&
-		!m_inputLevel.compare_exchange_weak(current, level, std::memory_order_relaxed))
+	auto* engine = Engine::audioEngine();
+	if (!engine) { return 0.f; }
+
+	const auto source = resolvedInputSource();
+	if (!source) { return 0.f; }
+
+	const auto input = engine->trackInputBuffer(m_trackInputId);
+	if (input.empty()) { return 0.f; }
+	const auto channels = source->channelsFollowCapture ? input.channels() : source->channels;
+
+	auto peak = 0.f;
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
 	{
+		const auto* data = input.bufferPtr(channel);
+		for (f_cnt_t frame = 0; frame < input.frames(); ++frame)
+		{
+			peak = std::max(peak, std::abs(data[frame]));
+		}
 	}
+	return peak;
 }
 
 
@@ -370,6 +569,18 @@ void SampleTrack::setPlayingClips( bool isPlaying )
 		Clip * clip = getClip( i );
 		auto sClip = dynamic_cast<SampleClip*>(clip);
 		sClip->setIsPlaying( isPlaying );
+	}
+}
+
+
+
+
+void SampleTrack::setName(const QString& newName)
+{
+	Track::setName(newName);
+	if (m_trackInputId != 0 && Engine::audioEngine())
+	{
+		Engine::audioEngine()->renameTrackInput(m_trackInputId, name());
 	}
 }
 

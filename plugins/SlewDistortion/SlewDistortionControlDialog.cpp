@@ -46,10 +46,7 @@ SlewDistortionControlDialog::SlewDistortionControlDialog(SlewDistortionControls*
 {
 	using DirectionOfManipulation = FloatModelEditorBase::DirectionOfManipulation;
 
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 	setFixedSize(638, 271);
 	
 	auto makeKnob = [this](int x, int y, const QString& hintText, const QString& unit, FloatModel* model, bool smol = false)

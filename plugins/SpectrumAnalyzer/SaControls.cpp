@@ -28,6 +28,7 @@
 #include "Analyzer.h"
 #include "fft_helpers.h"
 #include "SaControlsDialog.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -130,53 +131,27 @@ gui::EffectControlDialog* SaControls::createView()
 }
 
 
-void SaControls::loadSettings(const QDomElement &_this)
-{
-	m_waterfallModel.loadSettings(_this, "Waterfall");
-	m_smoothModel.loadSettings(_this, "Smooth");
-	m_stereoModel.loadSettings(_this, "Stereo");
-	m_peakHoldModel.loadSettings(_this, "PeakHold");
-	m_logXModel.loadSettings(_this, "LogX");
-	m_logYModel.loadSettings(_this, "LogY");
-	m_freqRangeModel.loadSettings(_this, "RangeX");
-	m_ampRangeModel.loadSettings(_this, "RangeY");
-	m_blockSizeModel.loadSettings(_this, "BlockSize");
-	m_windowModel.loadSettings(_this, "WindowType");
+MXM_DEFINE_MODEL_SETTINGS(SaControls,
+	visit(m_waterfallModel, "Waterfall");
+	visit(m_smoothModel, "Smooth");
+	visit(m_stereoModel, "Stereo");
+	visit(m_peakHoldModel, "PeakHold");
+	visit(m_logXModel, "LogX");
+	visit(m_logYModel, "LogY");
+	visit(m_freqRangeModel, "RangeX");
+	visit(m_ampRangeModel, "RangeY");
+	visit(m_blockSizeModel, "BlockSize");
+	visit(m_windowModel, "WindowType");
 
-	m_envelopeResolutionModel.loadSettings(_this, "EnvelopeRes");
-	m_spectrumResolutionModel.loadSettings(_this, "SpectrumRes");
-	m_peakDecayFactorModel.loadSettings(_this, "PeakDecayFactor");
-	m_averagingWeightModel.loadSettings(_this, "AverageWeight");
-	m_waterfallHeightModel.loadSettings(_this, "WaterfallHeight");
-	m_waterfallGammaModel.loadSettings(_this, "WaterfallGamma");
-	m_windowOverlapModel.loadSettings(_this, "WindowOverlap");
-	m_zeroPaddingModel.loadSettings(_this, "ZeroPadding");
-}
-
-
-void SaControls::saveSettings(QDomDocument &doc, QDomElement &parent)
-{
-	m_waterfallModel.saveSettings(doc, parent, "Waterfall");
-	m_smoothModel.saveSettings(doc, parent, "Smooth");
-	m_stereoModel.saveSettings(doc, parent, "Stereo");
-	m_peakHoldModel.saveSettings(doc, parent, "PeakHold");
-	m_logXModel.saveSettings(doc, parent, "LogX");
-	m_logYModel.saveSettings(doc, parent, "LogY");
-	m_freqRangeModel.saveSettings(doc, parent, "RangeX");
-	m_ampRangeModel.saveSettings(doc, parent, "RangeY");
-	m_blockSizeModel.saveSettings(doc, parent, "BlockSize");
-	m_windowModel.saveSettings(doc, parent, "WindowType");
-
-	m_envelopeResolutionModel.saveSettings(doc, parent, "EnvelopeRes");
-	m_spectrumResolutionModel.saveSettings(doc, parent, "SpectrumRes");
-	m_peakDecayFactorModel.saveSettings(doc, parent, "PeakDecayFactor");
-	m_averagingWeightModel.saveSettings(doc, parent, "AverageWeight");
-	m_waterfallHeightModel.saveSettings(doc, parent, "WaterfallHeight");
-	m_waterfallGammaModel.saveSettings(doc, parent, "WaterfallGamma");
-	m_windowOverlapModel.saveSettings(doc, parent, "WindowOverlap");
-	m_zeroPaddingModel.saveSettings(doc, parent, "ZeroPadding");
-
-}
+	visit(m_envelopeResolutionModel, "EnvelopeRes");
+	visit(m_spectrumResolutionModel, "SpectrumRes");
+	visit(m_peakDecayFactorModel, "PeakDecayFactor");
+	visit(m_averagingWeightModel, "AverageWeight");
+	visit(m_waterfallHeightModel, "WaterfallHeight");
+	visit(m_waterfallGammaModel, "WaterfallGamma");
+	visit(m_windowOverlapModel, "WindowOverlap");
+	visit(m_zeroPaddingModel, "ZeroPadding");
+)
 
 
 } // namespace mxm
