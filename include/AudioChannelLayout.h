@@ -26,6 +26,8 @@
 #define MXM_AUDIO_CHANNEL_LAYOUT_H
 
 #include <array>
+#include <optional>
+#include <vector>
 
 #include <QString>
 
@@ -67,6 +69,8 @@ enum class SpeakerRole : std::uint8_t
 //! Maximum number of channels that can carry an explicit speaker role.
 inline constexpr auto MaxChannelsPerLayout = MaxChannelsPerAudioBuffer;
 
+struct LayoutPreset;
+
 /**
  * A channel count paired with an optional speaker assignment.
  *
@@ -78,6 +82,11 @@ class MXM_EXPORT AudioChannelLayout
 {
 public:
 	using Roles = std::array<SpeakerRole, MaxChannelsPerLayout>;
+	using LayoutPreset = mxm::LayoutPreset;
+
+	static auto presets() -> const std::vector<LayoutPreset>&;
+	static auto fromPresetIndex(int index) -> AudioChannelLayout;
+	static auto presetIndex(const AudioChannelLayout& layout) -> int; // -1 if not a preset
 
 	AudioChannelLayout() = default;
 	explicit AudioChannelLayout(ch_cnt_t channels);
@@ -85,8 +94,12 @@ public:
 
 	static auto mono() -> AudioChannelLayout { return AudioChannelLayout{1, rolesFor(1)}; }
 	static auto stereo() -> AudioChannelLayout { return AudioChannelLayout{2, rolesFor(2)}; }
+	static auto quadraphonic() -> AudioChannelLayout { return AudioChannelLayout{4, rolesFor(4)}; }
+	static auto surround50() -> AudioChannelLayout { return AudioChannelLayout{5, rolesFor(5)}; }
 	static auto surround51() -> AudioChannelLayout { return AudioChannelLayout{6, rolesFor(6)}; }
+	static auto surround61() -> AudioChannelLayout { return AudioChannelLayout{7, rolesFor(7)}; }
 	static auto surround71() -> AudioChannelLayout { return AudioChannelLayout{8, rolesFor(8)}; }
+	static auto surround712() -> AudioChannelLayout { return AudioChannelLayout{10, rolesFor(10)}; }
 
 	//! A layout with `channels` channels whose speaker roles are unknown.
 	static auto discrete(ch_cnt_t channels) -> AudioChannelLayout { return AudioChannelLayout{channels}; }
@@ -127,6 +140,12 @@ private:
 	Roles m_roles{};
 };
 
+struct LayoutPreset
+{
+	QString name;
+	AudioChannelLayout layout;
+};
+
 MXM_EXPORT auto speakerRoleName(SpeakerRole role) -> const char*;
 MXM_EXPORT auto speakerRoleFromName(const QString& name) -> SpeakerRole;
 
@@ -160,6 +179,16 @@ MXM_EXPORT void downmixToStereo(
  */
 MXM_EXPORT void downmixToStereo(InterleavedBufferView<const float> src, const AudioChannelLayout& layout,
 	PlanarBufferView<float, 2> dst);
+
+//! Converts one interleaved frame from srcLayout to dstLayout and adds it into dst
+//! with the given gain. dst must have dstLayout.channels() samples and is not cleared.
+MXM_EXPORT void addFrameConverted(const float* src, const AudioChannelLayout& srcLayout,
+	float* dst, const AudioChannelLayout& dstLayout, float gain = 1.0f);
+
+//! Adds a planar block from srcLayout into dstLayout. Frames = min(src/dst frames).
+MXM_EXPORT void addPlanarConverted(PlanarBufferView<const float> src,
+	const AudioChannelLayout& srcLayout, PlanarBufferView<float> dst,
+	const AudioChannelLayout& dstLayout, float gain = 1.0f);
 
 } // namespace mxm
 

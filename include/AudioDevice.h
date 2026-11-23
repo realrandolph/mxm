@@ -103,6 +103,10 @@ protected:
 	int convertToS16(const SampleFrame* _ab, const f_cnt_t _frames, int_sample_t* _output_buffer,
 		const bool _convert_endian = false);
 
+	//! Converts a planar block whose channels match @ref channels().
+	int convertToS16(PlanarBufferView<const float> ab, int_sample_t* outputBuffer,
+		const bool convertEndian = false);
+
 	// clear given signed-int-16-buffer
 	void clearS16Buffer(int_sample_t* _outbuf, const f_cnt_t _frames);
 

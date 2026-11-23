@@ -16,15 +16,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program (see COPYING); if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program (see COPYING); if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
 #include <QMessageBox>
 
+#include "AudioChannelBuffer.h"
 #include "AudioFileDevice.h"
 #include "ExportProjectDialog.h"
 #include "GuiApplication.h"
@@ -33,12 +33,14 @@ namespace mxm
 {
 
 AudioFileDevice::AudioFileDevice( OutputSettings const & outputSettings,
-					const ch_cnt_t _channels,
+					const AudioChannelLayout& layout,
 					const QString & _file,
 					AudioEngine*  _audioEngine ) :
-	AudioDevice( _channels, _audioEngine ),
+	AudioDevice( layout.channels(), _audioEngine ),
 	m_outputFile( _file ),
-	m_outputSettings(outputSettings)
+	m_outputSettings(outputSettings),
+	m_channelLayout(layout),
+	m_conversionBuffer(nullptr)
 {
 	using gui::ExportProjectDialog;
 
@@ -76,6 +78,35 @@ AudioFileDevice::AudioFileDevice( OutputSettings const & outputSettings,
 AudioFileDevice::~AudioFileDevice()
 {
 	m_outputFile.close();
+}
+
+
+
+
+void AudioFileDevice::writeBuffer(PlanarBufferView<const float> buffer,
+	const AudioChannelLayout& sourceLayout)
+{
+	if (buffer.empty())
+	{
+		writeBufferImpl({});
+		return;
+	}
+
+	if (sourceLayout == m_channelLayout)
+	{
+		writeBufferImpl(buffer);
+		return;
+	}
+
+	if (!m_conversionBuffer)
+	{
+		m_conversionBuffer = createChannelBuffer(buffer.frames(), m_channelLayout);
+	}
+
+	auto converted = logicalBuffers(*m_conversionBuffer, m_channelLayout);
+	m_conversionBuffer->silenceAllChannels();
+	addPlanarConverted(buffer, sourceLayout, converted, m_channelLayout);
+	writeBufferImpl(converted);
 }
 
 

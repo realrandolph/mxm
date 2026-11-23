@@ -37,7 +37,7 @@ class AudioFileFlac : public AudioFileDevice
 {
 public:
 	AudioFileFlac(OutputSettings const& outputSettings,
-			ch_cnt_t const channels,
+			const AudioChannelLayout& layout,
 			bool& successful,
 			QString const& file,
 			AudioEngine* audioEngine
@@ -47,13 +47,13 @@ public:
 
 	static AudioFileDevice* getInst(QString const& outputFilename,
 			OutputSettings const& outputSettings,
-			ch_cnt_t const channels,
+			const AudioChannelLayout& layout,
 			AudioEngine* audioEngine,
 			bool& successful)
 	{
 		return new AudioFileFlac(
 			outputSettings,
-			channels,
+			layout,
 			successful,
 			outputFilename,
 			audioEngine
@@ -65,7 +65,7 @@ private:
 	SF_INFO  m_sfinfo;
 	SNDFILE* m_sf;
 
-	void writeBuffer(const SampleFrame* _ab, f_cnt_t const frames) override;
+	void writeBufferImpl(PlanarBufferView<const float> buffer) override;
 
 	bool startEncoding();
 	void finishEncoding();

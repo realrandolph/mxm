@@ -29,6 +29,7 @@
 
 #include <QMetaObject>
 
+#include "AudioChannelBuffer.h"
 #include "AudioChannelLayout.h"
 #include "AudioEngine.h"
 #include "Engine.h"
@@ -76,6 +77,7 @@ SampleRecordHandle::~SampleRecordHandle()
 
 void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
+	m_useMultichannel = false;
 	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
 	auto* engine = Engine::audioEngine();
@@ -101,8 +103,35 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 
 	if (m_inputMonitoring && workingBuffer)
 	{
-		monitor(source, workingBuffer,
-			std::min(source.frames(), Engine::audioEngine()->framesPerPeriod()));
+		auto* bus = audioBusHandle();
+		if (bus && bus->channels() > DEFAULT_CHANNELS && m_recordChannel == 0)
+		{
+			// Monitoring follows the track output layout. The capture itself
+			// keeps its original channel layout and is written unchanged below.
+			if (!m_multichannelBuffer || m_multichannelLayout != bus->channelLayout())
+			{
+				m_multichannelLayout = bus->channelLayout();
+				m_multichannelBuffer = createChannelBuffer(
+					Engine::audioEngine()->framesPerPeriod(), m_multichannelLayout);
+			}
+			m_multichannelBuffer->silenceAllChannels();
+			const auto frames = std::min(source.frames(), Engine::audioEngine()->framesPerPeriod());
+			const auto start = source.frames() - frames;
+			std::array<const float*, MaxChannelsPerAudioBuffer> channelPointers{};
+			for (ch_cnt_t channel = 0; channel < source.channels(); ++channel)
+			{
+				channelPointers[channel] = source.bufferPtr(channel) + start;
+			}
+			addPlanarConverted(
+				{channelPointers.data(), source.channels(), frames}, m_session->source.layout,
+				logicalBuffers(*m_multichannelBuffer, m_multichannelLayout), m_multichannelLayout);
+			m_multichannelBuffer->updateAllSilenceFlags();
+			m_useMultichannel = true;
+		}
+		else
+		{
+			monitor(source, workingBuffer, std::min(source.frames(), Engine::audioEngine()->framesPerPeriod()));
+		}
 	}
 	writeBuffer(source);
 }

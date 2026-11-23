@@ -29,6 +29,7 @@
 #include <QMetaObject>
 
 #include "MixHelpers.h"
+#include "ValueBuffer.h"
 
 #include "mxmconfig.h"
 
@@ -94,6 +95,9 @@ AudioEngine::AudioEngine(bool renderOnly)
 	BufferManager::init( m_framesPerPeriod );
 	m_outputBufferRead = std::make_unique<SampleFrame[]>(m_framesPerPeriod);
 	m_outputBufferWrite = std::make_unique<SampleFrame[]>(m_framesPerPeriod);
+	m_masterLayout = AudioChannelLayout::stereo();
+	m_masterBufferRead = createChannelBuffer(m_framesPerPeriod, m_masterLayout);
+	m_masterBufferWrite = createChannelBuffer(m_framesPerPeriod, m_masterLayout);
 
 
 	for( int i = 0; i < m_numWorkers+1; ++i )
@@ -627,9 +631,21 @@ void AudioEngine::renderStageMix()
 	AudioEngineProfiler::Probe profilerProbe(m_profiler, AudioEngineProfiler::DetailType::Mixing);
 
 	Mixer *mixer = Engine::mixer();
-	mixer->masterMix(m_outputBufferWrite.get());
+	mixer->masterMix(*m_masterBufferWrite);
 
-	MixHelpers::multiply(m_outputBufferWrite.get(), m_masterGain, m_framesPerPeriod);
+	// Apply master gain to every logical channel before producing the legacy
+	// stereo view used by hardware devices and the UI.
+	auto master = logicalBuffers(*m_masterBufferWrite, m_masterLayout);
+	for (ch_cnt_t channel = 0; channel < master.channels(); ++channel)
+	{
+		auto* samples = master.bufferPtr(channel);
+		for (f_cnt_t frame = 0; frame < m_framesPerPeriod; ++frame)
+		{
+			samples[frame] *= m_masterGain;
+		}
+	}
+	downmixToStereo(master, m_masterLayout,
+		InterleavedBufferView<float, 2>{m_outputBufferWrite.get(), m_framesPerPeriod});
 
 	emit nextAudioBuffer(m_outputBufferRead.get());
 
@@ -664,6 +680,22 @@ void AudioEngine::swapBuffers()
 {
 	std::swap(m_outputBufferRead, m_outputBufferWrite);
 	zeroSampleFrames(m_outputBufferWrite.get(), m_framesPerPeriod);
+
+	std::swap(m_masterBufferRead, m_masterBufferWrite);
+	if (m_masterBufferWrite) { m_masterBufferWrite->silenceAllChannels(); }
+}
+
+
+
+
+void AudioEngine::setMasterLayout(const AudioChannelLayout& layout)
+{
+	if (layout.channels() == 0 || layout == m_masterLayout) { return; }
+
+	const auto guard = requestChangesGuard();
+	m_masterLayout = layout;
+	m_masterBufferRead = createChannelBuffer(m_framesPerPeriod, m_masterLayout);
+	m_masterBufferWrite = createChannelBuffer(m_framesPerPeriod, m_masterLayout);
 }
 
 void AudioEngine::clear()

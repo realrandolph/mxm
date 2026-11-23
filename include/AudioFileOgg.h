@@ -41,7 +41,7 @@ class AudioFileOgg : public AudioFileDevice
 {
 public:
 	AudioFileOgg( OutputSettings const & outputSettings,
-			const ch_cnt_t _channels,
+			const AudioChannelLayout& layout,
 			bool & _success_ful,
 			const QString & _file,
 			AudioEngine* audioEngine );
@@ -49,15 +49,15 @@ public:
 
 	static AudioFileDevice * getInst( const QString & outputFilename,
 					  OutputSettings const & outputSettings,
-					  const ch_cnt_t channels,
+					  const AudioChannelLayout& layout,
 					  AudioEngine* audioEngine,
 					  bool & successful )
 	{
-		return new AudioFileOgg( outputSettings, channels, successful, outputFilename, audioEngine );
+		return new AudioFileOgg( outputSettings, layout, successful, outputFilename, audioEngine );
 	}
 
 private:
-	void writeBuffer(const SampleFrame* _ab, const f_cnt_t _frames) override;
+	void writeBufferImpl(PlanarBufferView<const float> buffer) override;
 	vorbis_info m_vi;
 	vorbis_dsp_state m_vds;
 	vorbis_comment m_vc;

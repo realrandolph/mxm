@@ -31,6 +31,7 @@
 #include <QMutex>
 
 #include "AudioBuffer.h"
+#include "AudioChannelLayout.h"
 #include "PlayHandle.h"
 
 namespace mxm
@@ -68,6 +69,23 @@ public:
 	mix_ch_t nextMixerChannel() const { return m_nextMixerChannel; }
 	void setNextMixerChannel(const mix_ch_t chnl) { m_nextMixerChannel = chnl; }
 
+	//! @returns the channel layout of this bus, including speaker roles.
+	auto channelLayout() const -> const AudioChannelLayout& { return m_channelLayout; }
+
+	/**
+	 * @brief Replaces the bus channel layout and reallocates its buffer.
+	 *
+	 * Must be called from the model thread. The audio engine is paused for the
+	 * duration of the buffer swap so workers never observe a partial layout.
+	 */
+	void setChannelLayout(const AudioChannelLayout& layout);
+
+	//! @returns the number of logical output channels.
+	auto channels() const -> ch_cnt_t { return m_channelLayout.channels(); }
+
+	//! @returns the planar output buffer for hardware port registration.
+	auto audioBuffer() -> AudioBuffer& { return *m_buffer; }
+
 	const QString& name() const { return m_name; }
 	void setName(const QString& newName);
 
@@ -85,9 +103,13 @@ public:
 	bool isCorrupted() const { return m_corrupted.load(std::memory_order_relaxed); }
 
 private:
+	//! Applies this bus's volume and pan models to its logical channels.
+	void applyVolumeAndPan();
+
 	volatile bool m_bufferUsage;
 
-	AudioBuffer m_buffer;
+	AudioChannelLayout m_channelLayout;
+	std::unique_ptr<AudioBuffer> m_buffer;
 
 	bool m_extOutputEnabled;
 	mix_ch_t m_nextMixerChannel;

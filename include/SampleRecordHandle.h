@@ -32,7 +32,9 @@
 #include <QPointer>
 #include <vector>
 
+#include "AudioBuffer.h"
 #include "AudioBufferView.h"
+#include "AudioChannelLayout.h"
 #include "AudioInputSource.h"
 #include "PlayHandle.h"
 
@@ -70,6 +72,13 @@ public:
 
 	bool isFromTrack( const Track * _track ) const override;
 
+	auto multichannelBuffer() -> AudioBuffer* override
+	{
+		return m_useMultichannel ? m_multichannelBuffer.get() : nullptr;
+	}
+
+	auto multichannelLayout() const -> AudioChannelLayout override { return m_multichannelLayout; }
+
 private:
 	void writeBuffer(PlanarBufferView<const float> frames);
 	void monitor(PlanarBufferView<const float> frames, SampleFrame* workingBuffer,
@@ -80,6 +89,9 @@ private:
 	std::shared_ptr<SampleRecordSession> m_session;
 	int m_recordChannel;
 	bool m_inputMonitoring;
+	bool m_useMultichannel = false;
+	AudioChannelLayout m_multichannelLayout;
+	std::unique_ptr<AudioBuffer> m_multichannelBuffer;
 	std::vector<const float*> m_sourcePointers;
 
 } ;

@@ -16,18 +16,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program (see COPYING); if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program (see COPYING); if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
 #ifndef MXM_AUDIO_FILE_DEVICE_H
 #define MXM_AUDIO_FILE_DEVICE_H
 
+#include <memory>
+
 #include <QFile>
 
+#include "AudioBuffer.h"
+#include "AudioChannelLayout.h"
 #include "AudioDevice.h"
 #include "OutputSettings.h"
 
@@ -38,7 +41,7 @@ class AudioFileDevice : public AudioDevice
 {
 public:
 	AudioFileDevice(OutputSettings const & outputSettings,
-			const ch_cnt_t _channels, const QString & _file,
+			const AudioChannelLayout& layout, const QString & _file,
 			AudioEngine* audioEngine );
 	~AudioFileDevice() override;
 
@@ -49,8 +52,17 @@ public:
 
 	OutputSettings const & getOutputSettings() const { return m_outputSettings; }
 
-	//! Write `size` sample frames from `buf` into the output file.
-	virtual void writeBuffer(const SampleFrame* buf, const f_cnt_t frames) = 0;
+	//! @returns the on-disk channel layout selected for this file format.
+	auto channelLayout() const -> const AudioChannelLayout& { return m_channelLayout; }
+
+	/**
+	 * @brief Writes a planar block supplied in @a sourceLayout into the file.
+	 *
+	 * When the source and file layouts differ, the block is converted with
+	 * explicit speaker-role mapping first; channels are never silently
+	 * truncated.
+	 */
+	void writeBuffer(PlanarBufferView<const float> buffer, const AudioChannelLayout& sourceLayout);
 
 protected:
 	int writeData( const void* data, int len );
@@ -65,16 +77,22 @@ protected:
 		return m_outputFile.handle();
 	}
 
+	//! Encodes a block that already uses @ref channelLayout().
+	virtual void writeBufferImpl(PlanarBufferView<const float> buffer) = 0;
+
 private:
 	void startProcessingImpl() override {}
 	void stopProcessingImpl() override {}
 
 	QFile m_outputFile;
 	OutputSettings m_outputSettings;
+	AudioChannelLayout m_channelLayout;
+	std::unique_ptr<AudioBuffer> m_conversionBuffer;
 } ;
 
 using AudioFileDeviceInstantiaton
-	= AudioFileDevice* (*)(const QString&, const OutputSettings&, const ch_cnt_t, AudioEngine*, bool&);
+	= AudioFileDevice* (*)(const QString&, const OutputSettings&, const AudioChannelLayout&,
+		AudioEngine*, bool&);
 
 } // namespace mxm
 

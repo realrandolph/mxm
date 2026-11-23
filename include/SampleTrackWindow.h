@@ -40,6 +40,7 @@ namespace mxm::gui
 {
 
 class AutomatableButton;
+class ComboBox;
 class EffectRackView;
 class Knob;
 class MixerChannelLcdSpinBox;
@@ -100,6 +101,7 @@ private:
 	AutomatableButton* m_muteBtn;
 	AutomatableButton* m_soloBtn;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
+	ComboBox* m_channelLayoutComboBox;
 	QComboBox* m_inputSourceComboBox;
 	QLabel* m_inputStatusLabel;
 	QComboBox* m_recordChannelComboBox;

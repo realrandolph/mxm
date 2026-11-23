@@ -26,6 +26,7 @@
 #include "AudioEngine.h"
 #include "AutomationClip.h"
 #include "ConfigManager.h"
+#include "ChannelLayoutModel.h"
 #include "ControllerConnection.h"
 #include "DataFile.h"
 #include "GuiApplication.h"
@@ -65,6 +66,8 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	m_pitchModel(0, MinPitchDefault, MaxPitchDefault, 1, this, tr("Pitch")),
 	m_pitchRangeModel(1, 1, 60, this, tr("Pitch range")),
 	m_mixerChannelModel(0, 0, 0, this, tr("Mixer channel")),
+	m_channelLayoutModel(this),
+	m_layoutChoices(),
 	m_useMasterPitchModel(true, this, tr("Master pitch")),
 	m_instrument(nullptr),
 	m_soundShaping(this),
@@ -82,6 +85,7 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	m_lastKeyModel.setInitValue(NumKeys - 1);
 
 	m_mixerChannelModel.setRange( 0, Engine::mixer()->numChannels()-1, 1);
+	populateChannelLayoutModel(m_channelLayoutModel, m_layoutChoices, m_audioBusHandle.channelLayout());
 
 	for( int i = 0; i < NumKeys; ++i )
 	{
@@ -111,6 +115,7 @@ InstrumentTrack::InstrumentTrack(TrackContainer* tc) :
 	connect(&m_pitchModel, SIGNAL(dataChanged()), this, SLOT(updatePitch()), Qt::DirectConnection);
 	connect(&m_pitchRangeModel, SIGNAL(dataChanged()), this, SLOT(updatePitchRange()), Qt::DirectConnection);
 	connect(&m_mixerChannelModel, SIGNAL(dataChanged()), this, SLOT(updateMixerChannel()), Qt::DirectConnection);
+	connect(&m_channelLayoutModel, SIGNAL(dataChanged()), this, SLOT(updateChannelLayout()), Qt::DirectConnection);
 
 	autoAssignMidiDevice(true);
 }
@@ -708,6 +713,16 @@ void InstrumentTrack::updateMixerChannel()
 
 
 
+void InstrumentTrack::updateChannelLayout()
+{
+	m_audioBusHandle.setChannelLayout(
+		channelLayoutAt(m_layoutChoices, m_channelLayoutModel.value()));
+	Engine::getSong()->setModified();
+}
+
+
+
+
 int InstrumentTrack::masterKey( int _midi_key ) const
 {
 
@@ -868,6 +883,7 @@ void InstrumentTrack::saveTrackSpecificSettings(QDomDocument& doc, QDomElement& 
 	m_pitchRangeModel.saveSettings( doc, thisElement, "pitchrange" );
 
 	m_mixerChannelModel.saveSettings( doc, thisElement, "mixch" );
+	thisElement.setAttribute("channel_layout", m_audioBusHandle.channelLayout().toString());
 	m_baseNoteModel.saveSettings( doc, thisElement, "basenote" );
 	m_firstKeyModel.saveSettings(doc, thisElement, "firstkey");
 	m_lastKeyModel.saveSettings(doc, thisElement, "lastkey");
@@ -941,6 +957,10 @@ void InstrumentTrack::loadTrackSpecificSettings( const QDomElement & thisElement
 	{
 		m_mixerChannelModel.loadSettings( thisElement, "mixch" );
 	}
+	const auto layout = AudioChannelLayout::fromString(
+		thisElement.attribute("channel_layout"), DEFAULT_CHANNELS);
+	populateChannelLayoutModel(m_channelLayoutModel, m_layoutChoices, layout);
+	m_audioBusHandle.setChannelLayout(layout);
 	m_baseNoteModel.loadSettings( thisElement, "basenote" );
 	m_firstKeyModel.loadSettings(thisElement, "firstkey");
 	m_lastKeyModel.loadSettings(thisElement, "lastkey");

@@ -11,6 +11,7 @@ set(MXM_TESTS
 	src/core/AudioEngineTrackInputTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
+	src/core/MixerLayoutTest.cpp
 	src/core/NoteTest.cpp
 	src/core/PerTrackRecordingTest.cpp
 	src/core/ProjectVersionTest.cpp

@@ -39,6 +39,8 @@
 #include <QVector>
 
 #include "AudioBufferView.h"
+#include "AudioChannelBuffer.h"
+#include "AudioChannelLayout.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
 #include "GuiApplication.h"
@@ -347,17 +349,35 @@ void AudioJack::stopProcessingImpl()
 {
 }
 
+namespace
+{
+
+auto busPortSuffix(const AudioChannelLayout& layout, ch_cnt_t channel) -> QString
+{
+	if (layout.channels() == DEFAULT_CHANNELS && channel < DEFAULT_CHANNELS)
+	{
+		return channel == 0 ? QStringLiteral("L") : QStringLiteral("R");
+	}
+	const auto role = layout.role(channel);
+	return role == SpeakerRole::Unknown
+		? QStringLiteral("CH%1").arg(channel + 1)
+		: QString::fromLatin1(speakerRoleName(role));
+}
+
+} // namespace
+
 void AudioJack::registerPort(AudioBusHandle* port)
 {
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	// make sure, port is not already registered
 	unregisterPort(port);
-	const QString name[2] = {port->name() + " L", port->name() + " R"};
 
-	for (ch_cnt_t ch = 0; ch < DEFAULT_CHANNELS; ++ch)
+	const auto& layout = port->channelLayout();
+	for (ch_cnt_t channel = 0; channel < layout.channels(); ++channel)
 	{
-		m_portMap[port].ports[ch] = jack_port_register(
-			m_client, name[ch].toLatin1().constData(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+		const auto name = port->name() + " " + busPortSuffix(layout, channel);
+		m_portMap[port].ports[channel] = jack_port_register(
+			m_client, name.toLatin1().constData(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	}
 #else
 	(void)port;
@@ -372,7 +392,7 @@ void AudioJack::unregisterPort(AudioBusHandle* port)
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	if (m_portMap.contains(port))
 	{
-		for (ch_cnt_t ch = 0; ch < DEFAULT_CHANNELS; ++ch)
+		for (ch_cnt_t ch = 0; ch < MaxChannelsPerAudioBuffer; ++ch)
 		{
 			if (m_portMap[port].ports[ch] != nullptr) { jack_port_unregister(m_client, m_portMap[port].ports[ch]); }
 		}
@@ -388,13 +408,15 @@ void AudioJack::renamePort(AudioBusHandle* port)
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 	if (m_portMap.contains(port))
 	{
-		const QString name[2] = {port->name() + " L", port->name() + " R"};
-		for (ch_cnt_t ch = 0; ch < DEFAULT_CHANNELS; ++ch)
+		const auto& layout = port->channelLayout();
+		for (ch_cnt_t ch = 0; ch < layout.channels(); ++ch)
 		{
+			if (m_portMap[port].ports[ch] == nullptr) { continue; }
+			const auto name = port->name() + " " + busPortSuffix(layout, ch);
 #ifdef MXM_HAVE_JACK_PRENAME
-			jack_port_rename(m_client, m_portMap[port].ports[ch], name[ch].toLatin1().constData());
+			jack_port_rename(m_client, m_portMap[port].ports[ch], name.toLatin1().constData());
 #else
-			jack_port_set_name(m_portMap[port].ports[ch], name[ch].toLatin1().constData());
+			jack_port_set_name(m_portMap[port].ports[ch], name.toLatin1().constData());
 #endif
 		}
 	}
@@ -659,14 +681,17 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 	const int frames = std::min<int>(nframes, audioEngine()->framesPerAudioBuffer());
 	for (JackPortMap::iterator it = m_portMap.begin(); it != m_portMap.end(); ++it)
 	{
-		for (ch_cnt_t ch = 0; ch < channels(); ++ch)
+		const auto layout = it.key()->channelLayout();
+		const auto buffer = logicalBuffers(it.key()->audioBuffer(), layout);
+		for (ch_cnt_t ch = 0; ch < layout.channels(); ++ch)
 		{
 			if (it.value().ports[ch] == nullptr) { continue; }
 			jack_default_audio_sample_t* buf
 				= (jack_default_audio_sample_t*)jack_port_get_buffer(it.value().ports[ch], nframes);
+			const auto* source = buffer.bufferPtr(ch);
 			for (int frame = 0; frame < frames; ++frame)
 			{
-				buf[frame] = it.key()->buffer()[frame][ch];
+				buf[frame] = source[frame];
 			}
 		}
 	}

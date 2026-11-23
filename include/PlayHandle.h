@@ -30,6 +30,7 @@
 
 #include "mxm_export.h"
 
+#include "AudioChannelLayout.h"
 #include "Flags.h"
 #include "ThreadableJob.h"
 #include "MxmTypes.h"
@@ -40,6 +41,7 @@ namespace mxm
 {
 
 class Track;
+class AudioBuffer;
 class AudioBusHandle;
 class SampleFrame;
 
@@ -144,7 +146,22 @@ public:
 	{
 		m_audioBusHandle = busHandle;
 	}
-	
+
+	/**
+	 * @brief Optional native multichannel output.
+	 *
+	 * Play handles that can produce more than stereo return the buffer they
+	 * rendered into here. The owning audio bus adds these channels with an
+	 * explicit layout conversion instead of reading @ref buffer().
+	 */
+	virtual auto multichannelBuffer() -> AudioBuffer* { return nullptr; }
+
+	//! @returns the layout of @ref multichannelBuffer(), if any.
+	virtual auto multichannelLayout() const -> AudioChannelLayout
+	{
+		return AudioChannelLayout::stereo();
+	}
+
 	void releaseBuffer();
 	
 	SampleFrame* buffer();

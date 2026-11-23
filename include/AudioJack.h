@@ -34,6 +34,7 @@
 #include <weak_libjack.h>
 #endif
 
+#include <array>
 #include <atomic>
 #include <vector>
 #include <QMap>
@@ -139,12 +140,12 @@ private:
 	std::atomic_bool m_portsDisconnectedReported{false};
 
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
-	struct StereoPort
+	struct BusPorts
 	{
-		jack_port_t* ports[2];
+		std::array<jack_port_t*, MaxChannelsPerAudioBuffer> ports{};
 	};
 
-	using JackPortMap = QMap<AudioBusHandle*, StereoPort>;
+	using JackPortMap = QMap<AudioBusHandle*, BusPorts>;
 	JackPortMap m_portMap;
 #endif
 

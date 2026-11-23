@@ -38,7 +38,7 @@ class AudioFileWave : public AudioFileDevice
 {
 public:
 	AudioFileWave( OutputSettings const & outputSettings,
-			const ch_cnt_t channels,
+			const AudioChannelLayout& layout,
 			bool & successful,
 			const QString & file,
 			AudioEngine* audioEngine );
@@ -46,17 +46,17 @@ public:
 
 	static AudioFileDevice * getInst( const QString & outputFilename,
 					  OutputSettings const & outputSettings,
-					  const ch_cnt_t channels,
+					  const AudioChannelLayout& layout,
 					  AudioEngine* audioEngine,
 					  bool & successful )
 	{
-		return new AudioFileWave( outputSettings, channels, successful,
+		return new AudioFileWave( outputSettings, layout, successful,
 					  outputFilename, audioEngine );
 	}
 
 
 private:
-	void writeBuffer(const SampleFrame* _ab, const f_cnt_t _frames) override;
+	void writeBufferImpl(PlanarBufferView<const float> buffer) override;
 
 	bool startEncoding();
 	void finishEncoding();

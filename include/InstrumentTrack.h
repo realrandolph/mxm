@@ -28,6 +28,7 @@
 
 
 #include "AudioBusHandle.h"
+#include "ComboBoxModel.h"
 #include "InstrumentFunctions.h"
 #include "InstrumentSoundShaping.h"
 #include "Microtuner.h"
@@ -237,6 +238,13 @@ public:
 		return &m_mixerChannelModel;
 	}
 
+	//! @returns the selectable channel layouts of this track's output bus.
+	ComboBoxModel* channelLayoutModel() { return &m_channelLayoutModel; }
+	auto channelLayout() const -> const AudioChannelLayout&
+	{
+		return m_audioBusHandle.channelLayout();
+	}
+
 	BoolModel* useMasterPitchModel()
 	{
 		return &m_useMasterPitchModel;
@@ -280,6 +288,7 @@ protected slots:
 	void updatePitch();
 	void updatePitchRange();
 	void updateMixerChannel();
+	void updateChannelLayout();
 
 
 private:
@@ -317,6 +326,8 @@ private:
 	FloatModel m_pitchModel;
 	IntModel m_pitchRangeModel;
 	IntModel m_mixerChannelModel;
+	ComboBoxModel m_channelLayoutModel;
+	std::vector<AudioChannelLayout> m_layoutChoices;
 	BoolModel m_useMasterPitchModel;
 
 	Instrument * m_instrument;
