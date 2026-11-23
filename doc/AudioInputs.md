@@ -45,14 +45,17 @@ SDL and PortAudio enumerate capture devices and open the selected device for
 each assigned track. ALSA enumerates capture-capable PCM devices and captures
 each assignment on a reader thread. PulseAudio enumerates named sources
 (monitor/loopback sources are omitted). Sndio exposes its configured/default
-capture endpoint when available. JACK enumerates source clients and connects
-the selected source to the track.
+capture endpoint when available. JACK enumerates each source port as a mono
+choice and every pair of ports as a stereo choice, including non-adjacent
+pairs, then connects the selected channels to the track.
 
-JACK exposes each track's inputs as `<track> In L` / `<track> In R` ports for
-optional routing in tools such as qpwgraph. The **External patchbay input**
+JACK exposes eight inputs per track (`<track> In 1` through `<track> In 8`)
+for optional routing in tools such as qpwgraph. The **External patchbay input**
 choice is offered only there: other backends cannot leave a track port open
 without a selected device, so that assignment is not accepted and does not
-close the capture that is already open.
+close the capture that is already open. The eight JACK capture channels allow
+independent mono-track assignments, stereo pairs, and mixed mono/stereo
+assignments from a multichannel source.
 
 If the selected device fails to open, or its capture reader exits, recording
 does not start a silently discarded empty take. The failure is reported through

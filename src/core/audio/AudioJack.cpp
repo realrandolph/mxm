@@ -458,9 +458,10 @@ auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 
 	const auto systemPorts = portsByClient.value(QStringLiteral("system"));
 	QStringList defaultPorts;
-	for (const auto& expected : {QStringLiteral("system:capture_1"), QStringLiteral("system:capture_2")})
+	for (auto channel = 1; channel <= 8; ++channel)
 	{
-		if (systemPorts.contains(expected)) { defaultPorts.append(expected); }
+		const auto port = QStringLiteral("system:capture_%1").arg(channel);
+		if (systemPorts.contains(port)) { defaultPorts.append(port); }
 	}
 	if (!defaultPorts.isEmpty())
 	{
@@ -473,16 +474,22 @@ auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 	for (auto it = portsByClient.cbegin(); it != portsByClient.cend(); ++it)
 	{
 		const auto& clientPorts = it.value();
-		const auto channels = std::min<qsizetype>(clientPorts.size(), 2);
-		const auto endpoints = clientPorts.mid(0, channels);
-		const auto id = QStringLiteral("jack-device:") + it.key();
-		if (channels == 1)
+		for (qsizetype channel = 0; channel < clientPorts.size(); ++channel)
 		{
-			sources.push_back(makeAudioInputSource(id, it.key(), 1, endpoints));
-		}
-		else
-		{
-			sources.push_back(makeAudioInputSource(id, it.key(), 2, endpoints));
+			const auto endpoint = clientPorts[channel];
+			sources.push_back(makeAudioInputSource(
+				QStringLiteral("jack-port:") + endpoint,
+				QStringLiteral("%1 — %2").arg(it.key(), endpoint.section(':', 1)),
+				1, {endpoint}));
+			for (auto secondChannel = channel + 1; secondChannel < clientPorts.size(); ++secondChannel)
+			{
+				const auto nextEndpoint = clientPorts[secondChannel];
+				sources.push_back(makeAudioInputSource(
+					QStringLiteral("jack-pair:") + endpoint + QLatin1Char('|') + nextEndpoint,
+					QStringLiteral("%1 — %2 / %3").arg(it.key(), endpoint.section(':', 1),
+						nextEndpoint.section(':', 1)),
+					2, {endpoint, nextEndpoint}));
+			}
 		}
 	}
 

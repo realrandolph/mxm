@@ -73,7 +73,9 @@ SampleTrack::SampleTrack(TrackContainer* tc) :
 	if (engine && engine->audioDev() && engine->audioDev()->supportsTrackInputPorts())
 	{
 		m_trackInputId = static_cast<quint64>(reinterpret_cast<std::uintptr_t>(this));
-		engine->registerTrackInput(m_trackInputId, name(), 2);
+		const auto inputChannels = engine->audioDev()->supportsExternalPatchbayInput()
+			? ch_cnt_t{8} : ch_cnt_t{2};
+		engine->registerTrackInput(m_trackInputId, name(), inputChannels);
 		engine->setTrackInputSource(m_trackInputId, m_inputSourceId);
 	}
 }
