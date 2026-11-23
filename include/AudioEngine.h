@@ -271,6 +271,9 @@ public:
 	//! Publishes backend track-port audio. Real-time safe in normal use.
 	void pushTrackInputFrames(quint64 id, PlanarBufferView<const float> frames);
 	void pushTrackInputFrames(quint64 id, InterleavedBufferView<const float> frames);
+	//! Changes the active source channel count at a backend-controlled safe boundary.
+	void setTrackInputChannels(quint64 id, ch_cnt_t channels);
+	auto trackInputChannels(quint64 id) const -> ch_cnt_t;
 
 	//! @returns the last drained block for a track input port.
 	auto trackInputBuffer(quint64 id) const -> PlanarBufferView<const float>;

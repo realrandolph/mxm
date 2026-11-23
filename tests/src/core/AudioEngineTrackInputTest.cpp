@@ -155,6 +155,32 @@ private slots:
 
 		engine->unregisterTrackInput(id);
 	}
+
+	void TrackInput_ChannelCountCanFollowOpenedDevice()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		constexpr auto id = quint64{0x51a6};
+		constexpr auto frames = f_cnt_t{10};
+		const auto guard = engine->requestChangesGuard();
+		engine->registerTrackInput(id, QStringLiteral("Mono-capable input"), 2);
+		engine->setTrackInputChannels(id, 1);
+		QCOMPARE(engine->trackInputChannels(id), ch_cnt_t{1});
+
+		const auto samples = std::vector<float>(frames, -0.375f);
+		const auto pointer = std::array<const float*, 1>{samples.data()};
+		engine->pushTrackInputFrames(id, {pointer.data(), 1, frames});
+		engine->renderNextPeriod();
+		const auto captured = engine->trackInputBuffer(id);
+		QCOMPARE(captured.channels(), ch_cnt_t{1});
+		QCOMPARE(captured.frames(), frames);
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			QCOMPARE(captured.bufferPtr(0)[frame], samples[frame]);
+		}
+		QCOMPARE(engine->trackInputDroppedFrames(id), std::uint64_t{0});
+		engine->unregisterTrackInput(id);
+	}
 };
 
 QTEST_GUILESS_MAIN(AudioEngineTrackInputTest)

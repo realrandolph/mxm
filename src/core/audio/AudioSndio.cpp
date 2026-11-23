@@ -218,7 +218,7 @@ auto AudioSndio::inputSources() const -> std::vector<AudioInputSource>
 	sources.push_back(makeAudioInputSource(
 		QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
 		CaptureChannels,
-		{QString::fromLatin1(SystemDefaultInputSourceId)}));
+		{QString::fromLatin1(SystemDefaultInputSourceId)}, true));
 	return sources;
 }
 
@@ -262,11 +262,15 @@ void AudioSndio::setTrackInputSource(quint64 id, const QStringList& endpointPort
 	auto& capture = *found->second;
 	stopTrackCapture(capture);
 	capture.device.reset();
-	audioEngine()->setTrackInputCaptureFailed(id, false);
-	if (endpointPorts.isEmpty()) { return; }
+	if (endpointPorts.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
 
 	const auto endpoint = endpointPorts.front();
 	capture.device = endpoint == QStringLiteral("system-default") ? QString{} : endpoint;
+	audioEngine()->setTrackInputCaptureFailed(id, true);
 	if (AudioDevice::isRunning()) { startTrackCapture(capture); }
 }
 
@@ -323,6 +327,8 @@ void AudioSndio::captureThread(TrackCapture& capture)
 		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
 		return;
 	}
+	capture.engine->setTrackInputChannels(capture.trackId, channels);
+	capture.engine->setTrackInputCaptureFailed(capture.trackId, false);
 
 	std::vector<int16_t> integerFrames(static_cast<std::size_t>(framesPerRead) * channels);
 	std::vector<float> interleaved(integerFrames.size());

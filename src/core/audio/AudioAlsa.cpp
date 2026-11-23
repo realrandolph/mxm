@@ -50,11 +50,21 @@ namespace mxm
 
 struct AudioAlsa::TrackCapture
 {
-	AudioEngine* engine = nullptr;
 	quint64 trackId = 0;
 	QString device;
+	DeviceCapture* capture = nullptr;
+};
+
+struct AudioAlsa::DeviceCapture
+{
+	AudioEngine* engine = nullptr;
+	QString device;
 	std::atomic_bool stop{false};
+	std::atomic_bool running{false};
 	std::thread reader;
+	std::mutex subscribersMutex;
+	std::vector<TrackCapture*> subscribers;
+	ch_cnt_t channels = 0;
 };
 
 namespace
@@ -139,7 +149,7 @@ auto openCaptureStream(const QString& device, sample_rate_t rate, f_cnt_t period
 	}};
 	for (const auto& [format, integer] : formats)
 	{
-		for (const auto channels : {CaptureChannels, ch_cnt_t{1}})
+		for (auto channels = ch_cnt_t{8}; channels > 0; --channels)
 		{
 			if (!configureCapture(stream.handle, format, channels, rate, periodFrames))
 			{
@@ -228,6 +238,7 @@ AudioAlsa::AudioAlsa( bool & _success_ful, AudioEngine*  _audioEngine ) :
 AudioAlsa::~AudioAlsa()
 {
 	stopTrackCaptures();
+	m_deviceCaptures.clear();
 
 	if( m_handle != nullptr )
 	{
@@ -319,7 +330,7 @@ auto AudioAlsa::inputSources() const -> std::vector<AudioInputSource>
 	{
 		sources.push_back(makeAudioInputSource(
 			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
-			CaptureChannels, {QString::fromLatin1(SystemDefaultInputSourceId)}));
+			CaptureChannels, {QString::fromLatin1(SystemDefaultInputSourceId)}, true));
 	}
 
 	char** hints = nullptr;
@@ -341,7 +352,7 @@ auto AudioAlsa::inputSources() const -> std::vector<AudioInputSource>
 				QStringLiteral("alsa-pcm:") + deviceName,
 				hintLabel(name, description),
 				CaptureChannels,
-				{deviceName}));
+				{deviceName}, true));
 		}
 
 		free(name);
@@ -366,7 +377,6 @@ auto AudioAlsa::registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t
 
 	unregisterTrackInputPort(id);
 	auto capture = std::make_unique<TrackCapture>();
-	capture->engine = audioEngine();
 	capture->trackId = id;
 	return m_trackCaptures.emplace(id, std::move(capture)).second;
 }
@@ -378,7 +388,7 @@ void AudioAlsa::unregisterTrackInputPort(quint64 id)
 {
 	const auto found = m_trackCaptures.find(id);
 	if (found == m_trackCaptures.end()) { return; }
-	stopTrackCapture(*found->second);
+	detachTrackCapture(*found->second);
 	m_trackCaptures.erase(found);
 }
 
@@ -391,31 +401,95 @@ void AudioAlsa::setTrackInputSource(quint64 id, const QStringList& endpointPorts
 	if (found == m_trackCaptures.end()) { return; }
 
 	auto& capture = *found->second;
-	stopTrackCapture(capture);
-	capture.device = endpointPorts.isEmpty() ? QString{}
+	detachTrackCapture(capture);
+	const auto device = endpointPorts.isEmpty() ? QString{}
 		: endpointPorts.front() == QLatin1String(SystemDefaultInputSourceId)
 			? QStringLiteral("default") : endpointPorts.front();
-	audioEngine()->setTrackInputCaptureFailed(id, false);
-	if (!capture.device.isEmpty() && AudioDevice::isRunning())
+	if (device.isEmpty())
 	{
-		startTrackCapture(capture);
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
 	}
+	capture.device = device;
+	auto deviceIt = m_deviceCaptures.find(device);
+	if (deviceIt == m_deviceCaptures.end())
+	{
+		auto deviceCapture = std::make_unique<DeviceCapture>();
+		deviceCapture->engine = audioEngine();
+		deviceCapture->device = device;
+		deviceCapture->subscribers.push_back(&capture);
+		capture.capture = deviceCapture.get();
+		deviceIt = m_deviceCaptures.emplace(device, std::move(deviceCapture)).first;
+	}
+	else
+	{
+		auto& shared = *deviceIt->second;
+		const auto lock = std::lock_guard{shared.subscribersMutex};
+		shared.subscribers.push_back(&capture);
+		capture.capture = &shared;
+		if (shared.channels > 0)
+		{
+			audioEngine()->setTrackInputChannels(id, shared.channels);
+			audioEngine()->setTrackInputCaptureFailed(id, false);
+		}
+	}
+	if (AudioDevice::isRunning()) { startDeviceCapture(*deviceIt->second); }
 }
 
 
 
 
-void AudioAlsa::startTrackCapture(TrackCapture& capture)
+void AudioAlsa::detachTrackCapture(TrackCapture& capture)
 {
-	if (capture.device.isEmpty() || capture.reader.joinable()) { return; }
+	if (!capture.capture) { capture.device.clear(); return; }
+	auto* deviceCapture = capture.capture;
+	{
+		const auto lock = std::lock_guard{deviceCapture->subscribersMutex};
+		std::erase(deviceCapture->subscribers, &capture);
+	}
+	capture.capture = nullptr;
+	capture.device.clear();
+	if (!deviceCapture->subscribers.empty()) { return; }
+	stopDeviceCapture(*deviceCapture);
+	m_deviceCaptures.erase(deviceCapture->device);
+}
+
+
+
+
+void AudioAlsa::startDeviceCapture(DeviceCapture& capture)
+{
+	if (capture.reader.joinable())
+	{
+		if (capture.running.load(std::memory_order_acquire)) { return; }
+		capture.reader.join();
+	}
 	capture.stop.store(false, std::memory_order_release);
+	capture.running.store(true, std::memory_order_release);
 	capture.reader = std::thread(&AudioAlsa::captureThread, this, std::ref(capture));
 }
 
 
 
 
-void AudioAlsa::stopTrackCapture(TrackCapture& capture)
+void AudioAlsa::stopTrackCaptures()
+{
+	for (auto& [device, capture] : m_deviceCaptures)
+	{
+		Q_UNUSED(device);
+		capture->stop.store(true, std::memory_order_release);
+	}
+	for (auto& [device, capture] : m_deviceCaptures)
+	{
+		Q_UNUSED(device);
+		if (capture->reader.joinable()) { capture->reader.join(); }
+	}
+}
+
+
+
+
+void AudioAlsa::stopDeviceCapture(DeviceCapture& capture)
 {
 	capture.stop.store(true, std::memory_order_release);
 	if (capture.reader.joinable()) { capture.reader.join(); }
@@ -424,24 +498,7 @@ void AudioAlsa::stopTrackCapture(TrackCapture& capture)
 
 
 
-void AudioAlsa::stopTrackCaptures()
-{
-	for (auto& [id, capture] : m_trackCaptures)
-	{
-		Q_UNUSED(id);
-		capture->stop.store(true, std::memory_order_release);
-	}
-	for (auto& [id, capture] : m_trackCaptures)
-	{
-		Q_UNUSED(id);
-		if (capture->reader.joinable()) { capture->reader.join(); }
-	}
-}
-
-
-
-
-void AudioAlsa::captureThread(TrackCapture& capture)
+void AudioAlsa::captureThread(DeviceCapture& capture)
 {
 	const auto framesPerRead = std::max<f_cnt_t>(audioEngine()->framesPerAudioBuffer(), 1);
 	auto stream = openCaptureStream(capture.device, sampleRate(), framesPerRead);
@@ -449,10 +506,24 @@ void AudioAlsa::captureThread(TrackCapture& capture)
 	if (pcm == nullptr)
 	{
 		qWarning("ALSA: cannot open capture device '%s'", qUtf8Printable(capture.device));
-		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputCaptureFailed(track->trackId, true);
+		}
+		capture.running.store(false, std::memory_order_release);
 		return;
 	}
-
+	{
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = stream.channels;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputChannels(track->trackId, stream.channels);
+			capture.engine->setTrackInputCaptureFailed(track->trackId, false);
+		}
+	}
 	snd_pcm_start(pcm);
 
 	std::vector<float> interleaved(static_cast<std::size_t>(framesPerRead) * stream.channels);
@@ -537,16 +608,31 @@ void AudioAlsa::captureThread(TrackCapture& capture)
 			}
 		}
 
-		capture.engine->pushTrackInputFrames(capture.trackId,
-			InterleavedBufferView<const float>{interleaved.data(), stream.channels,
-				static_cast<f_cnt_t>(framesRead)});
+		const auto frames = static_cast<f_cnt_t>(framesRead);
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->pushTrackInputFrames(track->trackId,
+				InterleavedBufferView<const float>{interleaved.data(), stream.channels, frames});
+		}
 	}
 
 	snd_pcm_close(pcm);
 	if (!capture.stop.load(std::memory_order_acquire) && AudioDevice::isRunning())
 	{
-		capture.engine->setTrackInputCaptureFailed(capture.trackId, true);
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+		for (const auto* track : capture.subscribers)
+		{
+			capture.engine->setTrackInputCaptureFailed(track->trackId, true);
+		}
 	}
+	else
+	{
+		const auto lock = std::lock_guard{capture.subscribersMutex};
+		capture.channels = 0;
+	}
+	capture.running.store(false, std::memory_order_release);
 }
 
 
@@ -595,10 +681,10 @@ int AudioAlsa::handleError( int _err )
 void AudioAlsa::startProcessingImpl()
 {
 	start(QThread::HighPriority);
-	for (auto& [id, capture] : m_trackCaptures)
+	for (auto& [device, capture] : m_deviceCaptures)
 	{
-		Q_UNUSED(id);
-		startTrackCapture(*capture);
+		Q_UNUSED(device);
+		startDeviceCapture(*capture);
 	}
 }
 

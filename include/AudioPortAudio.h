@@ -103,7 +103,9 @@ private:
 	void checkStreamStatus();
 
 	struct TrackInput;
-	void closeTrackInput(TrackInput& input);
+	struct InputDeviceCapture;
+	void detachTrackInput(TrackInput& input);
+	void closeInputDevice(InputDeviceCapture& capture);
 
 	detail::PortAudioInitializationGuard m_initGuard;
 	PaStream* m_paStream = nullptr;
@@ -111,6 +113,7 @@ private:
 	std::atomic_bool m_streamFinishedReported{false};
 	QTimer m_streamMonitor;
 	std::unordered_map<quint64, std::unique_ptr<TrackInput>> m_trackInputs;
+	std::unordered_map<PaDeviceIndex, std::unique_ptr<InputDeviceCapture>> m_inputDevices;
 };
 } // namespace mxm
 

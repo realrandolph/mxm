@@ -263,6 +263,15 @@ void SampleTrack::setInputAssignment(const QString& sourceId)
 	const auto normalized = sourceId.trimmed().isEmpty()
 		? QString::fromLatin1(SystemDefaultInputSourceId) : sourceId.trimmed();
 	if (m_inputSourceId == normalized) { return; }
+	if (isRecording())
+	{
+		if (Engine::getSong())
+		{
+			Engine::getSong()->collectError(tr("Cannot change the input for \"%1\" during a take.").arg(name()));
+		}
+		emit inputAssignmentChanged();
+		return;
+	}
 
 	m_inputSourceId = normalized;
 	if (m_trackInputId != 0 && Engine::audioEngine())
@@ -373,6 +382,22 @@ bool SampleTrack::startRecording()
 	// Snapshot the physical assignment at take start. Device or assignment
 	// changes mid-take must never silently remap the recording to another source.
 	auto takeSource = *source;
+	if (takeSource.channelsFollowCapture)
+	{
+		const auto channels = engine->trackInputChannels(m_trackInputId);
+		if (channels == 0)
+		{
+			if (Engine::getSong())
+			{
+				Engine::getSong()->collectError(tr("Cannot record on \"%1\": the input channel layout is unavailable.")
+					.arg(name()));
+			}
+			return false;
+		}
+		takeSource.channels = channels;
+		takeSource.layout = channels == 1 ? AudioChannelLayout::mono()
+			: channels == 2 ? AudioChannelLayout::stereo() : AudioChannelLayout::discrete(channels);
+	}
 	auto firstInputChannel = ch_cnt_t{0};
 	auto destinationChannels = std::vector<ch_cnt_t>{};
 	auto captureLayout = AudioChannelLayout{};
@@ -501,9 +526,10 @@ float SampleTrack::inputPeak() const
 
 	const auto input = engine->trackInputBuffer(m_trackInputId);
 	if (input.empty()) { return 0.f; }
+	const auto channels = source->channelsFollowCapture ? input.channels() : source->channels;
 
 	auto peak = 0.f;
-	for (ch_cnt_t channel = 0; channel < source->channels; ++channel)
+	for (ch_cnt_t channel = 0; channel < channels; ++channel)
 	{
 		const auto* data = input.bufferPtr(channel);
 		for (f_cnt_t frame = 0; frame < input.frames(); ++frame)

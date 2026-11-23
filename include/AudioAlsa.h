@@ -37,6 +37,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -107,11 +108,13 @@ private:
 	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
 
 	struct TrackCapture;
+	struct DeviceCapture;
 
-	void startTrackCapture(TrackCapture& capture);
-	void stopTrackCapture(TrackCapture& capture);
+	void detachTrackCapture(TrackCapture& capture);
+	void startDeviceCapture(DeviceCapture& capture);
+	void stopDeviceCapture(DeviceCapture& capture);
 	void stopTrackCaptures();
-	void captureThread(TrackCapture& capture);
+	void captureThread(DeviceCapture& capture);
 
 	int setHWParams( const ch_cnt_t _channels, snd_pcm_access_t _access );
 	int setSWParams();
@@ -131,6 +134,7 @@ private:
 	std::atomic_bool m_disconnectionReported{false};
 
 	std::unordered_map<quint64, std::unique_ptr<TrackCapture>> m_trackCaptures;
+	std::unordered_map<QString, std::unique_ptr<DeviceCapture>> m_deviceCaptures;
 } ;
 
 } // namespace mxm

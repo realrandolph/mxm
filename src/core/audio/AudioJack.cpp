@@ -469,7 +469,7 @@ auto AudioJack::inputSources() const -> std::vector<AudioInputSource>
 		const auto channels = static_cast<ch_cnt_t>(defaultPorts.size());
 		sources.push_back(makeAudioInputSource(
 			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"),
-			channels, defaultPorts));
+			channels, defaultPorts, true));
 	}
 
 	for (auto it = portsByClient.cbegin(); it != portsByClient.cend(); ++it)

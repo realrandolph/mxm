@@ -60,7 +60,17 @@ private slots:
 			QVERIFY(source.id == QString::fromLatin1(SystemDefaultInputSourceId)
 				|| source.id.startsWith(QStringLiteral("portaudio:")));
 			QVERIFY(source.channels == 1 || source.channels == 2);
-			QVERIFY(source.endpointPorts == QStringList{source.id});
+			QVERIFY(!source.endpointPorts.empty());
+			if (source.endpointPorts.size() == 1)
+			{
+				QVERIFY(source.endpointPorts.front() == source.id);
+			}
+			else
+			{
+				QVERIFY(source.endpointPorts.size() == static_cast<qsizetype>(source.channels + 1));
+				QVERIFY(source.endpointPorts.front() != source.id
+					|| source.id == QString::fromLatin1(SystemDefaultInputSourceId));
+			}
 			QVERIFY(!source.displayName.isEmpty());
 			QVERIFY(!ids.contains(source.id));
 			QVERIFY(!labels.contains(source.displayName));

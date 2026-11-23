@@ -41,9 +41,12 @@ track records silence and reports the problem when recording stops.
 
 ## Backend behavior
 
-SDL and PortAudio enumerate capture devices and open the selected device for
-each assigned track. ALSA enumerates capture-capable PCM devices and captures
-each assignment on a reader thread. PulseAudio enumerates named sources,
+SDL enumerates capture devices and opens the selected device per track, using
+the channel count reported by the opened device. PortAudio shares one capture
+stream per selected device, and offers mono inputs and every stereo channel
+pair (up to eight hardware channels). ALSA enumerates capture-capable PCM
+devices and captures each assignment on a reader thread, preserving the
+channel count accepted by the PCM device. PulseAudio enumerates named sources,
 including explicitly labeled sink-monitor/loopback sources. Sndio exposes its
 configured/default capture endpoint when available. JACK enumerates each
 source port as a mono choice and every pair of ports as a stereo choice,

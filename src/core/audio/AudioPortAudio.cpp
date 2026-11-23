@@ -131,7 +131,7 @@ auto findInputDevice(const QString& id) -> PaDeviceIndex
 	return paNoDevice;
 }
 
-constexpr auto MaxTrackInputChannels = mxm::ch_cnt_t{2};
+constexpr auto MaxTrackInputChannels = mxm::ch_cnt_t{8};
 
 } // namespace
 
@@ -141,8 +141,17 @@ struct AudioPortAudio::TrackInput
 {
 	AudioEngine* engine = nullptr;
 	quint64 trackId = 0;
+	PaDeviceIndex device = paNoDevice;
+	std::vector<ch_cnt_t> sourceChannels;
+	std::vector<float> mappedFrames;
+};
+
+struct AudioPortAudio::InputDeviceCapture
+{
+	PaDeviceIndex device = paNoDevice;
 	PaStream* stream = nullptr;
 	ch_cnt_t channels = 0;
+	std::vector<TrackInput*> subscribers;
 };
 
 AudioPortAudio::AudioPortAudio(bool& successful, AudioEngine* engine)
@@ -248,11 +257,12 @@ AudioPortAudio::~AudioPortAudio()
 {
 	m_streamMonitor.stop();
 	stopProcessing();
-	for (auto& [id, input] : m_trackInputs)
+	for (auto& [device, capture] : m_inputDevices)
 	{
-		Q_UNUSED(id);
-		closeTrackInput(*input);
+		Q_UNUSED(device);
+		closeInputDevice(*capture);
 	}
+	m_inputDevices.clear();
 	m_trackInputs.clear();
 	if (m_paStream) { Pa_CloseStream(m_paStream); }
 }
@@ -260,32 +270,57 @@ AudioPortAudio::~AudioPortAudio()
 void AudioPortAudio::startProcessingImpl()
 {
 	if (m_paStream) { Pa_StartStream(m_paStream); }
-	for (auto& [id, input] : m_trackInputs)
+	for (auto& [device, capture] : m_inputDevices)
 	{
-		Q_UNUSED(id);
-		if (input->stream) { Pa_StartStream(input->stream); }
+		Q_UNUSED(device);
+		if (capture->stream) { Pa_StartStream(capture->stream); }
 	}
 }
 
 void AudioPortAudio::stopProcessingImpl()
 {
 	if (m_paStream) { Pa_StopStream(m_paStream); }
-	for (auto& [id, input] : m_trackInputs)
+	for (auto& [device, capture] : m_inputDevices)
 	{
-		Q_UNUSED(id);
-		if (input->stream) { Pa_StopStream(input->stream); }
+		Q_UNUSED(device);
+		if (capture->stream) { Pa_StopStream(capture->stream); }
 	}
 }
 
-void AudioPortAudio::closeTrackInput(TrackInput& input)
+void AudioPortAudio::closeInputDevice(InputDeviceCapture& capture)
 {
-	if (input.stream)
+	if (capture.stream)
 	{
-		Pa_StopStream(input.stream);
-		Pa_CloseStream(input.stream);
-		input.stream = nullptr;
+		Pa_StopStream(capture.stream);
+		Pa_CloseStream(capture.stream);
+		capture.stream = nullptr;
 	}
-	input.channels = 0;
+	capture.channels = 0;
+	capture.subscribers.clear();
+}
+
+void AudioPortAudio::detachTrackInput(TrackInput& input)
+{
+	if (input.device == paNoDevice) { return; }
+	const auto found = m_inputDevices.find(input.device);
+	if (found == m_inputDevices.end())
+	{
+		input.device = paNoDevice;
+		return;
+	}
+	auto& capture = *found->second;
+	if (capture.stream) { Pa_StopStream(capture.stream); }
+	std::erase(capture.subscribers, &input);
+	input.device = paNoDevice;
+	if (capture.subscribers.empty())
+	{
+		closeInputDevice(capture);
+		m_inputDevices.erase(found);
+	}
+	else if (isRunning() && capture.stream)
+	{
+		Pa_StartStream(capture.stream);
+	}
 }
 
 auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
@@ -298,10 +333,27 @@ auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
 		if (info && info->maxInputChannels > 0)
 		{
 			const auto channels = static_cast<ch_cnt_t>(
-				std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
+				std::min(info->maxInputChannels, 2));
 			sources.push_back(makeAudioInputSource(
 				QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"), channels,
 				{QString::fromLatin1(SystemDefaultInputSourceId)}));
+			const auto available = std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels));
+			for (auto channel = 0; channel < available; ++channel)
+			{
+				const auto endpoint = QString::number(channel + 1);
+				sources.push_back(makeAudioInputSource(
+					QStringLiteral("portaudio:system:mono:%1").arg(channel + 1),
+					QObject::tr("System Default — Input %1").arg(channel + 1), 1,
+					{QString::fromLatin1(SystemDefaultInputSourceId), endpoint}));
+				for (auto second = channel + 1; second < available; ++second)
+				{
+					sources.push_back(makeAudioInputSource(
+						QStringLiteral("portaudio:system:pair:%1:%2").arg(channel + 1).arg(second + 1),
+						QObject::tr("System Default — Inputs %1 / %2").arg(channel + 1).arg(second + 1), 2,
+						{QString::fromLatin1(SystemDefaultInputSourceId), QString::number(channel + 1),
+							QString::number(second + 1)}));
+				}
+			}
 		}
 	}
 	const auto deviceCount = Pa_GetDeviceCount();
@@ -310,8 +362,7 @@ auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
 		const auto* info = Pa_GetDeviceInfo(index);
 		if (!info || info->maxInputChannels <= 0) { continue; }
 
-		const auto channels = static_cast<ch_cnt_t>(
-			std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
+		const auto channels = static_cast<ch_cnt_t>(std::min(info->maxInputChannels, 2));
 		const auto id = inputSourceId(index);
 		const auto label = inputSourceLabel(index);
 		sources.push_back(makeAudioInputSource(
@@ -319,13 +370,28 @@ auto AudioPortAudio::inputSources() const -> std::vector<AudioInputSource>
 			label,
 			channels,
 			{id}));
+		const auto available = std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels));
+		for (auto channel = 0; channel < available; ++channel)
+		{
+			sources.push_back(makeAudioInputSource(
+				id + QStringLiteral(":mono:%1").arg(channel + 1),
+				QStringLiteral("%1 — Input %2").arg(label).arg(channel + 1), 1,
+				{id, QString::number(channel + 1)}));
+			for (auto second = channel + 1; second < available; ++second)
+			{
+				sources.push_back(makeAudioInputSource(
+					id + QStringLiteral(":pair:%1:%2").arg(channel + 1).arg(second + 1),
+					QStringLiteral("%1 — Inputs %2 / %3").arg(label).arg(channel + 1).arg(second + 1), 2,
+					{id, QString::number(channel + 1), QString::number(second + 1)}));
+			}
+		}
 	}
 	return sources;
 }
 
 auto AudioPortAudio::registerTrackInputPort(quint64 id, const QString&, ch_cnt_t channels) -> bool
 {
-	if (id == 0 || channels != MaxTrackInputChannels) { return false; }
+	if (id == 0 || channels != 2) { return false; }
 	unregisterTrackInputPort(id);
 
 	auto input = std::make_unique<TrackInput>();
@@ -338,7 +404,7 @@ void AudioPortAudio::unregisterTrackInputPort(quint64 id)
 {
 	const auto found = m_trackInputs.find(id);
 	if (found == m_trackInputs.end()) { return; }
-	closeTrackInput(*found->second);
+	detachTrackInput(*found->second);
 	m_trackInputs.erase(found);
 }
 
@@ -347,7 +413,7 @@ void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpoint
 	const auto found = m_trackInputs.find(id);
 	if (found == m_trackInputs.end()) { return; }
 	auto& input = *found->second;
-	closeTrackInput(input);
+	detachTrackInput(input);
 	if (endpointPorts.isEmpty())
 	{
 		audioEngine()->setTrackInputCaptureFailed(id, false);
@@ -365,39 +431,88 @@ void AudioPortAudio::setTrackInputSource(quint64 id, const QStringList& endpoint
 		return;
 	}
 
-	const auto channels = static_cast<ch_cnt_t>(
+	const auto captureChannels = static_cast<ch_cnt_t>(
 		std::min(info->maxInputChannels, static_cast<int>(MaxTrackInputChannels)));
-	const auto inputParameters = PaStreamParameters {
-		.device = deviceIndex,
-		.channelCount = channels,
-		.sampleFormat = paFloat32,
-		.suggestedLatency = info->defaultLowInputLatency,
-		.hostApiSpecificStreamInfo = nullptr
-	};
-
-	auto err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate());
-	if (err != paFormatIsSupported)
+	if (captureChannels == 0)
 	{
-		std::cerr << "PortAudio: input format not supported for "
-			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+		audioEngine()->setTrackInputCaptureFailed(id, true);
+		return;
+	}
+	input.sourceChannels.clear();
+	for (qsizetype i = 1; i < endpointPorts.size(); ++i)
+	{
+		bool ok = false;
+		const auto channel = static_cast<ch_cnt_t>(endpointPorts[i].toUInt(&ok));
+		if (!ok || channel == 0 || channel > captureChannels)
+		{
+			audioEngine()->setTrackInputCaptureFailed(id, true);
+			return;
+		}
+		input.sourceChannels.push_back(channel - 1);
+	}
+	if (input.sourceChannels.empty())
+	{
+		input.sourceChannels.push_back(0);
+		if (captureChannels > 1) { input.sourceChannels.push_back(1); }
+	}
+	input.mappedFrames.resize(static_cast<std::size_t>(audioEngine()->framesPerAudioBuffer()) * 2);
+	auto captureIt = m_inputDevices.find(deviceIndex);
+	if (captureIt == m_inputDevices.end())
+	{
+		auto capture = std::make_unique<InputDeviceCapture>();
+		capture->device = deviceIndex;
+		capture->channels = captureChannels;
+		const auto inputParameters = PaStreamParameters {
+			.device = deviceIndex,
+			.channelCount = captureChannels,
+			.sampleFormat = paFloat32,
+			.suggestedLatency = info->defaultLowInputLatency,
+			.hostApiSpecificStreamInfo = nullptr
+		};
+
+		auto err = Pa_IsFormatSupported(&inputParameters, nullptr, sampleRate());
+		if (err != paFormatIsSupported)
+		{
+			std::cerr << "PortAudio: input format not supported for "
+				<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+			audioEngine()->setTrackInputCaptureFailed(id, true);
+			return;
+		}
+
+		err = Pa_OpenStream(&capture->stream, &inputParameters, nullptr, sampleRate(),
+			audioEngine()->framesPerPeriod(), paNoFlag, &AudioPortAudio::trackInputCallback, capture.get());
+		if (err != paNoError)
+		{
+			std::cerr << "PortAudio: could not open input "
+				<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+			audioEngine()->setTrackInputCaptureFailed(id, true);
+			return;
+		}
+		captureIt = m_inputDevices.emplace(deviceIndex, std::move(capture)).first;
+	}
+	else if (captureIt->second->channels != captureChannels)
+	{
 		audioEngine()->setTrackInputCaptureFailed(id, true);
 		return;
 	}
 
-	err = Pa_OpenStream(&input.stream, &inputParameters, nullptr, sampleRate(),
-		audioEngine()->framesPerPeriod(), paNoFlag, &AudioPortAudio::trackInputCallback, &input);
-	if (err != paNoError)
-	{
-		std::cerr << "PortAudio: could not open input "
-			<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
-		input.stream = nullptr;
-		audioEngine()->setTrackInputCaptureFailed(id, true);
-		return;
-	}
-
-	input.channels = channels;
+	input.device = deviceIndex;
+	auto& sharedCapture = *captureIt->second;
+	const auto wasActive = Pa_IsStreamActive(sharedCapture.stream) == 1;
+	if (wasActive) { Pa_StopStream(sharedCapture.stream); }
+	sharedCapture.subscribers.push_back(&input);
 	audioEngine()->setTrackInputCaptureFailed(id, false);
-	if (isRunning()) { Pa_StartStream(input.stream); }
+	if (isRunning() && Pa_IsStreamActive(sharedCapture.stream) != 1)
+	{
+		const auto err = Pa_StartStream(sharedCapture.stream);
+		if (err != paNoError)
+		{
+			std::cerr << "PortAudio: could not start input "
+				<< endpointPorts.front().toStdString() << ": " << Pa_GetErrorText(err) << '\n';
+			detachTrackInput(input);
+			audioEngine()->setTrackInputCaptureFailed(id, true);
+		}
+	}
 }
 
 void AudioPortAudio::streamFinishedCallback(void* userData)
@@ -445,12 +560,33 @@ int AudioPortAudio::processCallback(const void*, void* output, unsigned long fra
 int AudioPortAudio::trackInputCallback(const void* input, void*, unsigned long frameCount,
 	const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* userData)
 {
-	auto& inputState = *static_cast<TrackInput*>(userData);
-	if (input && inputState.channels > 0)
+	auto& capture = *static_cast<InputDeviceCapture*>(userData);
+	if (!input || capture.channels == 0)
 	{
-		inputState.engine->pushTrackInputFrames(inputState.trackId,
-			InterleavedBufferView<const float>{static_cast<const float*>(input),
-				inputState.channels, frameCount});
+		return paContinue;
+	}
+
+	const auto* source = static_cast<const float*>(input);
+	for (auto* inputState : capture.subscribers)
+	{
+		if (!inputState || inputState->sourceChannels.empty()) { continue; }
+		const auto scratchFrames = static_cast<f_cnt_t>(inputState->mappedFrames.size() / 2);
+		for (unsigned long offset = 0; offset < frameCount;)
+		{
+			const auto frames = static_cast<f_cnt_t>(std::min<unsigned long>(
+				frameCount - offset, scratchFrames));
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				const auto* sourceFrame = source + (offset + frame) * capture.channels;
+				const auto scratchIndex = static_cast<std::size_t>(frame) * 2;
+				inputState->mappedFrames[scratchIndex] = sourceFrame[inputState->sourceChannels[0]];
+				inputState->mappedFrames[scratchIndex + 1] = inputState->sourceChannels.size() > 1
+					? sourceFrame[inputState->sourceChannels[1]] : 0.f;
+			}
+			inputState->engine->pushTrackInputFrames(inputState->trackId,
+				InterleavedBufferView<const float>{inputState->mappedFrames.data(), 2, frames});
+			offset += frames;
+		}
 	}
 	return paContinue;
 }

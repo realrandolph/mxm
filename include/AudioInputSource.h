@@ -53,6 +53,8 @@ struct MXM_EXPORT AudioInputSource
 	ch_cnt_t channels = 0;
 	AudioChannelLayout layout;
 	QStringList endpointPorts;
+	//! The backend reports the selected source's actual channels after opening it.
+	bool channelsFollowCapture = false;
 
 	auto valid() const -> bool
 	{
@@ -61,7 +63,7 @@ struct MXM_EXPORT AudioInputSource
 };
 
 MXM_EXPORT auto makeAudioInputSource(QString id, QString displayName,
-	ch_cnt_t channels, QStringList endpointPorts) -> AudioInputSource;
+	ch_cnt_t channels, QStringList endpointPorts, bool channelsFollowCapture = false) -> AudioInputSource;
 
 /**
  * @brief Views selected channels in one track's capture block.

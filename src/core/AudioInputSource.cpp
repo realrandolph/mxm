@@ -28,11 +28,12 @@ namespace mxm
 {
 
 auto makeAudioInputSource(QString id, QString displayName, ch_cnt_t channels,
-	QStringList endpointPorts) -> AudioInputSource
+	QStringList endpointPorts, bool channelsFollowCapture) -> AudioInputSource
 {
 	const auto layout = channels == 1 ? AudioChannelLayout::mono()
 		: channels == 2 ? AudioChannelLayout::stereo() : AudioChannelLayout::discrete(channels);
-	return {std::move(id), std::move(displayName), channels, layout, std::move(endpointPorts)};
+	return {std::move(id), std::move(displayName), channels, layout,
+		std::move(endpointPorts), channelsFollowCapture};
 }
 
 auto inputSourceView(PlanarBufferView<const float> input, const AudioInputSource& source,

@@ -37,6 +37,7 @@
 #include "AudioBufferView.h"
 #include "AudioEngine.h"
 #include "ConfigManager.h"
+#include "mxm_constants.h"
 
 namespace mxm
 {
@@ -219,7 +220,7 @@ auto AudioSdl::inputSources() const -> std::vector<AudioInputSource>
 	{
 		sources.push_back(makeAudioInputSource(
 			QString::fromLatin1(SystemDefaultInputSourceId), QObject::tr("System Default"), 2,
-			{QString::fromLatin1(SystemDefaultInputSourceId)}));
+			{QString::fromLatin1(SystemDefaultInputSourceId)}, true));
 	}
 	const auto count = SDL_GetNumAudioDevices(1);
 	for (int index = 0; index < count; ++index)
@@ -231,7 +232,7 @@ auto AudioSdl::inputSources() const -> std::vector<AudioInputSource>
 			QStringLiteral("sdl:") + deviceName,
 			deviceName,
 			2,
-			{deviceName}));
+			{deviceName}, true));
 	}
 	return sources;
 }
@@ -281,7 +282,8 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 	SDL_AudioSpec actual{};
 	capture.device = SDL_OpenAudioDevice(useDefault ? nullptr : deviceName.constData(), 1, &desired, &actual,
 		SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
-	if (capture.device == 0 || actual.format != AUDIO_F32SYS || actual.channels == 0)
+	if (capture.device == 0 || actual.format != AUDIO_F32SYS || actual.channels == 0
+		|| actual.channels > MaxChannelsPerAudioBuffer)
 	{
 		qWarning("Couldn't open SDL capture device '%s': %s", deviceName.constData(), SDL_GetError());
 		if (capture.device != 0) { SDL_CloseAudioDevice(capture.device); }
@@ -290,6 +292,7 @@ void AudioSdl::setTrackInputSource(quint64 id, const QStringList& endpointPorts)
 		return;
 	}
 	capture.inputChannels = actual.channels;
+	audioEngine()->setTrackInputChannels(id, capture.inputChannels);
 	audioEngine()->setTrackInputCaptureFailed(id, false);
 	if (isRunning()) { SDL_PauseAudioDevice(capture.device, 0); }
 }
