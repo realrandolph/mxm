@@ -337,8 +337,13 @@ void AudioEngine::pushTrackInputFrames(quint64 id, PlanarBufferView<const float>
 		return candidate.id.load(std::memory_order_acquire) == id;
 	});
 	auto* slot = found == m_trackInputs.end() ? nullptr : &*found;
-	if (!slot || !slot->queue || slot->queueBlockFrames == 0 || frames.channels() != slot->channels)
+	if (!slot || !slot->queue || slot->queueBlockFrames == 0)
 	{
+		return;
+	}
+	if (frames.channels() != slot->channels)
+	{
+		slot->droppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
 		return;
 	}
 
@@ -360,16 +365,20 @@ void AudioEngine::pushTrackInputFrames(quint64 id, InterleavedBufferView<const f
 		return slot.id.load(std::memory_order_acquire) == id;
 	});
 	if (found == m_trackInputs.end() || !found->queue || found->queueBlockFrames == 0) { return; }
+	if (frames.channels() != found->channels)
+	{
+		found->droppedFrames.fetch_add(frames.frames(), std::memory_order_relaxed);
+		return;
+	}
 
 	enqueueTrackInputBlocks(*found, frames.frames(), InputCaptureBlocks,
 		[&](std::uint32_t write, f_cnt_t frameOffset, f_cnt_t copied) {
 			for (ch_cnt_t channel = 0; channel < found->channels; ++channel)
 			{
-				const auto inputChannel = std::min<ch_cnt_t>(channel, frames.channels() - 1);
 				auto* destination = found->queue->buffer(channel).data() + write * found->queueBlockFrames;
 				for (f_cnt_t frame = 0; frame < copied; ++frame)
 				{
-					destination[frame] = frames.framePtr(frameOffset + frame)[inputChannel];
+					destination[frame] = frames.framePtr(frameOffset + frame)[channel];
 				}
 			}
 		});

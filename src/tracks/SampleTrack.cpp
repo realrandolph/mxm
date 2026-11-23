@@ -447,7 +447,10 @@ void SampleTrack::stopRecording(bool stopTransport)
 			{
 				// Wait for an in-flight audio period to finish before the writer
 				// is stopped, so no accepted block can be published afterwards.
-				const auto guard = Engine::audioEngine()->requestChangesGuard();
+				// Keep the audio-thread guard out of the disk flush and WAV decode.
+				{
+					const auto guard = Engine::audioEngine()->requestChangesGuard();
+				}
 				recorded = m_recordingSession->capture->finish();
 				const auto engineDropped = Engine::audioEngine()->trackInputDroppedFrames(
 					m_recordingSession->trackInputId) - m_recordingSession->engineDroppedAtStart;

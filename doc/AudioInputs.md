@@ -61,5 +61,9 @@ If the selected device fails to open, or its capture reader exits, recording
 does not start a silently discarded empty take. The failure is reported through
 the track input status and the existing unavailable-input error.
 
+Capture blocks must match the registered channel count. A mismatched block is
+rejected in full and counted as dropped frames; mono is not duplicated and
+extra channels are not silently truncated.
+
 Shared synchronized recording and the final multi-track start/stop flow belong
 to #50. Full surround routing remains in #63.

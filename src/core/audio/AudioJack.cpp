@@ -36,6 +36,7 @@
 #include <QMessageBox>
 #include <QToolButton>
 #include <QStringList>
+#include <QVector>
 
 #include "AudioBufferView.h"
 #include "AudioEngine.h"
@@ -511,18 +512,45 @@ void AudioJack::setTrackInputSource(quint64 id, const QStringList& endpointPorts
 		}
 	}
 	found->endpointPorts.clear();
+	if (endpointPorts.isEmpty())
+	{
+		audioEngine()->setTrackInputCaptureFailed(id, false);
+		return;
+	}
 
 	const auto channelCount = std::min(static_cast<std::size_t>(endpointPorts.size()), found->ports.size());
+	auto failed = endpointPorts.size() > static_cast<qsizetype>(found->ports.size());
+	auto newConnections = QVector<QPair<QString, QString>>{};
 	for (std::size_t channel = 0; channel < channelCount; ++channel)
 	{
 		const auto source = endpointPorts[channel].toUtf8();
-		if (jack_port_by_name(m_client, source.constData()) == nullptr) { continue; }
+		if (jack_port_by_name(m_client, source.constData()) == nullptr)
+		{
+			failed = true;
+			break;
+		}
 		const auto result = jack_connect(m_client, source.constData(), jack_port_name(found->ports[channel]));
 		if (result == 0 || result == EEXIST)
 		{
 			found->endpointPorts.append(endpointPorts[channel]);
+			newConnections.append({endpointPorts[channel],
+				QString::fromUtf8(jack_port_name(found->ports[channel]))});
+		}
+		else
+		{
+			failed = true;
+			break;
 		}
 	}
+	if (failed)
+	{
+		for (const auto& [source, destination] : newConnections)
+		{
+			jack_disconnect(m_client, source.toUtf8().constData(), destination.toUtf8().constData());
+		}
+		found->endpointPorts.clear();
+	}
+	audioEngine()->setTrackInputCaptureFailed(id, failed);
 }
 
 
@@ -607,6 +635,10 @@ void AudioJack::renameTrackInputPort(quint64 id, const QString& name)
 
 int AudioJack::processCallback(jack_nframes_t nframes)
 {
+	// Hold model-owned JACK port structures stable through render and capture
+	// publication. renderNextBuffer takes this recursive guard as well.
+	const auto guard = audioEngine()->requestChangesGuard();
+
 	// do midi processing first so that midi input can
 	// add to the following sound processing
 	if (m_midiClient && nframes > 0)
@@ -649,8 +681,6 @@ int AudioJack::processCallback(jack_nframes_t nframes)
 		audioEngine()->renderNextBuffer({m_tempOutBufs, channels(), nframes});
 	}
 
-	const auto guard = audioEngine()->tryRequestChangesGuard();
-	if (!guard) { return 0; }
 	for (auto it = m_trackInputPorts.begin(); it != m_trackInputPorts.end(); ++it)
 	{
 		const auto frames = std::min<jack_nframes_t>(nframes, m_bufferFrames);

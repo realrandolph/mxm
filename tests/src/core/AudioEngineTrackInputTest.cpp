@@ -87,6 +87,74 @@ private slots:
 		QVERIFY(engine->trackInputBuffer(id).empty());
 		QVERIFY(!engine->trackInputSource(id, QStringLiteral("Guitar")).has_value());
 	}
+
+	void TrackInput_PreservesEightChannelsAndRejectsMismatches()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		constexpr auto id = quint64{0x51a2};
+		constexpr auto frames = f_cnt_t{12};
+		const auto guard = engine->requestChangesGuard();
+		engine->registerTrackInput(id, QStringLiteral("Multichannel"), 8);
+
+		auto channels = std::array<std::vector<float>, 8>{};
+		auto pointers = std::array<const float*, 8>{};
+		for (ch_cnt_t channel = 0; channel < 8; ++channel)
+		{
+			channels[channel].resize(frames);
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				channels[channel][frame] = static_cast<float>(channel * 100 + frame);
+			}
+			pointers[channel] = channels[channel].data();
+		}
+
+		engine->pushTrackInputFrames(id, {pointers.data(), 8, frames});
+		engine->renderNextPeriod();
+		auto captured = engine->trackInputBuffer(id);
+		QCOMPARE(captured.channels(), ch_cnt_t{8});
+		QCOMPARE(captured.frames(), frames);
+		for (ch_cnt_t channel = 0; channel < 8; ++channel)
+		{
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				QCOMPARE(captured.bufferPtr(channel)[frame], channels[channel][frame]);
+			}
+		}
+
+		auto interleaved = std::vector<float>(static_cast<std::size_t>(frames) * 8);
+		for (f_cnt_t frame = 0; frame < frames; ++frame)
+		{
+			for (ch_cnt_t channel = 0; channel < 8; ++channel)
+			{
+				interleaved[static_cast<std::size_t>(frame) * 8 + channel]
+					= -channels[channel][frame];
+			}
+		}
+		engine->pushTrackInputFrames(id, {interleaved.data(), 8, frames});
+		engine->renderNextPeriod();
+		captured = engine->trackInputBuffer(id);
+		QCOMPARE(captured.channels(), ch_cnt_t{8});
+		QCOMPARE(captured.frames(), frames);
+		for (ch_cnt_t channel = 0; channel < 8; ++channel)
+		{
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				QCOMPARE(captured.bufferPtr(channel)[frame], -channels[channel][frame]);
+			}
+		}
+
+		const auto droppedBefore = engine->trackInputDroppedFrames(id);
+		const auto mono = std::vector<float>(frames, 0.5f);
+		const auto monoPointer = std::array<const float*, 1>{mono.data()};
+		engine->pushTrackInputFrames(id, {monoPointer.data(), 1, frames});
+		engine->pushTrackInputFrames(id, InterleavedBufferView<const float>{mono.data(), 1, frames});
+		QCOMPARE(engine->trackInputDroppedFrames(id), droppedBefore + 2 * frames);
+		engine->renderNextPeriod();
+		QVERIFY(engine->trackInputBuffer(id).empty());
+
+		engine->unregisterTrackInput(id);
+	}
 };
 
 QTEST_GUILESS_MAIN(AudioEngineTrackInputTest)
