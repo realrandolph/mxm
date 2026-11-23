@@ -43,11 +43,11 @@ track records silence and reports the problem when recording stops.
 
 SDL and PortAudio enumerate capture devices and open the selected device for
 each assigned track. ALSA enumerates capture-capable PCM devices and captures
-each assignment on a reader thread. PulseAudio enumerates named sources
-(monitor/loopback sources are omitted). Sndio exposes its configured/default
-capture endpoint when available. JACK enumerates each source port as a mono
-choice and every pair of ports as a stereo choice, including non-adjacent
-pairs, then connects the selected channels to the track.
+each assignment on a reader thread. PulseAudio enumerates named sources,
+including explicitly labeled sink-monitor/loopback sources. Sndio exposes its
+configured/default capture endpoint when available. JACK enumerates each
+source port as a mono choice and every pair of ports as a stereo choice,
+including non-adjacent pairs, then connects the selected channels to the track.
 
 JACK exposes eight inputs per track (`<track> In 1` through `<track> In 8`)
 for optional routing in tools such as qpwgraph. The **External patchbay input**

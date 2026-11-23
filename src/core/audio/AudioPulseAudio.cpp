@@ -71,14 +71,15 @@ void sourceInfoCallback(pa_context*, const pa_source_info* info, int eol, void* 
 	}
 	if (!info || !info->name) { return; }
 
-	// Monitor sources loop a sink's playback back in; exposing them would let
-	// MXM record its own output and create feedback. Only real capture
-	// endpoints are offered as track inputs.
-	if (info->monitor_of_sink != PA_INVALID_INDEX) { return; }
-
 	const auto name = QString::fromUtf8(info->name);
 	if (name.isEmpty()) { return; }
-	const auto description = info->description ? QString::fromUtf8(info->description) : QString{};
+	auto description = info->description ? QString::fromUtf8(info->description) : QString{};
+	if (info->monitor_of_sink != PA_INVALID_INDEX)
+	{
+		const auto sink = info->monitor_of_sink_name
+			? QString::fromUtf8(info->monitor_of_sink_name) : name;
+		description += QObject::tr(" (monitor of %1)").arg(sink);
+	}
 	enumeration.sources.push_back(makeAudioInputSource(
 		QStringLiteral("pulse-source:") + name,
 		description.isEmpty() ? name : description,
