@@ -26,6 +26,7 @@
 #include <QtTest>
 
 #include <memory>
+#include <array>
 #include <vector>
 
 #include "AudioEngine.h"
@@ -83,6 +84,59 @@ private slots:
 			QCOMPARE(result->sample(frame, 1), -0.5f);
 		}
 		engine->unregisterTrackInput(trackInputId);
+	}
+
+	void Recording_EightTracksKeepMonoInputsIsolated()
+	{
+		auto* engine = Engine::audioEngine();
+		QVERIFY(engine != nullptr);
+		const auto guard = engine->requestChangesGuard();
+		constexpr auto trackCount = ch_cnt_t{8};
+		const auto frames = engine->framesPerPeriod();
+		const auto song = Engine::getSong();
+		auto tracks = std::array<std::unique_ptr<SampleTrack>, 8>{};
+		auto clips = std::array<std::unique_ptr<SampleClip>, 8>{};
+		auto sessions = std::array<std::shared_ptr<SampleRecordSession>, 8>{};
+		auto input = std::array<std::vector<float>, 8>{};
+		auto pointers = std::array<const float*, 8>{};
+		const auto firstId = quint64{0x5200};
+
+		for (ch_cnt_t channel = 0; channel < trackCount; ++channel)
+		{
+			input[channel].assign(frames, static_cast<float>(channel + 1) / 10.f);
+			pointers[channel] = input[channel].data();
+			engine->registerTrackInput(firstId + channel,
+				QStringLiteral("Mono input %1").arg(channel + 1), 1);
+			engine->pushTrackInputFrames(firstId + channel,
+				PlanarBufferView<const float>{&pointers[channel], 1, frames});
+
+			tracks[channel] = std::make_unique<SampleTrack>(song);
+			clips[channel] = std::make_unique<SampleClip>(tracks[channel].get());
+			sessions[channel] = std::make_shared<SampleRecordSession>();
+			sessions[channel]->source = makeAudioInputSource(
+				QStringLiteral("input:%1").arg(channel), QStringLiteral("Input %1").arg(channel + 1),
+				1, {QStringLiteral("input:%1").arg(channel)});
+			sessions[channel]->trackInputId = firstId + channel;
+			sessions[channel]->capture = std::make_shared<SampleCapture>(
+				engine->outputSampleRate(), AudioChannelLayout::mono(), frames, 8);
+		}
+
+		engine->renderNextPeriod();
+		auto handles = std::array<std::unique_ptr<SampleRecordHandle>, 8>{};
+		for (ch_cnt_t channel = 0; channel < trackCount; ++channel)
+		{
+			handles[channel] = std::make_unique<SampleRecordHandle>(clips[channel].get(), sessions[channel]);
+			handles[channel]->play(nullptr);
+			QCOMPARE(sessions[channel]->recordedFrames.load(), static_cast<std::uint64_t>(frames));
+			const auto result = sessions[channel]->capture->finish();
+			QVERIFY(result && !result->empty());
+			QCOMPARE(result->channels(), ch_cnt_t{1});
+			for (f_cnt_t frame = 0; frame < frames; ++frame)
+			{
+				QCOMPARE(result->sample(frame, 0), input[channel][frame]);
+			}
+			engine->unregisterTrackInput(firstId + channel);
+		}
 	}
 
 	//! An empty period is not a failed capture. Only a reported open/reader failure is.

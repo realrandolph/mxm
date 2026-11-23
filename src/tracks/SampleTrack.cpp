@@ -322,7 +322,7 @@ auto SampleTrack::resolvedInputSource() const -> std::optional<AudioInputSource>
 auto SampleTrack::inputAssignmentStatus() const -> QString
 {
 	auto* engine = Engine::audioEngine();
-	if (!engine || engine->inputSources().empty())
+	if (!engine)
 	{
 		return tr("No audio capture inputs are available.");
 	}
@@ -332,6 +332,10 @@ auto SampleTrack::inputAssignmentStatus() const -> QString
 	if (id == QStringLiteral("none")) { return tr("Select an input source before recording."); }
 	if (!source)
 	{
+		if (engine->inputSources().empty())
+		{
+			return tr("No audio capture inputs are available.");
+		}
 		return tr("Saved input \"%1\" is unavailable. Select another input before recording.").arg(id);
 	}
 	if (engine->trackInputCaptureFailed(m_trackInputId))

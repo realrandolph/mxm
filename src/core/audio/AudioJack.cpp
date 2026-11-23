@@ -514,7 +514,10 @@ void AudioJack::setTrackInputSource(quint64 id, const QStringList& endpointPorts
 	found->endpointPorts.clear();
 	if (endpointPorts.isEmpty())
 	{
-		audioEngine()->setTrackInputCaptureFailed(id, false);
+		const auto connected = std::ranges::any_of(found->ports, [](auto* port) {
+			return port && jack_port_connected(port) > 0;
+		});
+		audioEngine()->setTrackInputCaptureFailed(id, !connected);
 		return;
 	}
 
@@ -712,6 +715,19 @@ int AudioJack::staticProcessCallback(jack_nframes_t nframes, void* udata)
 void AudioJack::portConnectCallback(jack_port_id_t, jack_port_id_t, int, void* udata)
 {
 	auto* audioJack = static_cast<AudioJack*>(udata);
+	QMetaObject::invokeMethod(audioJack, [audioJack] {
+		if (!audioJack->m_client) { return; }
+		const auto guard = audioJack->audioEngine()->requestChangesGuard();
+		for (auto it = audioJack->m_trackInputPorts.cbegin(); it != audioJack->m_trackInputPorts.cend(); ++it)
+		{
+			if (!it->endpointPorts.isEmpty()) { continue; }
+			const auto connected = std::ranges::any_of(it->ports, [](auto* port) {
+				return port && jack_port_connected(port) > 0;
+			});
+			audioJack->audioEngine()->setTrackInputCaptureFailed(it.key(), !connected);
+		}
+	}, Qt::QueuedConnection);
+
 	bool anyOutputConnected = false;
 	for (auto* port : audioJack->m_outputPorts)
 	{
