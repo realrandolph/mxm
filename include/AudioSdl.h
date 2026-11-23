@@ -35,6 +35,9 @@
 #include <QTimer>
 
 #include <atomic>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "AudioDevice.h"
 #include "AudioDeviceSetupWidget.h"
@@ -65,18 +68,16 @@ public:
 		setupWidget( QWidget * _parent );
 		~setupWidget() override = default;
 
-		void saveSettings() override;
+	void saveSettings() override;
 	
 	private:
 		void populatePlaybackDeviceComboBox();
-		void populateInputDeviceComboBox();
 		void updateDefaultDeviceInfo();
 		void showEvent(QShowEvent* event) override;
 		void hideEvent(QHideEvent* event) override;
 
 	private:
 		QComboBox* m_playbackDeviceComboBox = nullptr;
-		QComboBox* m_inputDeviceComboBox = nullptr;
 		QTimer m_defaultDeviceInfoTimer;
 
 		static QString s_systemDefaultDevice;
@@ -86,34 +87,31 @@ public:
 private:
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
+	auto supportsTrackInputPorts() const -> bool override { return m_supportsCapture; }
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
 	void checkDeviceRoutes();
 	static int sdlAudioEventWatch(void* data, SDL_Event* event);
 
 	static void sdlAudioCallback( void * _udata, Uint8 * _buf, int _len );
 	void sdlAudioCallback( Uint8 * _buf, int _len );
 
-	static void sdlInputAudioCallback( void * _udata, Uint8 * _buf, int _len );
-	void sdlInputAudioCallback( Uint8 * _buf, int _len );
+	struct TrackCapture;
+	static void sdlTrackInputCallback(void* data, Uint8* buffer, int length);
 
 	SDL_AudioSpec m_audioHandle;
 	SDL_AudioDeviceID m_outputDevice;
 
-	SDL_AudioSpec m_inputAudioHandle;
-	SDL_AudioDeviceID m_inputDevice;
-	ch_cnt_t m_inputChannels = 0;
 	QString m_configuredPlaybackDevice;
-	QString m_configuredInputDevice;
 	QString m_activePlaybackDevice;
-	QString m_activeInputDevice;
 	QString m_monitoredPlaybackDevice;
-	QString m_monitoredInputDevice;
 	bool m_activePlaybackUsesDefault = false;
-	bool m_activeInputUsesDefault = false;
 	std::atomic_bool m_playbackDeviceRemoved{false};
-	std::atomic_bool m_inputDeviceRemoved{false};
 	std::atomic_bool m_playbackRemovalReported{false};
-	std::atomic_bool m_inputRemovalReported{false};
 	QTimer m_deviceMonitor;
+	std::unordered_map<quint64, std::unique_ptr<TrackCapture>> m_trackCaptures;
 } ;
 
 

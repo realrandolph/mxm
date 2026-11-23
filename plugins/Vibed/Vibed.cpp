@@ -288,10 +288,7 @@ VibedView::VibedView(Instrument* instrument, QWidget* parent) :
 	m_whiteNoiseWaveBtn(this, tr("White noise")),
 	m_usrWaveBtn(this, tr("User-defined wave"))
 {
-	setAutoFillBackground(true);
-	QPalette pal;
-	pal.setBrush(backgroundRole(), PLUGIN_NAME::getIconPixmap("artwork"));
-	setPalette(pal);
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap("artwork"));
 
 	m_volumeKnob.move(103, 142);
 	m_volumeKnob.setHintText(tr("String volume:"), "%");

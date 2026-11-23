@@ -25,6 +25,7 @@
 #include "FrequencyShifterControls.h"
 
 #include <QDomElement>
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -53,60 +54,30 @@ FrequencyShifterControls::FrequencyShifterControls(FrequencyShifterEffect* e) :
 	m_resetShifter(false, this, "Reset Shifter"),
 	m_resetLfo(false, this, "Reset LFO")
 {
-	m_spreadShift.setScaleLogarithmic(true);
-	m_delayLengthLong.setScaleLogarithmic(true);
-	m_delayLengthShort.setScaleLogarithmic(true);
-	m_delayDamp.setScaleLogarithmic(true);
-	m_delayGlide.setScaleLogarithmic(true);
-	m_lfoAmount.setScaleLogarithmic(true);
-	m_lfoRate.setScaleLogarithmic(true);
-	m_glide.setScaleLogarithmic(true);
-	m_tone.setScaleLogarithmic(true);
+	setLogarithmicModels(m_spreadShift, m_delayLengthLong, m_delayLengthShort, m_delayDamp,
+		m_delayGlide, m_lfoAmount, m_lfoRate, m_glide, m_tone);
 }
 
-void FrequencyShifterControls::loadSettings(const QDomElement& e)
-{
-	m_mix.loadSettings(e, "mix");
-	m_freqShift.loadSettings(e, "freqShift");
-	m_spreadShift.loadSettings(e, "spreadShift");
-	m_ring.loadSettings(e, "ring");
-	m_feedback.loadSettings(e, "feedback");
-	m_delayLengthLong.loadSettings(e, "m_delayLengthLong");
-	m_delayLengthShort.loadSettings(e, "delayLengthShort");
-	m_delayDamp.loadSettings(e, "delayDamp");
-	m_delayGlide.loadSettings(e, "delayGlide");
-	m_lfoAmount.loadSettings(e, "lfoAmount");
-	m_lfoRate.loadSettings(e, "lfoRate");
-	m_lfoStereoPhase.loadSettings(e, "lfoStereoPhase");
-	m_antireflect.loadSettings(e, "antireflect");
-	m_routeMode.loadSettings(e, "routeMode");
-	m_harmonics.loadSettings(e, "harmonics");
-	m_glide.loadSettings(e, "glide");
-	m_tone.loadSettings(e, "tone");
-	m_phase.loadSettings(e, "phase");
-}
-
-void FrequencyShifterControls::saveSettings(QDomDocument& doc, QDomElement& e)
-{
-	m_mix.saveSettings(doc, e, "mix");
-	m_freqShift.saveSettings(doc, e, "freqShift");
-	m_spreadShift.saveSettings(doc, e, "spreadShift");
-	m_ring.saveSettings(doc, e, "ring");
-	m_feedback.saveSettings(doc, e, "feedback");
-	m_delayLengthLong.saveSettings(doc, e, "m_delayLengthLong");
-	m_delayLengthShort.saveSettings(doc, e, "delayLengthShort");
-	m_delayDamp.saveSettings(doc, e, "delayDamp");
-	m_delayGlide.saveSettings(doc, e, "delayGlide");
-	m_lfoAmount.saveSettings(doc, e, "lfoAmount");
-	m_lfoRate.saveSettings(doc, e, "lfoRate");
-	m_lfoStereoPhase.saveSettings(doc, e, "lfoStereoPhase");
-	m_antireflect.saveSettings(doc, e, "antireflect");
-	m_routeMode.saveSettings(doc, e, "routeMode");
-	m_harmonics.saveSettings(doc, e, "harmonics");
-	m_glide.saveSettings(doc, e, "glide");
-	m_tone.saveSettings(doc, e, "tone");
-	m_phase.saveSettings(doc, e, "phase");
-}
+MXM_DEFINE_MODEL_SETTINGS(FrequencyShifterControls,
+	visit(m_mix, "mix");
+	visit(m_freqShift, "freqShift");
+	visit(m_spreadShift, "spreadShift");
+	visit(m_ring, "ring");
+	visit(m_feedback, "feedback");
+	visit(m_delayLengthLong, "m_delayLengthLong");
+	visit(m_delayLengthShort, "delayLengthShort");
+	visit(m_delayDamp, "delayDamp");
+	visit(m_delayGlide, "delayGlide");
+	visit(m_lfoAmount, "lfoAmount");
+	visit(m_lfoRate, "lfoRate");
+	visit(m_lfoStereoPhase, "lfoStereoPhase");
+	visit(m_antireflect, "antireflect");
+	visit(m_routeMode, "routeMode");
+	visit(m_harmonics, "harmonics");
+	visit(m_glide, "glide");
+	visit(m_tone, "tone");
+	visit(m_phase, "phase");
+)
 
 } // namespace mxm
 

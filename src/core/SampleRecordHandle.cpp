@@ -26,7 +26,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 
 #include <QMetaObject>
 
@@ -50,6 +49,7 @@ SampleRecordHandle::SampleRecordHandle(SampleClip* clip, std::shared_ptr<SampleR
 	m_recordChannel(0),
 	m_inputMonitoring(false)
 {
+	m_sourcePointers.reserve(m_session->source.channels);
 	if (m_track)
 	{
 		m_recordChannel = m_track->recordChannel();
@@ -78,14 +78,33 @@ void SampleRecordHandle::play(SampleFrame* workingBuffer)
 {
 	if (!m_track || !m_session->active.load(std::memory_order_relaxed)) { return; }
 
-	const auto input = Engine::audioEngine()->inputBuffer();
+	auto* engine = Engine::audioEngine();
+	// An empty snapshot is normal before the first callback. Only a reported
+	// open failure or reader exit means the assigned capture is gone.
+	if (engine->trackInputCaptureFailed(m_session->trackInputId))
+	{
+		m_session->inputUnavailable.store(true, std::memory_order_relaxed);
+	}
+	const auto input = engine->trackInputBuffer(m_session->trackInputId);
 	if (input.empty()) { return; }
+
+	const auto source = inputSourceView(input, m_session->source,
+		m_session->firstInputChannel, m_sourcePointers);
+	if (source.empty())
+	{
+		// The take was started against a validated endpoint. If the device or
+		// channel map changes mid-take, record silence and report it at stop
+		// instead of substituting another physical input.
+		m_session->inputUnavailable.store(true, std::memory_order_relaxed);
+		return;
+	}
 
 	if (m_inputMonitoring && workingBuffer)
 	{
-		monitor(input, workingBuffer, std::min(input.frames(), Engine::audioEngine()->framesPerPeriod()));
+		monitor(source, workingBuffer,
+			std::min(source.frames(), Engine::audioEngine()->framesPerPeriod()));
 	}
-	writeBuffer(input);
+	writeBuffer(source);
 }
 
 
@@ -96,12 +115,6 @@ void SampleRecordHandle::monitor(
 {
 	if (!m_session->capture) { return; }
 
-	const auto layout = m_session->capture->layout();
-	const auto channels = layout.channels();
-	const auto inputChannels = input.channels();
-	const auto sourceChannel = inputChannels <= 1 ? ch_cnt_t{0}
-		: static_cast<ch_cnt_t>(std::clamp(m_recordChannel - 1, 0, static_cast<int>(inputChannels) - 1));
-
 	auto interleaved = std::array<float, MaxChannelsPerLayout>{};
 	for (f_cnt_t frame = 0; frame < outputFrames; ++frame)
 	{
@@ -109,19 +122,20 @@ void SampleRecordHandle::monitor(
 		switch (m_recordChannel)
 		{
 		case 1:
-			output[0] = input.bufferPtr(sourceChannel)[frame];
+			output[0] = input.bufferPtr(0)[frame];
 			output[1] = 0.f;
 			break;
 		case 2:
 			output[0] = 0.f;
-			output[1] = input.bufferPtr(sourceChannel)[frame];
+			output[1] = input.bufferPtr(0)[frame];
 			break;
 		default:
-			for (ch_cnt_t channel = 0; channel < channels; ++channel)
+			for (ch_cnt_t channel = 0; channel < input.channels(); ++channel)
 			{
 				interleaved[channel] = input.bufferPtr(channel)[frame];
 			}
-			downmixFrameToStereo(interleaved.data(), layout, output[0], output[1]);
+			downmixFrameToStereo(interleaved.data(), m_session->source.layout,
+				output[0], output[1]);
 			break;
 		}
 	}
@@ -150,22 +164,8 @@ void SampleRecordHandle::writeBuffer( PlanarBufferView<const float> frames )
 {
 	if (frames.empty() || !m_session->capture) { return; }
 
-	auto peak = 0.f;
-	for (ch_cnt_t channel = 0; channel < frames.channels(); ++channel)
-	{
-		const auto* data = frames.bufferPtr(channel);
-		for (f_cnt_t frame = 0; frame < frames.frames(); ++frame)
-		{
-			peak = std::max(peak, std::abs(data[frame]));
-		}
-	}
-
-	m_session->capture->write(frames, m_recordChannel);
+	m_session->capture->write(frames, m_session->destinationChannels);
 	m_session->recordedFrames.store(m_session->capture->recordedFrames(), std::memory_order_relaxed);
-	if (m_track)
-	{
-		m_track->updateInputLevel(peak);
-	}
 }
 
 

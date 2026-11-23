@@ -31,11 +31,15 @@
 #include <QThread>
 #include <samplerate.h>
 
+#include <array>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <vector>
 
 #include "AudioBuffer.h"
 #include "AudioBufferView.h"
+#include "AudioInputSource.h"
 #include "AudioDevice.h"
 #include "MxmTypes.h"
 #include "SampleFrame.h"
@@ -76,10 +80,17 @@ public:
 		friend class AudioEngine;
 
 	private:
-		RequestChangesGuard(AudioEngine* audioEngine)
-			: m_audioEngine{audioEngine}
+		RequestChangesGuard(AudioEngine* audioEngine, bool tryOnly = false)
 		{
-			m_audioEngine->requestChangeInModel();
+			if (!tryOnly)
+			{
+				m_audioEngine = audioEngine;
+				m_audioEngine->requestChangeInModel();
+			}
+			else if (audioEngine->tryRequestChangeInModel())
+			{
+				m_audioEngine = audioEngine;
+			}
 		}
 	public:
 
@@ -103,6 +114,8 @@ public:
 				m_audioEngine->doneChangeInModel();
 			}
 		}
+
+		explicit operator bool() const { return m_audioEngine != nullptr; }
 
 	private:
 		AudioEngine* m_audioEngine;
@@ -201,11 +214,6 @@ public:
 	}
 	
 
-	sample_rate_t inputSampleRate() const	
-	{
-		return m_audioDev != nullptr ? m_audioDev->sampleRate() : m_baseSampleRate;
-	}
-
 
 	inline float masterGain() const
 	{
@@ -235,44 +243,44 @@ public:
 	bool criticalXRuns() const;
 
 	/**
-	 * @brief Publishes captured audio to the audio engine.
+	 * @brief Selectable capture sources for recordable tracks.
 	 *
-	 * The channel count is taken from @a frames, so backends do not need to
-	 * duplicate or truncate channels. Capture buffers are preallocated with
-	 * @ref setInputChannels() so this function does not allocate.
+	 * Sources are backend-specific per-track endpoints such as devices or named
+	 * JACK ports.
 	 */
-	void pushInputFrames(PlanarBufferView<const float> frames);
-	void pushInputFrames(InterleavedBufferView<const float> frames);
+	auto inputSources() const -> std::vector<AudioInputSource>;
+	void notifyInputSourcesChanged() { emit inputSourcesChanged(); }
 
-	//! Legacy stereo entry point.
-	void pushInputFrames(const SampleFrame* frames, f_cnt_t frameCount)
-	{
-		pushInputFrames(InterleavedBufferView<const float>{reinterpret_cast<const float*>(frames), DEFAULT_CHANNELS, frameCount});
-	}
+	//! @returns the source with @a id, or std::nullopt when it is unavailable.
+	auto inputSource(const QString& id) const -> std::optional<AudioInputSource>;
+	void setTrackInputSource(quint64 id, const QString& sourceId);
 
 	/**
-	 * @brief Preallocates the capture buffers for @a channels input channels.
-	 * Must be called from the model/UI thread when the device is configured.
+	 * @brief Registers a backend-exposed input for one recordable track.
+	 *
+	 * Allocation happens on the model thread. The backend receives a request
+	 * to create routable capture ports with the same id.
 	 */
-	void setInputChannels(ch_cnt_t channels);
-	auto inputChannels() const -> ch_cnt_t { return m_inputChannels; }
+	void registerTrackInput(quint64 id, const QString& name, ch_cnt_t channels);
+	void unregisterTrackInput(quint64 id);
+	void renameTrackInput(quint64 id, const QString& name);
+	auto hasTrackInput(quint64 id) const -> bool;
+	auto trackInputSource(quint64 id, const QString& displayName) const
+		-> std::optional<AudioInputSource>;
 
-	//! @returns frames dropped because the real-time capture buffer was full
-	auto inputDroppedFrames() const -> std::uint64_t
-	{
-		return m_inputDroppedFrames.load(std::memory_order_relaxed);
-	}
+	//! Publishes backend track-port audio. Real-time safe in normal use.
+	void pushTrackInputFrames(quint64 id, PlanarBufferView<const float> frames);
+	void pushTrackInputFrames(quint64 id, InterleavedBufferView<const float> frames);
+	//! Changes the active source channel count at a backend-controlled safe boundary.
+	void setTrackInputChannels(quint64 id, ch_cnt_t channels);
+	auto trackInputChannels(quint64 id) const -> ch_cnt_t;
 
-	float inputPeak() const { return m_inputPeak.load(std::memory_order_relaxed); }
-
-	//! @returns the captured audio drained for the current period, as planar channels.
-	auto inputBuffer() const -> PlanarBufferView<const float>
-	{
-		if (!m_inputSnapshot) { return {}; }
-		return {m_inputSnapshot->allBuffers().data(), m_inputChannels, m_inputSnapshotFrames};
-	}
-
-	inline f_cnt_t inputBufferFrames() const { return m_inputSnapshotFrames; }
+	//! @returns the last drained block for a track input port.
+	auto trackInputBuffer(quint64 id) const -> PlanarBufferView<const float>;
+	auto trackInputDroppedFrames(quint64 id) const -> std::uint64_t;
+	//! Records that an assigned capture failed to open or its reader exited.
+	void setTrackInputCaptureFailed(quint64 id, bool failed);
+	auto trackInputCaptureFailed(quint64 id) const -> bool;
 
 	/**
 	 * @returns The internal buffer size used by audio plugins and other processing done within the audio engine.
@@ -326,11 +334,13 @@ public:
 	//! Block until a change in model can be done (i.e. wait for audio thread)
 	void requestChangeInModel();
 	void doneChangeInModel();
+	auto tryRequestChangeInModel() -> bool;
 
 	RequestChangesGuard requestChangesGuard()
 	{
 		return RequestChangesGuard{this};
 	}
+	RequestChangesGuard tryRequestChangesGuard() { return RequestChangesGuard{this, true}; }
 
 	static bool isAudioDevNameValid(QString name);
 	static bool isMidiDevNameValid(QString name);
@@ -344,6 +354,7 @@ public:
 signals:
 	void qualitySettingsChanged();
 	void sampleRateChanged();
+	void inputSourcesChanged();
 	void audioDeviceChanged(
 		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
 	void nextAudioBuffer(const mxm::SampleFrame* buffer);
@@ -393,7 +404,7 @@ private:
 	AudioDevice * tryAudioDevices();
 	MidiClient * tryMidiClients();
 
-	void drainInputFrames();
+	void drainTrackInputFrames();
 	void renderStageNoteSetup();
 	void renderStageInstruments();
 	void renderStageEffects();
@@ -412,24 +423,27 @@ private:
 	f_cnt_t m_framesPerPeriod;
 	sample_rate_t m_baseSampleRate;
 
-	/**
-	 * Capture handoff from the device callback to the render thread.
-	 *
-	 * The callback writes preallocated blocks into a single-producer/single-
-	 * consumer ring without locks. The render thread drains the ring into a
-	 * contiguous snapshot that play handles can read.
-	 */
 	static constexpr auto InputCaptureBlocks = 64;
-	std::unique_ptr<AudioBuffer> m_inputQueue;
-	std::unique_ptr<AudioBuffer> m_inputSnapshot;
-	std::vector<f_cnt_t> m_inputBlockFrames;
-	f_cnt_t m_inputQueueBlockFrames = 0;
-	f_cnt_t m_inputSnapshotFrames = 0;
-	ch_cnt_t m_inputChannels = 0;
-	std::atomic<std::uint32_t> m_inputReadIndex{0};
-	std::atomic<std::uint32_t> m_inputWriteIndex{0};
-	std::atomic<float> m_inputPeak{0.f};
-	std::atomic<std::uint64_t> m_inputDroppedFrames{0};
+
+	static constexpr auto MaxTrackInputs = std::size_t{64};
+
+	struct TrackInputSlot
+	{
+		std::atomic<quint64> id{0};
+		ch_cnt_t channels = 0;
+		std::unique_ptr<AudioBuffer> queue;
+		std::unique_ptr<AudioBuffer> snapshot;
+		std::vector<f_cnt_t> blockFrames;
+		f_cnt_t queueBlockFrames = 0;
+		f_cnt_t snapshotFrames = 0;
+		std::atomic<std::uint32_t> readIndex{0};
+		std::atomic<std::uint32_t> writeIndex{0};
+		std::atomic<std::uint64_t> droppedFrames{0};
+		std::atomic_bool captureFailed{false};
+	};
+
+	std::array<TrackInputSlot, MaxTrackInputs> m_trackInputs;
+	mutable std::mutex m_trackInputMutex;
 
 	std::unique_ptr<SampleFrame[]> m_outputBufferRead;
 	std::unique_ptr<SampleFrame[]> m_outputBufferWrite;

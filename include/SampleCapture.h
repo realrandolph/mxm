@@ -74,14 +74,16 @@ public:
 
 	//! Real-time safe. Copies every source channel in order.
 	void write(PlanarBufferView<const float> frames);
-	void write(InterleavedBufferView<const float> frames);
 
 	/**
-	 * @brief Writes a stereo take from one source channel.
+	 * @brief Writes @a frames into explicit destination channels.
 	 *
-	 * @param channel 1 = left, 2 = right; any other value records all channels
+	 * `destinationChannels[i]` receives source channel `i`. Destinations outside
+	 * the capture layout are ignored and unassigned capture channels are
+	 * zero-filled. This is the channel-aware path used by per-track input
+	 * assignments.
 	 */
-	void write(PlanarBufferView<const float> frames, int channel);
+	void write(PlanarBufferView<const float> frames, const std::vector<ch_cnt_t>& destinationChannels);
 
 	/**
 	 * @brief Stops the writer and returns the recorded take.
@@ -102,7 +104,7 @@ public:
 
 private:
 	void writerLoop();
-	void copyBlock(PlanarBufferView<const float> frames, int selectedChannel);
+	void copyBlock(PlanarBufferView<const float> frames, const std::vector<ch_cnt_t>& destinationChannels);
 	bool openWriter();
 
 	AudioChannelLayout m_layout;

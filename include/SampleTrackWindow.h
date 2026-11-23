@@ -33,6 +33,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QLineEdit;
 
 namespace mxm::gui
@@ -86,6 +87,9 @@ protected:
 private:
 	void modelChanged() override;
 
+	void refreshInputSources();
+	void updateInputStatus();
+
 	SampleTrack * m_track;
 	SampleTrackView * m_stv;
 
@@ -96,6 +100,8 @@ private:
 	AutomatableButton* m_muteBtn;
 	AutomatableButton* m_soloBtn;
 	MixerChannelLcdSpinBox * m_mixerChannelNumber;
+	QComboBox* m_inputSourceComboBox;
+	QLabel* m_inputStatusLabel;
 	QComboBox* m_recordChannelComboBox;
 	QCheckBox* m_inputMonitoringCheckBox;
 

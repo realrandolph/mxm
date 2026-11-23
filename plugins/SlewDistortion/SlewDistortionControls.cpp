@@ -27,6 +27,7 @@
 #include <QDomElement>
 
 #include "SlewDistortion.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -67,19 +68,9 @@ SlewDistortionControls::SlewDistortionControls(SlewDistortion* effect) :
 	m_slewLink1Model(true, this, tr("Slew Link 1")),
 	m_slewLink2Model(true, this, tr("Slew Link 2"))
 {
-	m_slewUp1Model.setScaleLogarithmic(true);
-	m_slewUp2Model.setScaleLogarithmic(true);
-	m_slewDown1Model.setScaleLogarithmic(true);
-	m_slewDown2Model.setScaleLogarithmic(true);
-	m_crush1Model.setScaleLogarithmic(true);
-	m_crush2Model.setScaleLogarithmic(true);
-	m_attack1Model.setScaleLogarithmic(true);
-	m_attack2Model.setScaleLogarithmic(true);
-	m_release1Model.setScaleLogarithmic(true);
-	m_release2Model.setScaleLogarithmic(true);
-	m_dynamicSlew1Model.setScaleLogarithmic(true);
-	m_dynamicSlew2Model.setScaleLogarithmic(true);
-	m_splitModel.setScaleLogarithmic(true);
+	setLogarithmicModels(m_slewUp1Model, m_slewUp2Model, m_slewDown1Model, m_slewDown2Model,
+		m_crush1Model, m_crush2Model, m_attack1Model, m_attack2Model, m_release1Model,
+		m_release2Model, m_dynamicSlew1Model, m_dynamicSlew2Model, m_splitModel);
 	
 	m_distType1Model.addItem(tr("Hard Clip"));
 	m_distType1Model.addItem(tr("Tanh"));
@@ -105,79 +96,40 @@ SlewDistortionControls::SlewDistortionControls(SlewDistortion* effect) :
 }
 
 
-void SlewDistortionControls::loadSettings(const QDomElement& parent)
-{
-	m_distType1Model.loadSettings(parent, "distType1");
-	m_distType2Model.loadSettings(parent, "distType2");
-	m_drive1Model.loadSettings(parent, "drive1");
-	m_drive2Model.loadSettings(parent, "drive2");
-	m_slewUp1Model.loadSettings(parent, "slewUp1");
-	m_slewUp2Model.loadSettings(parent, "slewUp2");
-	m_slewDown1Model.loadSettings(parent, "slewDown1");
-	m_slewDown2Model.loadSettings(parent, "slewDown2");
-	m_bias1Model.loadSettings(parent, "bias1");
-	m_bias2Model.loadSettings(parent, "bias2");
-	m_warp1Model.loadSettings(parent, "warp1");
-	m_warp2Model.loadSettings(parent, "warp2");
-	m_crush1Model.loadSettings(parent, "crush1");
-	m_crush2Model.loadSettings(parent, "crush2");
-	m_outVol1Model.loadSettings(parent, "outVol1");
-	m_outVol2Model.loadSettings(parent, "outVol2");
-	m_attack1Model.loadSettings(parent, "attack1");
-	m_attack2Model.loadSettings(parent, "attack2");
-	m_release1Model.loadSettings(parent, "release1");
-	m_release2Model.loadSettings(parent, "release2");
-	m_dynamics1Model.loadSettings(parent, "dynamics1");
-	m_dynamics2Model.loadSettings(parent, "dynamics2");
-	m_dynamicSlew1Model.loadSettings(parent, "dynamicSlew1");
-	m_dynamicSlew2Model.loadSettings(parent, "dynamicSlew2");
-	m_dcRemoveModel.loadSettings(parent, "dcRemove");
-	m_multibandModel.loadSettings(parent, "multiband");
-	m_oversamplingModel.loadSettings(parent, "oversampling");
-	m_splitModel.loadSettings(parent, "split");
-	m_mix1Model.loadSettings(parent, "mix1");
-	m_mix2Model.loadSettings(parent, "mix2");
-	m_slewLink1Model.loadSettings(parent, "slewLink1");
-	m_slewLink2Model.loadSettings(parent, "slewLink2");
-}
-
-
-
-void SlewDistortionControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_distType1Model.saveSettings(doc, parent, "distType1");
-	m_distType2Model.saveSettings(doc, parent, "distType2");
-	m_drive1Model.saveSettings(doc, parent, "drive1");
-	m_drive2Model.saveSettings(doc, parent, "drive2");
-	m_slewUp1Model.saveSettings(doc, parent, "slewUp1");
-	m_slewUp2Model.saveSettings(doc, parent, "slewUp2");
-	m_slewDown1Model.saveSettings(doc, parent, "slewDown1");
-	m_slewDown2Model.saveSettings(doc, parent, "slewDown2");
-	m_bias1Model.saveSettings(doc, parent, "bias1");
-	m_bias2Model.saveSettings(doc, parent, "bias2");
-	m_warp1Model.saveSettings(doc, parent, "warp1");
-	m_warp2Model.saveSettings(doc, parent, "warp2");
-	m_crush1Model.saveSettings(doc, parent, "crush1");
-	m_crush2Model.saveSettings(doc, parent, "crush2");
-	m_outVol1Model.saveSettings(doc, parent, "outVol1");
-	m_outVol2Model.saveSettings(doc, parent, "outVol2");
-	m_attack1Model.saveSettings(doc, parent, "attack1");
-	m_attack2Model.saveSettings(doc, parent, "attack2");
-	m_release1Model.saveSettings(doc, parent, "release1");
-	m_release2Model.saveSettings(doc, parent, "release2");
-	m_dynamics1Model.saveSettings(doc, parent, "dynamics1");
-	m_dynamics2Model.saveSettings(doc, parent, "dynamics2");
-	m_dynamicSlew1Model.saveSettings(doc, parent, "dynamicSlew1");
-	m_dynamicSlew2Model.saveSettings(doc, parent, "dynamicSlew2");
-	m_dcRemoveModel.saveSettings(doc, parent, "dcRemove");
-	m_multibandModel.saveSettings(doc, parent, "multiband");
-	m_oversamplingModel.saveSettings(doc, parent, "oversampling");
-	m_splitModel.saveSettings(doc, parent, "split");
-	m_mix1Model.saveSettings(doc, parent, "mix1");
-	m_mix2Model.saveSettings(doc, parent, "mix2");
-	m_slewLink1Model.saveSettings(doc, parent, "slewLink1");
-	m_slewLink2Model.saveSettings(doc, parent, "slewLink2");
-}
+MXM_DEFINE_MODEL_SETTINGS(SlewDistortionControls,
+	visit(m_distType1Model, "distType1");
+	visit(m_distType2Model, "distType2");
+	visit(m_drive1Model, "drive1");
+	visit(m_drive2Model, "drive2");
+	visit(m_slewUp1Model, "slewUp1");
+	visit(m_slewUp2Model, "slewUp2");
+	visit(m_slewDown1Model, "slewDown1");
+	visit(m_slewDown2Model, "slewDown2");
+	visit(m_bias1Model, "bias1");
+	visit(m_bias2Model, "bias2");
+	visit(m_warp1Model, "warp1");
+	visit(m_warp2Model, "warp2");
+	visit(m_crush1Model, "crush1");
+	visit(m_crush2Model, "crush2");
+	visit(m_outVol1Model, "outVol1");
+	visit(m_outVol2Model, "outVol2");
+	visit(m_attack1Model, "attack1");
+	visit(m_attack2Model, "attack2");
+	visit(m_release1Model, "release1");
+	visit(m_release2Model, "release2");
+	visit(m_dynamics1Model, "dynamics1");
+	visit(m_dynamics2Model, "dynamics2");
+	visit(m_dynamicSlew1Model, "dynamicSlew1");
+	visit(m_dynamicSlew2Model, "dynamicSlew2");
+	visit(m_dcRemoveModel, "dcRemove");
+	visit(m_multibandModel, "multiband");
+	visit(m_oversamplingModel, "oversampling");
+	visit(m_splitModel, "split");
+	visit(m_mix1Model, "mix1");
+	visit(m_mix2Model, "mix2");
+	visit(m_slewLink1Model, "slewLink1");
+	visit(m_slewLink2Model, "slewLink2");
+)
 
 
 

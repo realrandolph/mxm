@@ -8,18 +8,29 @@ set(MXM_TESTS
 	src/core/AudioBufferTest.cpp
 	src/core/AudioChannelLayoutTest.cpp
 	src/core/AudioEngineCaptureTest.cpp
+	src/core/AudioEngineTrackInputTest.cpp
 	src/core/AutomatableModelTest.cpp
 	src/core/MathTest.cpp
 	src/core/NoteTest.cpp
+	src/core/PerTrackRecordingTest.cpp
 	src/core/ProjectVersionTest.cpp
 	src/core/RelativePathsTest.cpp
 	src/core/SampleBufferTest.cpp
 	src/core/SampleCaptureTest.cpp
 	src/core/SampleDecoderChannelTest.cpp
 	src/core/SampleClipChannelTest.cpp
+	src/core/SampleTrackAssignmentTest.cpp
 	src/core/TimelineTest.cpp
 	src/tracks/AutomationTrackTest.cpp
 )
+
+if(MXM_HAVE_SDL)
+	list(APPEND MXM_TESTS src/core/AudioSdlTrackInputTest.cpp)
+endif()
+
+if(MXM_HAVE_PORTAUDIO)
+	list(APPEND MXM_TESTS src/core/AudioPortAudioTrackInputTest.cpp)
+endif()
 
 foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	# TODO CMake 3.20: Use cmake_path
@@ -28,6 +39,12 @@ foreach(MXM_TEST_SRC IN LISTS MXM_TESTS)
 	add_executable(${MXM_TEST_NAME} ${MXM_TEST_SRC})
 	add_test(NAME ${MXM_TEST_NAME} COMMAND ${MXM_TEST_NAME})
 	set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit")
+	if(MXM_TEST_NAME STREQUAL "AudioSdlTrackInputTest")
+		set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit;audio;sdl" ENVIRONMENT "SDL_AUDIODRIVER=dummy")
+	endif()
+	if(MXM_TEST_NAME STREQUAL "AudioPortAudioTrackInputTest")
+		set_tests_properties(${MXM_TEST_NAME} PROPERTIES LABELS "unit;audio;portaudio" TIMEOUT 60)
+	endif()
 
 	# TODO CMake 3.12: Propagate usage requirements by linking to mxmobjs
 	target_include_directories(${MXM_TEST_NAME} PRIVATE $<TARGET_PROPERTY:mxmobjs,INCLUDE_DIRECTORIES>)

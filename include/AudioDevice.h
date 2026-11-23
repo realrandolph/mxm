@@ -26,9 +26,10 @@
 #define MXM_AUDIO_DEVICE_H
 
 #include <QMutex>
+#include <QStringList>
 #include <samplerate.h>
 
-#include "AudioChannelLayout.h"
+#include "AudioInputSource.h"
 #include "MxmTypes.h"
 
 class QThread;
@@ -60,15 +61,29 @@ public:
 		return m_supportsCapture;
 	}
 
-	inline ch_cnt_t captureChannels() const
-	{
-		return m_captureChannels;
-	}
+	//! True when the backend can expose independently routable track inputs.
+	virtual auto supportsTrackInputPorts() const -> bool { return false; }
 
-	//! @returns the channel layout reported by the backend, if it is known.
-	inline const AudioChannelLayout& captureLayout() const
+	//! True when those ports stay open for external patchbay routing with no device selected.
+	virtual auto supportsExternalPatchbayInput() const -> bool { return false; }
+
+	//! Creates backend capture ports for one recordable track.
+	virtual auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool
 	{
-		return m_captureLayout;
+		Q_UNUSED(id); Q_UNUSED(name); Q_UNUSED(channels);
+		return false;
+	}
+	virtual void unregisterTrackInputPort(quint64 id) { Q_UNUSED(id); }
+	virtual void renameTrackInputPort(quint64 id, const QString& name)
+	{
+		Q_UNUSED(id); Q_UNUSED(name);
+	}
+	//! Sources exposed by a routable capture backend, independent of global channels.
+	virtual auto inputSources() const -> std::vector<AudioInputSource> { return {}; }
+	//! Routes one selected backend source into a track's capture ports.
+	virtual void setTrackInputSource(quint64 id, const QStringList& endpointPorts)
+	{
+		Q_UNUSED(id); Q_UNUSED(endpointPorts);
 	}
 
 	inline sample_rate_t sampleRate() const
@@ -97,17 +112,6 @@ protected:
 
 	void setSampleRate(const sample_rate_t _new_sr) { m_sampleRate = _new_sr; }
 	void setChannels(const ch_cnt_t channels) { m_channels = channels; }
-	void setCaptureChannels(const ch_cnt_t channels)
-	{
-		m_captureChannels = channels;
-		m_captureLayout = channels <= DEFAULT_CHANNELS
-			? AudioChannelLayout::standard(channels) : AudioChannelLayout::discrete(channels);
-	}
-	void setCaptureLayout(AudioChannelLayout layout)
-	{
-		m_captureChannels = layout.channels();
-		m_captureLayout = std::move(layout);
-	}
 	//! Report backend-detected runtime route changes through the backend-independent UI signal.
 	void reportDeviceChange(
 		bool input, const QString& previousDevice, const QString& currentDevice, bool available);
@@ -115,8 +119,6 @@ protected:
 	static void stopProcessingThread( QThread * thread );
 protected:
 	bool m_supportsCapture;
-	ch_cnt_t m_captureChannels;
-	AudioChannelLayout m_captureLayout;
 
 private:
 	virtual void startProcessingImpl() = 0;

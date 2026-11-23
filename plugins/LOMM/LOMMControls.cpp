@@ -27,6 +27,7 @@
 #include "LOMM.h"
 
 #include <QMessageBox>
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -159,116 +160,58 @@ void LOMMControls::resetAllParameters()
 
 
 
-void LOMMControls::loadSettings(const QDomElement& parent)
-{
-	m_depthModel.loadSettings(parent, "depth");
-	m_timeModel.loadSettings(parent, "time");
-	m_inVolModel.loadSettings(parent, "inVol");
-	m_outVolModel.loadSettings(parent, "outVol");
-	m_upwardModel.loadSettings(parent, "upward");
-	m_downwardModel.loadSettings(parent, "downward");
-	m_split1Model.loadSettings(parent, "split1");
-	m_split2Model.loadSettings(parent, "split2");
-	m_split1EnabledModel.loadSettings(parent, "split1Enabled");
-	m_split2EnabledModel.loadSettings(parent, "split2Enabled");
-	m_band1EnabledModel.loadSettings(parent, "band1Enabled");
-	m_band2EnabledModel.loadSettings(parent, "band2Enabled");
-	m_band3EnabledModel.loadSettings(parent, "band3Enabled");
-	m_inHighModel.loadSettings(parent, "inHigh");
-	m_inMidModel.loadSettings(parent, "inMid");
-	m_inLowModel.loadSettings(parent, "inLow");
-	m_outHighModel.loadSettings(parent, "outHigh");
-	m_outMidModel.loadSettings(parent, "outMid");
-	m_outLowModel.loadSettings(parent, "outLow");
-	m_aThreshHModel.loadSettings(parent, "aThreshH");
-	m_aThreshMModel.loadSettings(parent, "aThreshM");
-	m_aThreshLModel.loadSettings(parent, "aThreshL");
-	m_aRatioHModel.loadSettings(parent, "aRatioH");
-	m_aRatioMModel.loadSettings(parent, "aRatioM");
-	m_aRatioLModel.loadSettings(parent, "aRatioL");
-	m_bThreshHModel.loadSettings(parent, "bThreshH");
-	m_bThreshMModel.loadSettings(parent, "bThreshM");
-	m_bThreshLModel.loadSettings(parent, "bThreshL");
-	m_bRatioHModel.loadSettings(parent, "bRatioH");
-	m_bRatioMModel.loadSettings(parent, "bRatioM");
-	m_bRatioLModel.loadSettings(parent, "bRatioL");
-	m_atkHModel.loadSettings(parent, "atkH");
-	m_atkMModel.loadSettings(parent, "atkM");
-	m_atkLModel.loadSettings(parent, "atkL");
-	m_relHModel.loadSettings(parent, "relH");
-	m_relMModel.loadSettings(parent, "relM");
-	m_relLModel.loadSettings(parent, "relL");
-	m_rmsTimeModel.loadSettings(parent, "rmsTime");
-	m_kneeModel.loadSettings(parent, "knee");
-	m_rangeModel.loadSettings(parent, "range");
-	m_balanceModel.loadSettings(parent, "balance");
-	m_depthScalingModel.loadSettings(parent, "depthScaling");
-	m_stereoLinkModel.loadSettings(parent, "stereoLink");
-	m_autoTimeModel.loadSettings(parent, "autoTime");
-	m_mixModel.loadSettings(parent, "mix");
-	m_feedbackModel.loadSettings(parent, "feedback");
-	m_midsideModel.loadSettings(parent, "midside");
-	m_lookaheadEnableModel.loadSettings(parent, "lookaheadEnable");
-	m_lookaheadModel.loadSettings(parent, "lookahead");
-	m_lowSideUpwardSuppressModel.loadSettings(parent, "lowSideUpwardSuppress");
-}
-
-
-
-
-void LOMMControls::saveSettings(QDomDocument& doc, QDomElement& parent)
-{
-	m_depthModel.saveSettings(doc, parent, "depth");
-	m_timeModel.saveSettings(doc, parent, "time");
-	m_inVolModel.saveSettings(doc, parent, "inVol");
-	m_outVolModel.saveSettings(doc, parent, "outVol");
-	m_upwardModel.saveSettings(doc, parent, "upward");
-	m_downwardModel.saveSettings(doc, parent, "downward");
-	m_split1Model.saveSettings(doc, parent, "split1");
-	m_split2Model.saveSettings(doc, parent, "split2");
-	m_split1EnabledModel.saveSettings(doc, parent, "split1Enabled");
-	m_split2EnabledModel.saveSettings(doc, parent, "split2Enabled");
-	m_band1EnabledModel.saveSettings(doc, parent, "band1Enabled");
-	m_band2EnabledModel.saveSettings(doc, parent, "band2Enabled");
-	m_band3EnabledModel.saveSettings(doc, parent, "band3Enabled");
-	m_inHighModel.saveSettings(doc, parent, "inHigh");
-	m_inMidModel.saveSettings(doc, parent, "inMid");
-	m_inLowModel.saveSettings(doc, parent, "inLow");
-	m_outHighModel.saveSettings(doc, parent, "outHigh");
-	m_outMidModel.saveSettings(doc, parent, "outMid");
-	m_outLowModel.saveSettings(doc, parent, "outLow");
-	m_aThreshHModel.saveSettings(doc, parent, "aThreshH");
-	m_aThreshMModel.saveSettings(doc, parent, "aThreshM");
-	m_aThreshLModel.saveSettings(doc, parent, "aThreshL");
-	m_aRatioHModel.saveSettings(doc, parent, "aRatioH");
-	m_aRatioMModel.saveSettings(doc, parent, "aRatioM");
-	m_aRatioLModel.saveSettings(doc, parent, "aRatioL");
-	m_bThreshHModel.saveSettings(doc, parent, "bThreshH");
-	m_bThreshMModel.saveSettings(doc, parent, "bThreshM");
-	m_bThreshLModel.saveSettings(doc, parent, "bThreshL");
-	m_bRatioHModel.saveSettings(doc, parent, "bRatioH");
-	m_bRatioMModel.saveSettings(doc, parent, "bRatioM");
-	m_bRatioLModel.saveSettings(doc, parent, "bRatioL");
-	m_atkHModel.saveSettings(doc, parent, "atkH");
-	m_atkMModel.saveSettings(doc, parent, "atkM");
-	m_atkLModel.saveSettings(doc, parent, "atkL");
-	m_relHModel.saveSettings(doc, parent, "relH");
-	m_relMModel.saveSettings(doc, parent, "relM");
-	m_relLModel.saveSettings(doc, parent, "relL");
-	m_rmsTimeModel.saveSettings(doc, parent, "rmsTime");
-	m_kneeModel.saveSettings(doc, parent, "knee");
-	m_rangeModel.saveSettings(doc, parent, "range");
-	m_balanceModel.saveSettings(doc, parent, "balance");
-	m_depthScalingModel.saveSettings(doc, parent, "depthScaling");
-	m_stereoLinkModel.saveSettings(doc, parent, "stereoLink");
-	m_autoTimeModel.saveSettings(doc, parent, "autoTime");
-	m_mixModel.saveSettings(doc, parent, "mix");
-	m_feedbackModel.saveSettings(doc, parent, "feedback");
-	m_midsideModel.saveSettings(doc, parent, "midside");
-	m_lookaheadEnableModel.saveSettings(doc, parent, "lookaheadEnable");
-	m_lookaheadModel.saveSettings(doc, parent, "lookahead");
-	m_lowSideUpwardSuppressModel.saveSettings(doc, parent, "lowSideUpwardSuppress");
-}
+MXM_DEFINE_MODEL_SETTINGS(LOMMControls,
+	visit(m_depthModel, "depth");
+	visit(m_timeModel, "time");
+	visit(m_inVolModel, "inVol");
+	visit(m_outVolModel, "outVol");
+	visit(m_upwardModel, "upward");
+	visit(m_downwardModel, "downward");
+	visit(m_split1Model, "split1");
+	visit(m_split2Model, "split2");
+	visit(m_split1EnabledModel, "split1Enabled");
+	visit(m_split2EnabledModel, "split2Enabled");
+	visit(m_band1EnabledModel, "band1Enabled");
+	visit(m_band2EnabledModel, "band2Enabled");
+	visit(m_band3EnabledModel, "band3Enabled");
+	visit(m_inHighModel, "inHigh");
+	visit(m_inMidModel, "inMid");
+	visit(m_inLowModel, "inLow");
+	visit(m_outHighModel, "outHigh");
+	visit(m_outMidModel, "outMid");
+	visit(m_outLowModel, "outLow");
+	visit(m_aThreshHModel, "aThreshH");
+	visit(m_aThreshMModel, "aThreshM");
+	visit(m_aThreshLModel, "aThreshL");
+	visit(m_aRatioHModel, "aRatioH");
+	visit(m_aRatioMModel, "aRatioM");
+	visit(m_aRatioLModel, "aRatioL");
+	visit(m_bThreshHModel, "bThreshH");
+	visit(m_bThreshMModel, "bThreshM");
+	visit(m_bThreshLModel, "bThreshL");
+	visit(m_bRatioHModel, "bRatioH");
+	visit(m_bRatioMModel, "bRatioM");
+	visit(m_bRatioLModel, "bRatioL");
+	visit(m_atkHModel, "atkH");
+	visit(m_atkMModel, "atkM");
+	visit(m_atkLModel, "atkL");
+	visit(m_relHModel, "relH");
+	visit(m_relMModel, "relM");
+	visit(m_relLModel, "relL");
+	visit(m_rmsTimeModel, "rmsTime");
+	visit(m_kneeModel, "knee");
+	visit(m_rangeModel, "range");
+	visit(m_balanceModel, "balance");
+	visit(m_depthScalingModel, "depthScaling");
+	visit(m_stereoLinkModel, "stereoLink");
+	visit(m_autoTimeModel, "autoTime");
+	visit(m_mixModel, "mix");
+	visit(m_feedbackModel, "feedback");
+	visit(m_midsideModel, "midside");
+	visit(m_lookaheadEnableModel, "lookaheadEnable");
+	visit(m_lookaheadModel, "lookahead");
+	visit(m_lowSideUpwardSuppressModel, "lowSideUpwardSuppress");
+)
 
 
 } // namespace mxm

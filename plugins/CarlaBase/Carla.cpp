@@ -611,11 +611,7 @@ CarlaInstrumentView::CarlaInstrumentView(CarlaInstrument* const instrument, QWid
       m_paramsSubWindow(nullptr),
       m_paramsView(nullptr)
 {
-    setAutoFillBackground(true);
-
-    QPalette pal;
-    pal.setBrush(backgroundRole(), instrument->kIsPatchbay ? PLUGIN_NAME::getIconPixmap("artwork-patchbay") : PLUGIN_NAME::getIconPixmap("artwork-rack"));
-    setPalette(pal);
+    embed::setBackgroundPixmap(this, instrument->kIsPatchbay ? PLUGIN_NAME::getIconPixmap("artwork-patchbay") : PLUGIN_NAME::getIconPixmap("artwork-rack"));
 
 	auto l = new QHBoxLayout(this);
 	l->setContentsMargins( 20, 180, 10, 10 );

@@ -754,11 +754,8 @@ OpulenzInstrumentView::OpulenzInstrumentView( Instrument * _instrument,
 	BUTTON_GEN(trem_depth_btn, "Tremolo depth", 93, 220);
 
 
-	setAutoFillBackground( true );
-        QPalette pal;
-        pal.setBrush( backgroundRole(), PLUGIN_NAME::getIconPixmap(
-                                                                "artwork" ) );
-        setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap(
+                                                                "artwork" ));
 }
 OpulenzInstrumentView::~OpulenzInstrumentView() {
 	// Knobs are QWidgets and our children, so they're

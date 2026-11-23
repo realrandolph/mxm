@@ -319,7 +319,7 @@ void SampleTrackView::corruptStateUpdate()
 void SampleTrackView::updateRecordingControls()
 {
 	auto track = model();
-	if (m_waitingForInput && Engine::audioEngine()->inputPeak() >= 0.025f)
+	if (m_waitingForInput && track->inputPeak() >= 0.025f)
 	{
 		m_waitingForInput = false;
 		startRecording();
@@ -335,15 +335,16 @@ void SampleTrackView::updateRecordingControls()
 	const auto audioDevice = Engine::audioEngine()->audioDev();
 	const bool captureAvailable = audioDevice && audioDevice->supportsCapture();
 	m_recordButton->setText(recording ? tr("STOP") : armed ? tr("ARM") : tr("REC"));
-	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") : armed ?
+	const auto assignmentStatus = track->inputAssignmentStatus();
+	m_recordButton->setToolTip(recording ? tr("Stop recording this sample track") :
+		(captureAvailable && !assignmentStatus.isEmpty()) ? assignmentStatus : armed ?
 		tr("Recording is armed; click to cancel. Right-click to change start mode.") :
 		(captureAvailable ?
 			tr("Record audio to this sample track. Right-click for delayed or input-triggered start.") :
 			tr("The selected audio device does not support input recording")));
 	m_recordButton->setEnabled(recording || captureAvailable);
 
-	const auto inputLevel = std::clamp(
-		armed ? Engine::audioEngine()->inputPeak() : track->takeInputLevel(), 0.f, 1.f);
+	const auto inputLevel = std::clamp(track->inputPeak(), 0.f, 1.f);
 	m_inputLevelMeter->setValue(static_cast<int>(std::round(inputLevel * 100.f)));
 }
 

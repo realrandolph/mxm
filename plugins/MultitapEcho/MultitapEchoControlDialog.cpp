@@ -41,10 +41,7 @@ namespace mxm::gui
 MultitapEchoControlDialog::MultitapEchoControlDialog( MultitapEchoControls * controls ) :
 	EffectControlDialog( controls )
 {
-	setAutoFillBackground( true );
-	QPalette pal;
-	pal.setBrush( backgroundRole(),	PLUGIN_NAME::getIconPixmap( "artwork" ) );
-	setPalette( pal );
+	embed::setBackgroundPixmap(this, PLUGIN_NAME::getIconPixmap( "artwork" ));
 	setFixedSize( 245, 300 );
 	
 	// graph widgets
@@ -58,7 +55,7 @@ MultitapEchoControlDialog::MultitapEchoControlDialog( MultitapEchoControls * con
 	ampGraph->setModel( & controls->m_ampGraph );
 	lpGraph->setModel( & controls->m_lpGraph );
 	
-	pal = QPalette();
+	QPalette pal;
 	pal.setBrush( backgroundRole(),	PLUGIN_NAME::getIconPixmap("graph_bg") );
 	
 	ampGraph->setAutoFillBackground( true );

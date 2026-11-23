@@ -30,8 +30,10 @@
 #include <memory>
 
 #include <QPointer>
+#include <vector>
 
 #include "AudioBufferView.h"
+#include "AudioInputSource.h"
 #include "PlayHandle.h"
 
 namespace mxm
@@ -49,6 +51,11 @@ struct SampleRecordSession
 	std::atomic_uint64_t recordedFrames{0};
 	std::uint64_t engineDroppedAtStart = 0;
 	std::shared_ptr<SampleCapture> capture;
+	AudioInputSource source;
+	std::vector<ch_cnt_t> destinationChannels;
+	quint64 trackInputId = 0;
+	ch_cnt_t firstInputChannel = 0;
+	std::atomic_bool inputUnavailable{false};
 };
 
 
@@ -73,6 +80,7 @@ private:
 	std::shared_ptr<SampleRecordSession> m_session;
 	int m_recordChannel;
 	bool m_inputMonitoring;
+	std::vector<const float*> m_sourcePointers;
 
 } ;
 

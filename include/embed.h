@@ -36,6 +36,8 @@
 #include "MxmCommonMacros.h"
 #endif
 
+class QWidget;
+
 namespace mxm {
 
 namespace embed {
@@ -54,6 +56,9 @@ auto MXM_EXPORT getIconPixmap(
 ) -> QPixmap;
 
 auto MXM_EXPORT getText(std::string_view name) -> QString;
+
+//! Fill @a widget with @a pixmap. Replaces the repeated palette boilerplate in plugin views.
+void MXM_EXPORT setBackgroundPixmap(::QWidget* widget, const QPixmap& pixmap);
 
 //! @brief Temporary shim for QPixmap::deviceIndependentSize.
 //! @param pixmap The pixmap to get the size of.

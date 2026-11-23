@@ -32,6 +32,7 @@
 #include "Note.h"
 #include "Scale.h"
 #include "Song.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -153,22 +154,12 @@ void Microtuner::updateKeymapList(int index)
 }
 
 
-void Microtuner::saveSettings(QDomDocument &document, QDomElement &element)
-{
-	m_enabledModel.saveSettings(document, element, "enabled");
-	m_scaleModel.saveSettings(document, element, "scale");
-	m_keymapModel.saveSettings(document, element, "keymap");
-	m_keyRangeImportModel.saveSettings(document, element, "range_import");
-}
-
-
-void Microtuner::loadSettings(const QDomElement &element)
-{
-	m_enabledModel.loadSettings(element, "enabled");
-	m_scaleModel.loadSettings(element, "scale");
-	m_keymapModel.loadSettings(element, "keymap");
-	m_keyRangeImportModel.loadSettings(element, "range_import");
-}
+MXM_DEFINE_MODEL_SETTINGS(Microtuner,
+	visit(m_enabledModel, "enabled");
+	visit(m_scaleModel, "scale");
+	visit(m_keymapModel, "keymap");
+	visit(m_keyRangeImportModel, "range_import");
+)
 
 
 } // namespace mxm

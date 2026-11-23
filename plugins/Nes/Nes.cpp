@@ -34,6 +34,7 @@
 #include "embed.h"
 #include "mxm_math.h"
 #include "plugin_export.h"
+#include "ModelSettings.h"
 
 namespace mxm
 {
@@ -569,118 +570,60 @@ void NesInstrument::deleteNotePluginData( NotePlayHandle * n )
 }
 
 
-void NesInstrument::saveSettings(  QDomDocument & doc, QDomElement & element )
-{
-		m_ch1Enabled.saveSettings( doc, element, "on1" );
-		m_ch1Crs.saveSettings( doc, element, "crs1" );
-		m_ch1Volume.saveSettings( doc, element, "vol1" );
-	
-		m_ch1EnvEnabled.saveSettings( doc, element, "envon1" );
-		m_ch1EnvLooped.saveSettings( doc, element, "envloop1" );
-		m_ch1EnvLen.saveSettings( doc, element, "envlen1" );
-	
-		m_ch1DutyCycle.saveSettings( doc, element, "dc1" );
-	
-		m_ch1SweepEnabled.saveSettings( doc, element, "sweep1" );
-		m_ch1SweepAmt.saveSettings( doc, element, "swamt1" );
-		m_ch1SweepRate.saveSettings( doc, element, "swrate1" );
-	
+MXM_DEFINE_MODEL_SETTINGS(NesInstrument,
+	visit(m_ch1Enabled, "on1");
+	visit(m_ch1Crs, "crs1");
+	visit(m_ch1Volume, "vol1");
+
+	visit(m_ch1EnvEnabled, "envon1");
+	visit(m_ch1EnvLooped, "envloop1");
+	visit(m_ch1EnvLen, "envlen1");
+
+	visit(m_ch1DutyCycle, "dc1");
+
+	visit(m_ch1SweepEnabled, "sweep1");
+	visit(m_ch1SweepAmt, "swamt1");
+	visit(m_ch1SweepRate, "swrate1");
+
 	// channel 2
-		m_ch2Enabled.saveSettings( doc, element, "on2" );
-		m_ch2Crs.saveSettings( doc, element, "crs2" );
-		m_ch2Volume.saveSettings( doc, element, "vol2" );
-	
-		m_ch2EnvEnabled.saveSettings( doc, element, "envon2" );
-		m_ch2EnvLooped.saveSettings( doc, element, "envloop2" );
-		m_ch2EnvLen.saveSettings( doc, element, "envlen2" );
-	
-		m_ch2DutyCycle.saveSettings( doc, element, "dc2" );
-	
-		m_ch2SweepEnabled.saveSettings( doc, element, "sweep2" );
-		m_ch2SweepAmt.saveSettings( doc, element, "swamt2" );
-		m_ch2SweepRate.saveSettings( doc, element, "swrate2" );	
-	
+	visit(m_ch2Enabled, "on2");
+	visit(m_ch2Crs, "crs2");
+	visit(m_ch2Volume, "vol2");
+
+	visit(m_ch2EnvEnabled, "envon2");
+	visit(m_ch2EnvLooped, "envloop2");
+	visit(m_ch2EnvLen, "envlen2");
+
+	visit(m_ch2DutyCycle, "dc2");
+
+	visit(m_ch2SweepEnabled, "sweep2");
+	visit(m_ch2SweepAmt, "swamt2");
+	visit(m_ch2SweepRate, "swrate2");
+
 	//channel 3
-		m_ch3Enabled.saveSettings( doc, element, "on3" );
-		m_ch3Crs.saveSettings( doc, element, "crs3" );
-		m_ch3Volume.saveSettings( doc, element, "vol3" );
+	visit(m_ch3Enabled, "on3");
+	visit(m_ch3Crs, "crs3");
+	visit(m_ch3Volume, "vol3");
 
 	//channel 4
-		m_ch4Enabled.saveSettings( doc, element, "on4" );
-		m_ch4Volume.saveSettings( doc, element, "vol4" );
-	
-		m_ch4EnvEnabled.saveSettings( doc, element, "envon4" );
-		m_ch4EnvLooped.saveSettings( doc, element, "envloop4" );
-		m_ch4EnvLen.saveSettings( doc, element, "envlen4" );
-	
-		m_ch4NoiseMode.saveSettings( doc, element, "nmode4" );
-		m_ch4NoiseFreqMode.saveSettings( doc, element, "nfrqmode4" );
-		m_ch4NoiseFreq.saveSettings( doc, element, "nfreq4" );
-		
-		m_ch4NoiseQuantize.saveSettings( doc, element, "nq4" );
-		m_ch4Sweep.saveSettings( doc, element, "nswp4" );
-	
+	visit(m_ch4Enabled, "on4");
+	visit(m_ch4Volume, "vol4");
+
+	visit(m_ch4EnvEnabled, "envon4");
+	visit(m_ch4EnvLooped, "envloop4");
+	visit(m_ch4EnvLen, "envlen4");
+
+	visit(m_ch4NoiseMode, "nmode4");
+	visit(m_ch4NoiseFreqMode, "nfrqmode4");
+	visit(m_ch4NoiseFreq, "nfreq4");
+
+	visit(m_ch4NoiseQuantize, "nq4");
+	visit(m_ch4Sweep, "nswp4");
+
 	//master
-		m_masterVol.saveSettings( doc, element, "vol" );
-		m_vibrato.saveSettings( doc, element, "vibr" );	
-}
-
-
-void NesInstrument::loadSettings( const QDomElement & element )
-{
-		m_ch1Enabled.loadSettings(  element, "on1" );
-		m_ch1Crs.loadSettings(  element, "crs1" );
-		m_ch1Volume.loadSettings(  element, "vol1" );
-	
-		m_ch1EnvEnabled.loadSettings(  element, "envon1" );
-		m_ch1EnvLooped.loadSettings(  element, "envloop1" );
-		m_ch1EnvLen.loadSettings(  element, "envlen1" );
-	
-		m_ch1DutyCycle.loadSettings(  element, "dc1" );
-	
-		m_ch1SweepEnabled.loadSettings(  element, "sweep1" );
-		m_ch1SweepAmt.loadSettings(  element, "swamt1" );
-		m_ch1SweepRate.loadSettings(  element, "swrate1" );
-	
-	// channel 2
-		m_ch2Enabled.loadSettings(  element, "on2" );
-		m_ch2Crs.loadSettings(  element, "crs2" );
-		m_ch2Volume.loadSettings(  element, "vol2" );
-	
-		m_ch2EnvEnabled.loadSettings(  element, "envon2" );
-		m_ch2EnvLooped.loadSettings(  element, "envloop2" );
-		m_ch2EnvLen.loadSettings(  element, "envlen2" );
-	
-		m_ch2DutyCycle.loadSettings(  element, "dc2" );
-	
-		m_ch2SweepEnabled.loadSettings(  element, "sweep2" );
-		m_ch2SweepAmt.loadSettings(  element, "swamt2" );
-		m_ch2SweepRate.loadSettings(  element, "swrate2" );	
-	
-	//channel 3
-		m_ch3Enabled.loadSettings(  element, "on3" );
-		m_ch3Crs.loadSettings(  element, "crs3" );
-		m_ch3Volume.loadSettings(  element, "vol3" );
-
-	//channel 4
-		m_ch4Enabled.loadSettings(  element, "on4" );
-		m_ch4Volume.loadSettings(  element, "vol4" );
-	
-		m_ch4EnvEnabled.loadSettings(  element, "envon4" );
-		m_ch4EnvLooped.loadSettings(  element, "envloop4" );
-		m_ch4EnvLen.loadSettings(  element, "envlen4" );
-	
-		m_ch4NoiseMode.loadSettings(  element, "nmode4" );
-		m_ch4NoiseFreqMode.loadSettings(  element, "nfrqmode4" );
-		m_ch4NoiseFreq.loadSettings(  element, "nfreq4" );
-		
-		m_ch4NoiseQuantize.loadSettings(  element, "nq4" );
-		m_ch4Sweep.loadSettings(  element, "nswp4" );
-	
-	//master
-		m_masterVol.loadSettings(  element, "vol" );
-		m_vibrato.loadSettings(  element, "vibr" );	
-}	
+	visit(m_masterVol, "vol");
+	visit(m_vibrato, "vibr");
+)
 
 
 QString NesInstrument::nodeName() const

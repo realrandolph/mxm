@@ -28,10 +28,12 @@
 #include <QGuiApplication>
 #include <QImageReader>
 #include <QPainter>
+#include <QPalette>
 #include <QPixmapCache>
 #include <QResource>
 #include <QScreen>
 #include <QSvgRenderer>
+#include <QWidget>
 
 namespace mxm::embed {
 
@@ -139,6 +141,14 @@ auto getText(std::string_view name) -> QString
 		return {};
 	}
 	return QString::fromUtf8(data);
+}
+
+void setBackgroundPixmap(::QWidget* widget, const QPixmap& pixmap)
+{
+	widget->setAutoFillBackground(true);
+	QPalette palette;
+	palette.setBrush(widget->backgroundRole(), pixmap);
+	widget->setPalette(palette);
 }
 
 } // namespace mxm::embed

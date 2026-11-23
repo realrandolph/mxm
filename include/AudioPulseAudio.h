@@ -31,6 +31,7 @@
 
 #include <pulse/pulseaudio.h>
 #include <mutex>
+#include <unordered_map>
 #include <QSemaphore>
 #include <QThread>
 
@@ -56,6 +57,7 @@ class AudioPulseAudio : public QThread, public AudioDevice
 	Q_OBJECT
 public:
 	AudioPulseAudio( bool & _success_ful, AudioEngine* audioEngine );
+	~AudioPulseAudio() override;
 
 	inline static QString name()
 	{
@@ -64,6 +66,14 @@ public:
 
 	static QString probeDevice();
 	static QString resolvedDefaultDevice();
+
+	//! PulseAudio capture sources are routed directly to per-track input
+	//! streams, independent of the playback channel configuration.
+	auto supportsTrackInputPorts() const -> bool override { return m_supportsCapture; }
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
 
 
 	class setupWidget : public gui::AudioDeviceSetupWidget
@@ -96,17 +106,35 @@ public:
 	double m_latency;
 
 private:
+	struct TrackInput
+	{
+		AudioPulseAudio* device = nullptr;
+		AudioEngine* engine = nullptr;
+		quint64 trackId = 0;
+		pa_stream* stream = nullptr;
+	};
+
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 	void run() override;
 	QString monitoredDevice() const;
 	void setMonitoredDevice(const QString& device);
 
+	static void captureReadCallback(pa_stream* stream, size_t length, void* userdata);
+	static void captureStreamStateCallback(pa_stream* stream, void* userdata);
+	auto ensureCaptureContext() -> bool;
+	void teardownCaptureContext();
+	void closeTrackInput(TrackInput& input);
+
 	bool m_connected;
 	QSemaphore m_connectedSemaphore;
 	mutable std::mutex m_monitoredDeviceMutex;
 	QString m_monitoredDevice;
 	std::atomic_bool m_streamFailureReported{false};
+
+	std::unordered_map<quint64, TrackInput> m_trackInputs;
+	pa_threaded_mainloop* m_captureMainLoop = nullptr;
+	pa_context* m_captureContext = nullptr;
 
 } ;
 

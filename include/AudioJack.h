@@ -36,6 +36,7 @@
 
 #include <atomic>
 #include <vector>
+#include <QMap>
 #ifdef AUDIO_BUS_HANDLE_SUPPORT
 #include <QMap>
 #endif
@@ -83,7 +84,6 @@ public:
 
 	private:
 		std::vector<std::string> getAudioPortNames(JackPortFlags portFlags) const;
-		std::vector<std::string> getAudioInputNames() const;
 		std::vector<std::string> getAudioOutputNames() const;
 		static QMenu* buildMenu(QToolButton* toolButton, const std::vector<std::string>& names, const QString& filteredMXMClientName);
 
@@ -93,7 +93,6 @@ public:
 		jack_client_t* m_client;
 
 		std::vector<QToolButton*> m_outputDevices;
-		std::vector<QToolButton*> m_inputDevices;
 	};
 
 private slots:
@@ -101,40 +100,41 @@ private slots:
 
 private:
 	bool initJackClient();
-	void resizeInputBuffer(jack_nframes_t nframes);
+	void resizeTrackInputBuffers(jack_nframes_t nframes);
 
 	void startProcessingImpl() override;
 	void stopProcessingImpl() override;
 
 	void attemptToConnect(size_t index, const char *mxm_port_type, const char *source_port, const char *destination_port);
 	void attemptToReconnectOutput(size_t outputIndex, const QString& targetPort);
-	void attemptToReconnectInput(size_t inputIndex, const QString& sourcePort);
 
 	void registerPort(AudioBusHandle* port) override;
 	void unregisterPort(AudioBusHandle* port) override;
 	void renamePort(AudioBusHandle* port) override;
 
+	auto supportsTrackInputPorts() const -> bool override;
+	auto supportsExternalPatchbayInput() const -> bool override;
+	auto registerTrackInputPort(quint64 id, const QString& name, ch_cnt_t channels) -> bool override;
+	void unregisterTrackInputPort(quint64 id) override;
+	void renameTrackInputPort(quint64 id, const QString& name) override;
+	auto inputSources() const -> std::vector<AudioInputSource> override;
+	void setTrackInputSource(quint64 id, const QStringList& endpointPorts) override;
+
 	int processCallback(jack_nframes_t nframes);
 
 	static int staticProcessCallback(jack_nframes_t nframes, void* udata);
 	static void portConnectCallback(jack_port_id_t portA, jack_port_id_t portB, int connected, void* udata);
+	static void portRegistrationCallback(jack_port_id_t port, int registered, void* udata);
 	static void shutdownCallback(void* _udata);
 
-	jack_client_t* m_client;
+	std::atomic<jack_client_t*> m_client{nullptr};
 
 	bool m_active;
 
 	std::atomic<MidiJack*> m_midiClient;
 	std::vector<jack_port_t*> m_outputPorts;
-	std::vector<jack_port_t*> m_inputPorts;
-	std::atomic<int> m_monoInputPort{-1};
 	jack_default_audio_sample_t** m_tempOutBufs;
-	// Number of capture ports, configured via "audiojack/inputchannels".
-	ch_cnt_t m_inputChannels = DEFAULT_CHANNELS;
-	// Planar capture storage: one block of m_inputBufferFrames per channel.
-	std::vector<float> m_inputFrameBuffer;
-	std::vector<float*> m_inputChannelPtrs;
-	jack_nframes_t m_inputBufferFrames = 0;
+	jack_nframes_t m_bufferFrames = 0;
 	std::atomic_bool m_zombieReported{false};
 	std::atomic_bool m_portsDisconnectedReported{false};
 
@@ -147,6 +147,17 @@ private:
 	using JackPortMap = QMap<AudioBusHandle*, StereoPort>;
 	JackPortMap m_portMap;
 #endif
+
+	struct TrackInputPort
+	{
+		QString name;
+		ch_cnt_t channels = 0;
+		std::vector<jack_port_t*> ports;
+		QStringList endpointPorts;
+		std::vector<float> scratch;
+		std::vector<const float*> pointers;
+	};
+	QMap<quint64, TrackInputPort> m_trackInputPorts;
 
 signals:
 	void zombified();
